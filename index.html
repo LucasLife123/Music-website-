@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+```
+<title>MusicVerse | Explore Musical Instruments</title>
+
+<link rel="stylesheet" href="style.css">
+```
+
+</head>
+
+<body>
+
+```
+
+
+<!-- Header -->
+<header class="hero" id="home">
+
+    <nav class="navbar">
+
+        <a href="#home" class="logo">🎵 MusicVerse</a>
+
+        <ul class="nav-links" id="navLinks">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#instruments">Instruments</a></li>
+            <li><a href="#world">World Music</a></li>
+            <li><a href="#learn">Learn</a></li>
+            <li><a href="#quiz">Quiz</a></li>
+        </ul>
+
+        <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+            🌙
+        </button>
+
+        <button id="menuToggle" class="menu-toggle" aria-label="Open menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+    </nav>
+
+
+    <div class="hero-content">
+
+        <p class="small-title">
+            EXPLORE THE WORLD OF SOUND
+        </p>
+
+        <h1>
+            Discover Musical
+            <span>Instruments</span>
+        </h1>
+
+        <p class="hero-text">
+            Explore instruments from around the world,
+            discover how they create sound, learn their
+            history, and test your musical knowledge.
+        </p>
+
+        <a href="#instruments" class="hero-button">
+            Explore Instruments 🎵
+        </a>
+
+    </div>
+
+</header>
+
+
+<!-- About -->
+<section class="section about">
+
+    <div class="section-title">
+        <p>INTRODUCTION</p>
+        <h2>What Are Musical Instruments?</h2>
+    </div>
+
+    <div class="about-content">
+
+        <p>
+            Musical instruments are objects designed to produce sound
+            for musical expression. They create sound through vibrating
+            strings, moving air, striking surfaces, or electronic signals.
+        </p>
+
+        <p>
+            Music connects people across cultures and generations.
+            From ancient drums to modern synthesizers, instruments
+            continue to evolve and inspire musicians around the world.
+        </p>
+
+    </div>
+
+</section>
+
+
+<!-- Search -->
+<section class="search-section">
+
+    <h2>🔍 Find an Instrument</h2>
+
+    <input
+        type="text"
+        id="searchInput"
+        placeholder="Search for an instrument..."
+    >
+
+</section>
+
+
+<!-- Instruments -->
+<section class="section instruments-section" id="instruments">
+
+    <div class="section-title">
+        <p>INSTRUMENT LIBRARY</p>
+        <h2>Explore Instrument Families</h2>
+    </div>
+
+
+    <!-- Category Tabs -->
+    <div class="instrument-tabs">
+
+        <button class="tab-btn active" data-category="all">
+            🎵 All
+        </button>
+
+        <button class="tab-btn" data-category="string">
+            🎻 String
+        </button>
+
+        <button class="tab-btn" data-category="woodwind">
+            🪈 Woodwind
+        </button>
+
+        <button class="tab-btn" data-category="brass">
+            🎺 Brass
+        </button>
+
+        <button class="tab-btn" data-category="percussion">
+            🥁 Percussion
+        </button>
+
+        <button class="tab-btn" data-category="keyboard">
+            🎹 Keyboard
+        </button>
+
+        <button class="tab-btn" data-category="electronic">
+            🎛️ Electronic
+        </button>
+
+    </div>
+
+
+    <!-- Instrument Cards -->
+    <div class="instrument-grid">
+
+
+        <!-- Guitar -->
+        <article
+            class="instrument-card"
+            data-category="string"
+            data-name="guitar"
+            data-icon="🎸"
+            data-family="String"
+            data-origin="Spain"
+            data-description="A popular string instrument played by plucking or strumming its strings."
+            data-sound="Vibrating strings"
+            data-styles="Rock, Pop, Jazz, Blues, Classical"
+            data-difficulty="Intermediate"
+        >
+
+            <div class="instrument-icon">🎸</div>
+
+            <span class="category-label">STRING</span>
+
+            <h3>Guitar</h3>
+
+            <p>
+                A versatile string instrument played by
+                plucking or strumming its strings.
+            </p>
+
+            <div class="instrument-details">
+                <p><strong>Sound:</strong> Vibrating strings</p>
+                <p><strong>Styles:</strong> Rock, Pop, Jazz, Blues</p>
+                <p><strong>Difficulty:</strong> ⭐⭐⭐☆☆</p>
+            </div>
+
+            <button class="sound-btn" data-frequency="220">
+                ▶ Play Sound
+            </button>
+
+            <button class="info-btn">
+                Learn More →
+            </button>
+
+        </article>
+
+
+        <!-- Violin -->
+        <article
+            class="instrument-card"
+            data-category="string"
+            data-name="violin"
+            data-icon="🎻"
+            data-family="String"
+            data-origin="Italy"
+            data-description="A bowed string instrument famous for its expressive sound."
+            data-sound="Bowed or plucked strings"
+            data-styles="Classical, Folk, Film Music"
+            data-difficulty="Advanced"
+        >
+
+            <div class="instrument-icon">🎻</div>
+
+            <span class="category-label">STRING</span>
+
+            <h3>Violin</h3>
+
+            <p>
+                A bowed string instrument widely used
+                in orchestras and classical music.
+            </p>
+
+            <div class="instrument-details">
+                <p><strong>Sound:</strong> Bowed strings</p>
+                <p><strong>Styles:</strong> Classical, Folk</p>
+                <p><strong>Difficulty:</strong> ⭐⭐⭐⭐☆</p>
+            </div>
+
+            <button class="sound-btn" data-frequency="660">
+                ▶ Play Sound
+            </button>
+
+            <button class="info-btn">
+                Learn More →
+            </button>
+
+        </article>
+
+
+        <!-- Piano -->
+        <article
+            class="instrument-card"
+            data-category="keyboard"
+            data-name="piano"
+            data-icon="🎹"
+            data-family="Keyboard"
+            data-origin="Italy"
+            data-description="A keyboard instrument that produces sound when hammers strike strings."
+            data-sound="Hammers striking strings"
+            data-styles="Classical, Jazz, Pop, Film Music"
+            data-difficulty="Intermediate"
+        >
+
+            <div class="instrument-icon">🎹</div>
+
+            <span class="category-label">KEYBOARD</span>
+
+            <h3>Piano</h3>
+
+            <p>
+                A keyboard instrument that creates sound
+                when hammers strike strings.
+            </p>
+
+            <div class="instrument-details">
+                <p><strong>Keys:</strong> Usually 88</p>
+                <p><strong>Styles:</strong> Classical, Jazz, Pop</p>
+                <p><strong>Difficulty:</strong> ⭐⭐⭐☆☆</p>
+            </div>
+
+            <button class="sound-btn" data-frequency="440">
+                ▶ Play Sound
+            </button>
+
+            <button class="info-btn">
+                Learn More →
+            </button>
+
+        </article>
+
+
+        <!-- Flute -->
+        <article
+            class="instrument-card"
+            data-category="woodwind"
+            data-name="flute"
+            data-icon="🪈"
+            data-family="Woodwind"
+            data-origin="Ancient"
+            data-description="A woodwind instrument that produces sound when air flows across an opening."
+            data-sound="Moving air"
+            data-styles="Classical, Folk, World Music"
+            data-difficulty="Intermediate"
+        >
+
+            <div class="instrument-icon">🪈</div>
+
+            <span class="category-label">WOODWIND</span>
+
+            <h3>Flute</h3>
+
+            <p>
+                A wind instrument that produces sound
+                using controlled airflow.
+            </p>
+
+            <div class="instrument-details">
+                <p><strong>Sound:</strong> Air vibrations</p>
+                <p><strong>Styles:</strong> Classical, Folk</p>
+                <p><strong>Difficulty:</strong> ⭐⭐⭐☆☆</p>
+            </div>
+
+            <button class="sound-btn" data-frequency="698">
+                ▶ Play Sound
+            </button>
+
+            <button class="info-btn">
+                Learn More →
+            </button>
+
+        </article>
+
+
+        <!-- Saxophone -->
+        <article
+            class="instrument-card"
+            data-category="woodwind"
+            data-name="saxophone"
+            data-icon="🎷"
+            data-family="Woodwind"
+            data-origin="Belgium"
+            data-description="A woodwind instrument that uses a reed to create sound."
+            data-sound="Vibrating reed"
+            data-styles="Jazz, Blues, Pop, Classical"
+            data-difficulty="Intermediate"
+        >
+
+            <div class="instrument-icon">🎷</div>
+
+            <span class="category-label">WOODWIND</span>
+
+            <h3>Saxophone</h3>
+
+            <p>
+                A reed instrument popular in jazz,
+                blues, pop, and classical music.
+            </p>
+
+            <div class="instrument-details">
+                <p><strong>Sound:</strong> Vibrating reed</p>
+                <p><strong>Styles:</strong> Jazz, Blues, Pop</p>
+                <p><strong>Difficulty:</strong> ⭐⭐⭐☆☆</p>
+            </div>
+
+            <button class="sound-btn" data-frequency="370">
+                ▶ Play Sound
+            </button>
+
+            <button class="info-btn">
+                Learn More →
+            </button>
+
+        </article>
+
+
+        <!-- Trumpet -->
+        <article
+            class="instrument-card"
+            data-category="brass"
+            data-name="trumpet"
+            data-icon="🎺"
+            data-family="Brass"
+            data-origin="Ancient Civilizations"
+            data-description="A brass instrument played by buzzing the lips into a mouthpiece."
+            data-sound="Lip vibration"
+            data-styles="Jazz, Classical, Marching Band"
+            data-difficulty="Advanced"
+        >
+
+            <div class="instrument-icon">🎺</div>
+
+            <span class="category-label">BRASS</span>
+
+            <h3>Trumpet</h3>
+
+            <p>
+                A brass instrument played by buzzing
+                the lips into a mouthpiece.
+            </p>
+
+            <div class="instrument-details">
+                <p><strong>Sound:</strong> Lip vibration</p>
+                <p><strong>Styles:</strong> Jazz, Classical</p>
+                <p><strong>Difficulty:</strong> ⭐⭐⭐⭐☆</p>
+            </div>
+
+            <button class="sound-btn" data-frequency="523">
+                ▶ Play Sound
+            </button>
+
+            <button class="info-btn">
+                Learn More →
+            </button>
+
+        </article>
+
+
+        <!-- Drums -->
+        <article
+            class="instrument-card"
+            data-category="percussion"
+            data-name="drums"
+            data-icon="🥁"
+            data-family="Percussion"
+            data-origin="Ancient Cultures"
+            data-description="A group of percussion instruments used to create rhythm and beats."
+            data-sound="Striking vibrating surfaces"
+            data-styles="Rock, Pop, Jazz, Hip-Hop"
+            data-difficulty="Beginner to Advanced"
+        >
+
+            <div class="instrument-icon">🥁</div>
+
+            <span class="category-label">PERCUSSION</span>
+
+            <h3>Drums</h3>
+
+            <p>
+                Percussion instruments used to create
+                rhythm and musical energy.
+            </p>
+
+            <div class="instrument-details">
+                <p><strong>Sound:</strong> Striking surfaces</p>
+                <p><strong>Styles:</strong> Rock, Pop, Jazz</p>
+                <p><strong>Difficulty:</strong> ⭐⭐☆☆☆</p>
+            </div>
+
+            <button class="drum-btn">
+                🥁 Play Drum
+            </button>
+
+            <button class="info-btn">
+                Learn More →
+            </button>
+
+        </article>
+
+
+        <!-- Synthesizer -->
+        <article
+            class="instrument-card"
+            data-category="electronic"
+            data-name="synthesizer"
+            data-icon="🎛️"
+            data-family="Electronic"
+            data-origin="20th Century"
+            data-description="An electronic instrument capable of creating and modifying many different sounds."
+            data-sound="Electronic signals"
+            data-styles="Electronic, Pop, Film Music"
+            data-difficulty="Intermediate"
+        >
+
+            <div class="instrument-icon">🎛️</div>
+
+            <span class="category-label">ELECTRONIC</span>
+
+            <h3>Synthesizer</h3>
+
+            <p>
+                An electronic instrument capable of
+                creating a huge variety of sounds.
+            </p>
+
+            <div class="instrument-details">
+                <p><strong>Sound:</strong> Electronic signals</p>
+                <p><strong>Styles:</strong> Electronic, Pop</p>
+                <p><strong>Difficulty:</strong> ⭐⭐⭐☆☆</p>
+            </div>
+
+            <button class="sound-btn" data-frequency="330">
+                ▶ Play Sound
+            </button>
+
+            <button class="info-btn">
+                Learn More →
+            </button>
+
+        </article>
+
+    </div>
+
+</section>
+
+
+<!-- World Instruments -->
+<section class="section world" id="world">
+
+    <div class="section-title">
+        <p>WORLD MUSIC</p>
+        <h2>Instruments Around the World</h2>
+    </div>
+
+    <div class="world-grid">
+
+        <div class="world-card">
+            <span>🌍</span>
+            <h3>Djembe</h3>
+            <p><strong>West Africa</strong></p>
+            <p>A hand drum known for powerful and expressive sounds.</p>
+        </div>
+
+        <div class="world-card">
+            <span>🇮🇳</span>
+            <h3>Sitar</h3>
+            <p><strong>India</strong></p>
+            <p>A traditional string instrument with a resonant sound.</p>
+        </div>
+
+        <div class="world-card">
+            <span>🇯🇵</span>
+            <h3>Shamisen</h3>
+            <p><strong>Japan</strong></p>
+            <p>A traditional three-string instrument.</p>
+        </div>
+
+        <div class="world-card">
+            <span>🇨🇳</span>
+            <h3>Erhu</h3>
+            <p><strong>China</strong></p>
+            <p>A traditional two-string bowed instrument.</p>
+        </div>
+
+        <div class="world-card">
+            <span>🇦🇺</span>
+            <h3>Didgeridoo</h3>
+            <p><strong>Australia</strong></p>
+            <p>A traditional wind instrument.</p>
+        </div>
+
+        <div class="world-card">
+            <span>🏴</span>
+            <h3>Bagpipes</h3>
+            <p><strong>Scotland</strong></p>
+            <p>An instrument using bags, pipes, and reeds.</p>
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- Learning Tips -->
+<section class="section learn" id="learn">
+
+    <div class="section-title">
+        <p>LEARN MUSIC</p>
+        <h2>Tips for Learning an Instrument</h2>
+    </div>
+
+    <div class="tips-grid">
+
+        <div class="tip">
+            <span>1️⃣</span>
+            <h3>Practice Regularly</h3>
+            <p>Short and consistent practice sessions help develop skills.</p>
+        </div>
+
+        <div class="tip">
+            <span>2️⃣</span>
+            <h3>Start Slowly</h3>
+            <p>Focus on the basics before moving on to difficult techniques.</p>
+        </div>
+
+        <div class="tip">
+            <span>3️⃣</span>
+            <h3>Listen Carefully</h3>
+            <p>Listening develops rhythm, timing, and musical awareness.</p>
+        </div>
+
+        <div class="tip">
+            <span>4️⃣</span>
+            <h3>Have Fun</h3>
+            <p>Enjoying your instrument helps you stay motivated.</p>
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- Favorite -->
+<section class="favorite">
+
+    <h2>❤️ Choose Your Favorite Instrument</h2>
+
+    <div class="favorite-buttons">
+
+        <button data-favorite="Guitar">🎸 Guitar</button>
+        <button data-favorite="Piano">🎹 Piano</button>
+        <button data-favorite="Drums">🥁 Drums</button>
+        <button data-favorite="Violin">🎻 Violin</button>
+        <button data-favorite="Trumpet">🎺 Trumpet</button>
+
+    </div>
+
+    <p id="favoriteResult">
+        Choose an instrument!
+    </p>
+
+</section>
+
+
+<!-- Quiz -->
+<section class="section quiz" id="quiz">
+
+    <div class="section-title">
+        <p>TEST YOUR KNOWLEDGE</p>
+        <h2>Musical Instrument Quiz</h2>
+    </div>
+
+    <div class="quiz-box">
+
+        <div class="quiz-progress">
+            Question
+            <span id="questionNumber">1</span>
+            /
+            <span id="totalQuestions">5</span>
+        </div>
+
+        <div class="quiz-score">
+            Score:
+            <span id="score">0</span>
+        </div>
+
+        <h3 id="questionText">
+            Loading question...
+        </h3>
+
+        <div id="answerButtons"></div>
+
+        <p id="quizResult"></p>
+
+        <button id="nextQuestion" class="next-question">
+            Next Question →
+        </button>
+
+    </div>
+
+</section>
+
+
+<!-- Fun Facts -->
+<section class="fact-section">
+
+    <h2>⭐ Musical Fun Fact</h2>
+
+    <p id="funFact">
+        Click the button to discover something interesting!
+    </p>
+
+    <button id="factButton">
+        Show Fun Fact 🎵
+    </button>
+
+</section>
+
+
+<!-- Instrument Modal -->
+<div id="instrumentModal" class="instrument-modal">
+
+    <div class="modal-content">
+
+        <button id="closeModal" class="close-modal">
+            ×
+        </button>
+
+        <div id="modalIcon" class="modal-icon">
+            🎵
+        </div>
+
+        <span id="modalFamily" class="modal-family"></span>
+
+        <h2 id="modalTitle"></h2>
+
+        <p id="modalDescription"></p>
+
+        <div class="modal-info">
+
+            <p>
+                🌍 <strong>Origin:</strong>
+                <span id="modalOrigin"></span>
+            </p>
+
+            <p>
+                🔊 <strong>Sound:</strong>
+                <span id="modalSound"></span>
+            </p>
+
+            <p>
+                🎶 <strong>Styles:</strong>
+                <span id="modalStyles"></span>
+            </p>
+
+            <p>
+                ⭐ <strong>Difficulty:</strong>
+                <span id="modalDifficulty"></span>
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Footer -->
+<footer>
+
+    <h2>🎵 MusicVerse</h2>
+
+    <p>Explore • Learn • Listen • Play</p>
+
+    <p>© 2026 MusicVerse</p>
+
+</footer>
+
+
+<!-- JavaScript -->
+<script src="script.js"></script>
+```
+
+</body>
+</html>
