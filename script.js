@@ -1,3259 +1,7671 @@
-/* =========================================================
-   MUSICVERSE — COMPLETE STYLE.CSS
-   Dark Navy + Champagne Gold Theme
-========================================================= */
+document.addEventListener("DOMContentLoaded", () => {
 
 
 /* =========================================================
-   1. ROOT VARIABLES
+   HELPERS
 ========================================================= */
 
-:root {
-    --bg: #080e1a;
-    --bg-alt: #0b1426;
-    --bg-deep: #050912;
+function randomItem(array) {
 
-    --panel: #101a2c;
-    --panel-2: #111e33;
-    --panel-3: #15243c;
+    return array[
+        Math.floor(
+            Math.random() *
+            array.length
+        )
+    ];
 
-    --gold: #c39a55;
-    --gold-light: #dfbf7b;
-    --gold-soft: rgba(195, 154, 85, 0.14);
-
-    --cream: #f5f1e8;
-    --text: #d8dde7;
-    --muted: #9fa9b9;
-
-    --border: rgba(216, 185, 119, 0.15);
-    --border-strong: rgba(216, 185, 119, 0.32);
-
-    --success: #78c091;
-    --danger: #d76c6c;
-    --blue: #6aa8d8;
-
-    --shadow:
-        0 20px 60px rgba(0, 0, 0, 0.28);
-
-    --radius: 22px;
-    --radius-small: 14px;
-
-    --serif:
-        "Cormorant Garamond",
-        Georgia,
-        serif;
-
-    --sans:
-        "Montserrat",
-        Arial,
-        sans-serif;
-}
-
-
-/* =========================================================
-   2. RESET
-========================================================= */
-
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-html {
-    scroll-behavior: smooth;
-}
-
-body {
-    min-height: 100vh;
-
-    background:
-        radial-gradient(
-            circle at top,
-            rgba(195, 154, 85, 0.06),
-            transparent 30%
-        ),
-        var(--bg);
-
-    color: var(--text);
-
-    font-family: var(--sans);
-    font-size: 16px;
-    line-height: 1.7;
-
-    overflow-x: hidden;
-}
-
-button,
-input {
-    font: inherit;
-}
-
-button {
-    border: none;
-}
-
-button,
-a {
-    -webkit-tap-highlight-color: transparent;
-}
-
-a {
-    color: inherit;
-    text-decoration: none;
-}
-
-img,
-canvas {
-    max-width: 100%;
-}
-
-::selection {
-    background: var(--gold);
-    color: var(--bg);
-}
-
-
-/* =========================================================
-   3. TYPOGRAPHY
-========================================================= */
-
-h1,
-h2,
-h3,
-h4 {
-    font-family: var(--serif);
-    color: var(--cream);
-    line-height: 1.05;
-}
-
-h1 {
-    font-size: clamp(3.7rem, 8vw, 7.6rem);
-    font-weight: 600;
-    letter-spacing: -0.045em;
-}
-
-h2 {
-    font-size: clamp(2.6rem, 5vw, 4.6rem);
-    font-weight: 600;
-    letter-spacing: -0.025em;
-}
-
-h3 {
-    font-size: 1.75rem;
-}
-
-p {
-    color: var(--text);
-}
-
-strong {
-    color: var(--cream);
-}
-
-em {
-    color: var(--gold-light);
-    font-weight: 600;
-}
-
-
-/* =========================================================
-   4. BUTTONS
-========================================================= */
-
-button,
-.gold-button,
-.outline-button {
-    cursor: pointer;
-
-    transition:
-        transform 0.2s ease,
-        background 0.2s ease,
-        border-color 0.2s ease,
-        color 0.2s ease,
-        box-shadow 0.2s ease;
-}
-
-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.45;
-}
-
-.gold-button {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-
-    min-height: 48px;
-
-    padding: 13px 23px;
-
-    border: 1px solid var(--gold);
-    border-radius: 999px;
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--gold-light),
-            var(--gold)
-        );
-
-    color: #10131a;
-
-    font-weight: 800;
-    font-size: 0.82rem;
-
-    letter-spacing: 0.04em;
-}
-
-.gold-button:hover {
-    transform: translateY(-2px);
-
-    box-shadow:
-        0 10px 30px rgba(195, 154, 85, 0.22);
-}
-
-.outline-button {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-
-    min-height: 48px;
-
-    padding: 13px 23px;
-
-    border: 1px solid var(--border-strong);
-    border-radius: 999px;
-
-    background:
-        rgba(255, 255, 255, 0.025);
-
-    color: var(--cream);
-
-    font-weight: 700;
-    font-size: 0.82rem;
-}
-
-.outline-button:hover {
-    border-color: var(--gold);
-
-    color: var(--gold-light);
-
-    transform: translateY(-2px);
-}
-
-.full-button {
-    width: 100%;
-}
-
-.centered-button {
-    display: flex;
-    width: fit-content;
-
-    margin:
-        28px
-        auto
-        0;
-}
-
-
-/* =========================================================
-   5. HERO
-========================================================= */
-
-.hero {
-    min-height: 92vh;
-
-    display: flex;
-    flex-direction: column;
-
-    position: relative;
-
-    overflow: hidden;
-
-    background:
-        radial-gradient(
-            circle at 72% 30%,
-            rgba(195, 154, 85, 0.11),
-            transparent 26%
-        ),
-        radial-gradient(
-            circle at 18% 70%,
-            rgba(64, 105, 160, 0.10),
-            transparent 30%
-        ),
-        linear-gradient(
-            180deg,
-            #080f1d,
-            #080e1a
-        );
-}
-
-.hero::before {
-    content: "";
-
-    position: absolute;
-
-    width: 700px;
-    height: 700px;
-
-    right: -330px;
-    top: -300px;
-
-    border: 1px solid rgba(195, 154, 85, 0.1);
-    border-radius: 50%;
-}
-
-.hero::after {
-    content: "";
-
-    position: absolute;
-
-    width: 420px;
-    height: 420px;
-
-    left: -250px;
-    bottom: -200px;
-
-    border: 1px solid rgba(195, 154, 85, 0.08);
-    border-radius: 50%;
-}
-
-
-/* =========================================================
-   6. NAVIGATION
-========================================================= */
-
-.navbar {
-    width: min(1180px, calc(100% - 40px));
-
-    margin: 22px auto 0;
-
-    min-height: 72px;
-
-    padding:
-        10px
-        14px
-        10px
-        24px;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    gap: 20px;
-
-    position: relative;
-    z-index: 20;
-
-    border: 1px solid var(--border);
-    border-radius: 999px;
-
-    background:
-        rgba(8, 14, 26, 0.76);
-
-    backdrop-filter: blur(18px);
-
-    box-shadow:
-        0 15px 50px rgba(0, 0, 0, 0.18);
-}
-
-.logo {
-    color: var(--cream);
-
-    font-family: var(--serif);
-    font-size: 1.55rem;
-    font-weight: 700;
-
-    white-space: nowrap;
-}
-
-.nav-links {
-    display: flex;
-    align-items: center;
-
-    gap: 6px;
-
-    list-style: none;
-}
-
-.nav-links a {
-    display: block;
-
-    padding:
-        9px
-        13px;
-
-    border-radius: 999px;
-
-    color: var(--muted);
-
-    font-size: 0.75rem;
-    font-weight: 700;
-
-    transition:
-        color 0.2s ease,
-        background 0.2s ease;
-}
-
-.nav-links a:hover {
-    color: var(--gold-light);
-
-    background:
-        rgba(195, 154, 85, 0.08);
-}
-
-.theme-toggle,
-.menu-toggle {
-    width: 44px;
-    height: 44px;
-
-    flex: 0 0 auto;
-
-    border: 1px solid var(--border);
-    border-radius: 50%;
-
-    background:
-        rgba(255, 255, 255, 0.035);
-
-    color: var(--cream);
-}
-
-.theme-toggle:hover,
-.menu-toggle:hover {
-    border-color: var(--gold);
-}
-
-.menu-toggle {
-    display: none;
-
-    padding: 11px;
-}
-
-.menu-toggle span {
-    display: block;
-
-    width: 100%;
-    height: 2px;
-
-    margin: 4px 0;
-
-    border-radius: 10px;
-
-    background: var(--cream);
-}
-
-
-/* =========================================================
-   7. HERO CONTENT
-========================================================= */
-
-.hero-content {
-    width: min(1080px, calc(100% - 40px));
-
-    margin: auto;
-
-    padding:
-        110px
-        0
-        130px;
-
-    position: relative;
-    z-index: 2;
-
-    text-align: center;
-}
-
-.eyebrow {
-    margin-bottom: 22px;
-
-    color: var(--gold-light);
-
-    font-size: 0.72rem;
-    font-weight: 800;
-
-    letter-spacing: 0.25em;
-}
-
-.hero-content h1 {
-    max-width: 980px;
-
-    margin: auto;
-}
-
-.hero-content h1 em {
-    display: block;
-
-    font-weight: 600;
-}
-
-.hero-text {
-    max-width: 720px;
-
-    margin:
-        30px
-        auto
-        0;
-
-    color: var(--muted);
-
-    font-size: 1.05rem;
-}
-
-.hero-actions {
-    margin-top: 36px;
-
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-
-    gap: 12px;
-}
-
-
-/* =========================================================
-   8. SECTIONS
-========================================================= */
-
-.section {
-    width: min(1180px, calc(100% - 40px));
-
-    margin: 0 auto;
-
-    padding:
-        105px
-        0;
-}
-
-.alt-section {
-    position: relative;
-}
-
-.alt-section::before {
-    content: "";
-
-    position: absolute;
-
-    left: 50%;
-    top: 0;
-
-    width: 100vw;
-    height: 100%;
-
-    transform: translateX(-50%);
-
-    z-index: -1;
-
-    background:
-        linear-gradient(
-            180deg,
-            rgba(255, 255, 255, 0.015),
-            rgba(255, 255, 255, 0.03),
-            rgba(255, 255, 255, 0.015)
-        );
-
-    border-top:
-        1px solid rgba(255, 255, 255, 0.03);
-
-    border-bottom:
-        1px solid rgba(255, 255, 255, 0.03);
-}
-
-.section-title {
-    max-width: 780px;
-
-    margin:
-        0
-        auto
-        52px;
-
-    text-align: center;
-}
-
-.section-title > p:first-child {
-    margin-bottom: 10px;
-
-    color: var(--gold);
-
-    font-size: 0.7rem;
-    font-weight: 800;
-
-    letter-spacing: 0.2em;
-}
-
-.section-title > p:last-child:not(:first-child) {
-    max-width: 660px;
-
-    margin:
-        18px
-        auto
-        0;
-
-    color: var(--muted);
-}
-
-.intro-grid {
-    max-width: 900px;
-
-    margin: auto;
-
-    display: grid;
-    grid-template-columns:
-        repeat(2, 1fr);
-
-    gap: 22px;
-}
-
-.intro-grid p {
-    padding: 30px;
-
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-
-    background: var(--panel);
-
-    color: var(--muted);
-}
-
-
-/* =========================================================
-   9. SEARCH
-========================================================= */
-
-.search-section {
-    width: min(780px, calc(100% - 40px));
-
-    margin:
-        0
-        auto
-        10px;
-}
-
-.search-box {
-    min-height: 62px;
-
-    display: flex;
-    align-items: center;
-
-    gap: 14px;
-
-    padding:
-        0
-        20px;
-
-    border: 1px solid var(--border-strong);
-    border-radius: 999px;
-
-    background: var(--panel);
-
-    box-shadow: var(--shadow);
-}
-
-.search-box span {
-    font-size: 1.15rem;
-}
-
-.search-box input {
-    width: 100%;
-
-    border: 0;
-    outline: 0;
-
-    background: transparent;
-
-    color: var(--cream);
-
-    font-size: 0.95rem;
-}
-
-.search-box input::placeholder {
-    color: #737e8f;
-}
-
-#searchStatus {
-    min-height: 26px;
-
-    padding-top: 10px;
-
-    text-align: center;
-
-    color: var(--muted);
-
-    font-size: 0.78rem;
-}
-
-
-/* =========================================================
-   10. INSTRUMENT TABS
-========================================================= */
-
-.instrument-tabs {
-    margin-bottom: 34px;
-
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-
-    gap: 9px;
-}
-
-.tab-btn {
-    padding:
-        10px
-        16px;
-
-    border: 1px solid var(--border);
-    border-radius: 999px;
-
-    background: var(--panel);
-
-    color: var(--muted);
-
-    font-size: 0.75rem;
-    font-weight: 700;
-}
-
-.tab-btn:hover,
-.tab-btn.active {
-    border-color: var(--gold);
-
-    background:
-        rgba(195, 154, 85, 0.12);
-
-    color: var(--gold-light);
-}
-
-
-/* =========================================================
-   11. INSTRUMENT CARDS
-========================================================= */
-
-.instrument-grid {
-    display: grid;
-
-    grid-template-columns:
-        repeat(3, 1fr);
-
-    gap: 20px;
-}
-
-.instrument-card {
-    min-width: 0;
-
-    padding: 28px;
-
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-
-    background:
-        linear-gradient(
-            145deg,
-            var(--panel),
-            var(--panel-2)
-        );
-
-    box-shadow:
-        0 12px 40px rgba(0, 0, 0, 0.14);
-
-    transition:
-        transform 0.25s ease,
-        border-color 0.25s ease;
-}
-
-.instrument-card:hover {
-    transform: translateY(-6px);
-
-    border-color: var(--border-strong);
-}
-
-.instrument-icon {
-    width: 72px;
-    height: 72px;
-
-    margin-bottom: 18px;
-
-    display: grid;
-    place-items: center;
-
-    border: 1px solid var(--border);
-    border-radius: 20px;
-
-    background:
-        rgba(195, 154, 85, 0.08);
-
-    font-size: 2.25rem;
-}
-
-.category-label,
-.gold-label {
-    color: var(--gold);
-
-    font-size: 0.67rem;
-    font-weight: 800;
-
-    letter-spacing: 0.16em;
-}
-
-.instrument-card h3 {
-    margin-top: 8px;
-}
-
-.instrument-card > p {
-    min-height: 82px;
-
-    margin-top: 12px;
-
-    color: var(--muted);
-
-    font-size: 0.86rem;
-}
-
-.instrument-details {
-    margin:
-        18px
-        0;
-
-    padding:
-        14px
-        0;
-
-    border-top:
-        1px solid var(--border);
-
-    border-bottom:
-        1px solid var(--border);
-}
-
-.instrument-details p {
-    margin: 4px 0;
-
-    color: var(--muted);
-
-    font-size: 0.75rem;
-}
-
-.instrument-details strong {
-    color: var(--gold-light);
-}
-
-.sound-btn,
-.info-btn {
-    width: 100%;
-
-    min-height: 42px;
-
-    margin-top: 8px;
-
-    border-radius: 999px;
-
-    font-size: 0.75rem;
-    font-weight: 700;
-}
-
-.sound-btn {
-    background:
-        linear-gradient(
-            135deg,
-            var(--gold-light),
-            var(--gold)
-        );
-
-    color: #111;
-}
-
-.info-btn {
-    border:
-        1px solid var(--border);
-
-    background: transparent;
-
-    color: var(--cream);
-}
-
-.sound-btn:hover,
-.info-btn:hover {
-    transform: translateY(-2px);
-}
-
-.no-results {
-    padding: 40px;
-
-    text-align: center;
-
-    color: var(--muted);
-}
-
-
-/* =========================================================
-   12. FEATURED INSTRUMENT
-========================================================= */
-
-.feature-instrument {
-    max-width: 900px;
-
-    margin: auto;
-
-    padding: 42px;
-
-    display: grid;
-    grid-template-columns:
-        180px
-        1fr;
-
-    gap: 38px;
-
-    align-items: center;
-
-    border: 1px solid var(--border-strong);
-    border-radius: 30px;
-
-    background:
-        linear-gradient(
-            145deg,
-            var(--panel),
-            var(--panel-2)
-        );
-
-    box-shadow: var(--shadow);
-}
-
-.feature-icon {
-    width: 170px;
-    height: 170px;
-
-    display: grid;
-    place-items: center;
-
-    border: 1px solid var(--border);
-    border-radius: 50%;
-
-    background:
-        radial-gradient(
-            circle,
-            rgba(195, 154, 85, 0.18),
-            rgba(195, 154, 85, 0.03)
-        );
-
-    font-size: 5rem;
-}
-
-.feature-instrument h3 {
-    margin-top: 8px;
-
-    font-size: 2.7rem;
-}
-
-.feature-instrument > div > p {
-    margin-top: 12px;
-
-    color: var(--muted);
-}
-
-.feature-details {
-    margin:
-        20px
-        0;
-}
-
-.feature-details p {
-    margin: 6px 0;
-
-    color: var(--muted);
-
-    font-size: 0.85rem;
-}
-
-
-/* =========================================================
-   13. VIRTUAL PIANO
-========================================================= */
-
-.virtual-piano {
-    max-width: 920px;
-
-    min-height: 240px;
-
-    margin: auto;
-
-    padding: 18px;
-
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-
-    overflow-x: auto;
-
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-
-    background:
-        #060a11;
-
-    box-shadow: var(--shadow);
-}
-
-.piano-key {
-    min-width: 62px;
-    height: 200px;
-
-    margin: 0 2px;
-
-    border:
-        1px solid #c9c9c9;
-
-    border-radius:
-        0
-        0
-        9px
-        9px;
-
-    background:
-        linear-gradient(
-            180deg,
-            #fff,
-            #e7e7e7
-        );
-
-    color: #111;
-
-    font-weight: 800;
-
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-
-    padding-bottom: 16px;
-}
-
-.piano-key:hover {
-    background:
-        linear-gradient(
-            180deg,
-            #fff7e7,
-            #dfc58c
-        );
-}
-
-.piano-key:active {
-    transform:
-        translateY(
-            4px
-        );
-}
-
-.black-key {
-    min-width: 44px;
-    height: 128px;
-
-    margin:
-        0
-        -24px;
-
-    position: relative;
-    z-index: 2;
-
-    border-color: #000;
-
-    background:
-        linear-gradient(
-            180deg,
-            #242424,
-            #050505
-        );
-
-    color: #fff;
-}
-
-
-/* =========================================================
-   14. DRUM PAD
-========================================================= */
-
-.drum-pad {
-    max-width: 760px;
-
-    margin: auto;
-
-    display: grid;
-    grid-template-columns:
-        repeat(3, 1fr);
-
-    gap: 14px;
-}
-
-.drum-pad-button {
-    min-height: 130px;
-
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-
-    background:
-        linear-gradient(
-            145deg,
-            var(--panel),
-            var(--panel-3)
-        );
-
-    color: var(--cream);
-
-    font-weight: 800;
-    letter-spacing: 0.08em;
-
-    box-shadow:
-        inset 0 0 0 1px rgba(255, 255, 255, 0.02);
-}
-
-.drum-pad-button:hover {
-    border-color: var(--gold);
-
-    color: var(--gold-light);
-
-    transform: translateY(-3px);
-}
-
-.drum-pad-button:active {
-    transform: scale(0.96);
-}
-
-
-/* =========================================================
-   15. GENERAL GAME CARDS
-========================================================= */
-
-.game-card,
-.quiz-box,
-.fact-card {
-    max-width: 760px;
-
-    margin: auto;
-
-    padding: 38px;
-
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-
-    background:
-        linear-gradient(
-            145deg,
-            var(--panel),
-            var(--panel-2)
-        );
-
-    box-shadow: var(--shadow);
-
-    text-align: center;
-}
-
-.clue {
-    margin-bottom: 24px;
-
-    color: var(--cream);
-
-    font-family: var(--serif);
-    font-size: 1.5rem;
-}
-
-.game-options {
-    margin:
-        20px
-        0;
-
-    display: grid;
-    grid-template-columns:
-        repeat(2, 1fr);
-
-    gap: 12px;
-}
-
-.game-options button {
-    min-height: 54px;
-
-    padding: 12px 16px;
-
-    border: 1px solid var(--border);
-    border-radius: 14px;
-
-    background:
-        rgba(255, 255, 255, 0.035);
-
-    color: var(--cream);
-
-    font-weight: 700;
-}
-
-.game-options button:hover:not(:disabled) {
-    border-color: var(--gold);
-
-    background:
-        rgba(195, 154, 85, 0.09);
-}
-
-
-/* =========================================================
-   16. BATTLE ARENA
-========================================================= */
-
-.battle-section {
-    position: relative;
-}
-
-.battle-intro {
-    max-width: 720px;
-
-    margin:
-        -25px
-        auto
-        35px;
-
-    text-align: center;
-
-    color: var(--muted);
-}
-
-.battle-selection {
-    margin-bottom: 38px;
-
-    text-align: center;
-}
-
-.battle-selection h3 {
-    margin-bottom: 20px;
-}
-
-.battle-instrument-grid {
-    display: grid;
-
-    grid-template-columns:
-        repeat(6, 1fr);
-
-    gap: 10px;
-}
-
-.battle-instrument-option {
-    min-height: 105px;
-
-    padding: 12px 8px;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-
-    gap: 7px;
-
-    border: 1px solid var(--border);
-    border-radius: 16px;
-
-    background:
-        linear-gradient(
-            145deg,
-            var(--panel),
-            var(--panel-2)
-        );
-
-    color: var(--muted);
-
-    font-size: 0.67rem;
-    font-weight: 700;
-}
-
-.battle-instrument-option:hover,
-.battle-instrument-option.active {
-    border-color: var(--gold);
-
-    background:
-        rgba(195, 154, 85, 0.1);
-
-    color: var(--gold-light);
-
-    transform: translateY(-3px);
-}
-
-.battle-option-icon {
-    display: block;
-
-    font-size: 2rem;
-}
-
-.battle-arena {
-    display: grid;
-
-    grid-template-columns:
-        1fr
-        100px
-        1fr;
-
-    align-items: center;
-
-    gap: 20px;
-}
-
-.fighter-card {
-    padding: 34px;
-
-    border: 1px solid var(--border);
-    border-radius: 28px;
-
-    background:
-        linear-gradient(
-            145deg,
-            var(--panel),
-            var(--panel-2)
-        );
-
-    box-shadow: var(--shadow);
-
-    text-align: center;
-}
-
-.fighter-label {
-    color: var(--gold);
-
-    font-size: 0.68rem;
-    font-weight: 800;
-
-    letter-spacing: 0.2em;
-}
-
-.fighter-icon {
-    width: 110px;
-    height: 110px;
-
-    margin:
-        20px
-        auto;
-
-    display: grid;
-    place-items: center;
-
-    border: 1px solid var(--border);
-    border-radius: 50%;
-
-    background:
-        rgba(195, 154, 85, 0.07);
-
-    font-size: 3.6rem;
-}
-
-.fighter-card h3 {
-    font-size: 2.2rem;
-}
-
-.fighter-card > p {
-    margin-top: 8px;
-
-    color: var(--muted);
-}
-
-.battle-vs {
-    color: var(--gold);
-
-    font-family: var(--serif);
-    font-size: 3rem;
-    font-weight: 700;
-
-    text-align: center;
-}
-
-.battle-stats {
-    margin-top: 22px;
-
-    display: grid;
-    grid-template-columns:
-        repeat(2, 1fr);
-
-    gap: 9px;
-}
-
-.battle-stats div {
-    padding: 11px;
-
-    display: flex;
-    justify-content: space-between;
-
-    border: 1px solid var(--border);
-    border-radius: 12px;
-
-    background:
-        rgba(0, 0, 0, 0.13);
-
-    color: var(--muted);
-
-    font-size: 0.72rem;
-}
-
-.battle-stats strong {
-    color: var(--gold-light);
-}
-
-
-/* =========================================================
-   17. XP
-========================================================= */
-
-.xp-container {
-    margin-top: 22px;
-}
-
-.xp-label {
-    margin-bottom: 7px;
-
-    display: flex;
-    justify-content: space-between;
-
-    color: var(--muted);
-
-    font-size: 0.68rem;
-    font-weight: 700;
-}
-
-.xp-bar {
-    height: 10px;
-
-    overflow: hidden;
-
-    border-radius: 999px;
-
-    background:
-        rgba(255, 255, 255, 0.07);
-}
-
-.xp-fill {
-    width: 0%;
-    height: 100%;
-
-    border-radius: inherit;
-
-    background:
-        linear-gradient(
-            90deg,
-            var(--gold),
-            var(--gold-light)
-        );
-
-    transition:
-        width 0.5s ease;
-}
-
-
-/* =========================================================
-   18. BATTLE CONTROLS
-========================================================= */
-
-.battle-controls {
-    margin-top: 28px;
-
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-
-    gap: 12px;
-}
-
-.battle-button {
-    min-height: 50px;
-
-    padding:
-        12px
-        32px;
-
-    border-radius: 999px;
-
-    background:
-        linear-gradient(
-            135deg,
-            #9e3e3e,
-            #d76c6c
-        );
-
-    color: white;
-
-    font-weight: 900;
-
-    letter-spacing: 0.06em;
-}
-
-.battle-button:hover:not(:disabled) {
-    transform: scale(1.04);
-
-    box-shadow:
-        0 10px 30px rgba(215, 108, 108, 0.22);
-}
-
-.battle-status {
-    max-width: 720px;
-
-    min-height: 65px;
-
-    margin:
-        24px
-        auto
-        0;
-
-    padding: 18px;
-
-    border: 1px solid var(--border);
-    border-radius: 16px;
-
-    background: var(--panel);
-
-    color: var(--cream);
-
-    text-align: center;
-}
-
-.battle-log {
-    max-width: 760px;
-
-    max-height: 220px;
-
-    margin:
-        14px
-        auto
-        0;
-
-    padding: 14px;
-
-    overflow-y: auto;
-
-    border: 1px solid var(--border);
-    border-radius: 16px;
-
-    background:
-        rgba(0, 0, 0, 0.18);
-}
-
-.battle-log:empty {
-    display: none;
-}
-
-.battle-log-entry {
-    padding:
-        8px
-        10px;
-
-    border-bottom:
-        1px solid rgba(255, 255, 255, 0.04);
-
-    color: var(--muted);
-
-    font-size: 0.78rem;
-}
-
-.battle-log-entry:last-child {
-    border-bottom: 0;
-}
-
-
-/* =========================================================
-   19. BATTLE RECORD
-========================================================= */
-
-.battle-record {
-    max-width: 800px;
-
-    margin:
-        30px
-        auto;
-
-    display: grid;
-    grid-template-columns:
-        repeat(4, 1fr);
-
-    gap: 10px;
-}
-
-.battle-record article {
-    padding: 20px 12px;
-
-    border: 1px solid var(--border);
-    border-radius: 16px;
-
-    background: var(--panel);
-
-    text-align: center;
-}
-
-.battle-record strong {
-    display: block;
-
-    color: var(--gold-light);
-
-    font-family: var(--serif);
-    font-size: 2rem;
-}
-
-.battle-record span {
-    color: var(--muted);
-
-    font-size: 0.67rem;
-}
-
-
-/* =========================================================
-   20. UPGRADES
-========================================================= */
-
-.upgrade-section {
-    max-width: 800px;
-
-    margin:
-        30px
-        auto
-        0;
-
-    padding: 30px;
-
-    border: 1px solid var(--border);
-    border-radius: 22px;
-
-    background: var(--panel);
-
-    text-align: center;
-}
-
-.upgrade-section > p {
-    margin-top: 8px;
-
-    color: var(--muted);
-}
-
-.upgrade-points {
-    margin:
-        18px
-        0;
-
-    color: var(--muted);
-}
-
-.upgrade-points strong {
-    color: var(--gold-light);
-
-    font-size: 1.25rem;
-}
-
-.upgrade-grid {
-    display: grid;
-    grid-template-columns:
-        repeat(4, 1fr);
-
-    gap: 10px;
-}
-
-.upgrade-button {
-    padding: 14px 10px;
-
-    border: 1px solid var(--border);
-    border-radius: 14px;
-
-    background:
-        rgba(255, 255, 255, 0.03);
-
-    color: var(--cream);
-
-    font-size: 0.73rem;
-    font-weight: 700;
-}
-
-.upgrade-button span {
-    display: block;
-
-    margin-top: 3px;
-
-    color: var(--success);
-}
-
-.upgrade-button:hover {
-    border-color: var(--gold);
-
-    transform: translateY(-2px);
-}
-
-
-/* =========================================================
-   21. MUSICCRAFT
-========================================================= */
-
-.musiccraft-section {
-    width:
-        min(
-            1380px,
-            calc(100% - 40px)
-        );
-}
-
-.musiccraft-section::before {
-    content: "";
-
-    position: absolute;
-
-    pointer-events: none;
-}
-
-
-/* =========================================================
-   22. MUSICCRAFT HUD
-========================================================= */
-
-.musiccraft-hud {
-    margin-bottom: 14px;
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(4, 1fr);
-
-    gap: 10px;
-}
-
-.mc-stat {
-    padding:
-        14px
-        18px;
-
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    border: 1px solid var(--border);
-    border-radius: 14px;
-
-    background:
-        linear-gradient(
-            145deg,
-            var(--panel),
-            var(--panel-2)
-        );
-
-    color: var(--muted);
-
-    font-size: 0.74rem;
-    font-weight: 700;
-}
-
-.mc-stat strong {
-    color: var(--gold-light);
-
-    font-size: 1rem;
-}
-
-
-/* =========================================================
-   23. MUSICCRAFT LAYOUT
-========================================================= */
-
-.musiccraft-layout {
-    display: grid;
-
-    grid-template-columns:
-        minmax(0, 1fr)
-        320px;
-
-    gap: 18px;
-
-    align-items: start;
-}
-
-.musiccraft-game-wrap {
-    min-width: 0;
-
-    padding: 12px;
-
-    border: 1px solid var(--border-strong);
-    border-radius: 20px;
-
-    background:
-        #05080d;
-
-    box-shadow:
-        0 25px 70px rgba(0, 0, 0, 0.34);
-}
-
-
-/* =========================================================
-   24. MUSICCRAFT CANVAS
-========================================================= */
-
-#musiccraftCanvas {
-    display: block;
-
-    width: 100%;
-    height: auto;
-
-    aspect-ratio: 800 / 520;
-
-    border:
-        2px solid rgba(195, 154, 85, 0.3);
-
-    border-radius: 12px;
-
-    outline: none;
-
-    background: #171a1f;
-
-    cursor: crosshair;
-
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
-
-    user-select: none;
-}
-
-#musiccraftCanvas:hover {
-    border-color:
-        rgba(223, 191, 123, 0.55);
-}
-
-#musiccraftCanvas:focus {
-    border-color: var(--gold);
-
-    box-shadow:
-        0 0 0 3px rgba(195, 154, 85, 0.09);
-}
-
-#musiccraftCanvas:active {
-    cursor: grabbing;
-}
-
-
-/* =========================================================
-   25. MUSICCRAFT HELP
-========================================================= */
-
-.musiccraft-help {
-    margin-top: 10px;
-
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-
-    gap: 8px;
-}
-
-.musiccraft-help span {
-    padding:
-        7px
-        10px;
-
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 8px;
-
-    background:
-        rgba(255, 255, 255, 0.025);
-
-    color: #8993a3;
-
-    font-size: 0.62rem;
-    font-weight: 700;
-}
-
-.mc-instructions {
-    margin-top: 12px;
-
-    padding:
-        13px
-        15px;
-
-    border-left:
-        3px solid var(--gold);
-
-    border-radius:
-        0
-        10px
-        10px
-        0;
-
-    background:
-        rgba(195, 154, 85, 0.055);
-}
-
-.mc-instructions strong {
-    display: block;
-
-    margin-bottom: 4px;
-
-    color: var(--gold-light);
-
-    font-size: 0.74rem;
-}
-
-.mc-instructions p {
-    color: var(--muted);
-
-    font-size: 0.69rem;
-    line-height: 1.55;
-}
-
-
-/* =========================================================
-   26. MUSICCRAFT SIDEBAR
-========================================================= */
-
-.musiccraft-sidebar {
-    padding: 20px;
-
-    border: 1px solid var(--border);
-    border-radius: 20px;
-
-    background:
-        linear-gradient(
-            180deg,
-            #0d1728,
-            #0a1220
-        );
-
-    box-shadow: var(--shadow);
-}
-
-.musiccraft-sidebar > h3 {
-    margin:
-        20px
-        0
-        10px;
-
-    padding-bottom: 7px;
-
-    border-bottom:
-        1px solid var(--border);
-
-    color: var(--gold-light);
-
-    font-family: var(--sans);
-    font-size: 0.72rem;
-    font-weight: 800;
-
-    letter-spacing: 0.07em;
-}
-
-.musiccraft-sidebar > h3:first-child {
-    margin-top: 0;
-}
-
-
-/* =========================================================
-   27. DEPTH CARD
-========================================================= */
-
-.mc-depth-card {
-    padding: 17px;
-
-    border: 1px solid var(--border);
-    border-radius: 14px;
-
-    background:
-        rgba(0, 0, 0, 0.15);
-}
-
-.mc-depth-card strong {
-    display: block;
-
-    color: var(--cream);
-
-    font-family: var(--serif);
-    font-size: 1.4rem;
-}
-
-.mc-depth-card p {
-    margin-top: 5px;
-
-    color: var(--muted);
-
-    font-size: 0.68rem;
-    line-height: 1.5;
-}
-
-
-/* =========================================================
-   28. MISSION BOX
-========================================================= */
-
-.mc-mission-box {
-    padding: 16px;
-
-    border: 1px solid var(--border);
-    border-radius: 14px;
-
-    background:
-        rgba(195, 154, 85, 0.045);
-}
-
-#mcMissionTitle {
-    margin-bottom: 12px;
-
-    color: var(--cream);
-
-    font-family: var(--serif);
-    font-size: 1.25rem;
-    font-weight: 700;
-}
-
-.mc-mission-list {
-    display: grid;
-
-    gap: 7px;
-}
-
-.mc-mission-item {
-    padding:
-        8px
-        10px;
-
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    gap: 10px;
-
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 9px;
-
-    background:
-        rgba(0, 0, 0, 0.12);
-
-    color: var(--muted);
-
-    font-size: 0.68rem;
-}
-
-.mc-mission-item strong {
-    color: var(--cream);
-
-    font-size: 0.67rem;
-}
-
-.mc-mission-item.complete {
-    border-color:
-        rgba(120, 192, 145, 0.24);
-
-    background:
-        rgba(120, 192, 145, 0.06);
-}
-
-.mc-mission-item.complete,
-.mc-mission-item.complete strong {
-    color: var(--success);
-}
-
-.mc-mission-progress {
-    height: 8px;
-
-    margin:
-        13px
-        0;
-
-    overflow: hidden;
-
-    border-radius: 999px;
-
-    background:
-        rgba(255, 255, 255, 0.07);
-}
-
-.mc-mission-progress-fill {
-    width: 0;
-    height: 100%;
-
-    border-radius: inherit;
-
-    background:
-        linear-gradient(
-            90deg,
-            var(--gold),
-            var(--gold-light)
-        );
-
-    transition:
-        width 0.4s ease;
-}
-
-
-/* =========================================================
-   29. RESOURCE GUIDE
-========================================================= */
-
-.mc-resource-guide {
-    display: grid;
-    grid-template-columns:
-        repeat(2, 1fr);
-
-    gap: 7px;
-}
-
-.mc-resource-guide > div {
-    min-width: 0;
-
-    padding: 9px;
-
-    display: flex;
-    align-items: center;
-
-    gap: 8px;
-
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 9px;
-
-    background:
-        rgba(255, 255, 255, 0.018);
-}
-
-.mc-resource-guide > div > span {
-    font-size: 1.1rem;
-}
-
-.mc-resource-guide p {
-    color: var(--cream);
-
-    font-size: 0.62rem;
-    font-weight: 700;
-    line-height: 1.2;
-}
-
-.mc-resource-guide small {
-    display: block;
-
-    margin-top: 3px;
-
-    color: var(--muted);
-
-    font-size: 0.52rem;
-    font-weight: 500;
-}
-
-
-/* =========================================================
-   30. INVENTORY
-========================================================= */
-
-.mc-inventory {
-    display: grid;
-
-    gap: 6px;
-}
-
-.mc-inventory-item {
-    width: 100%;
-
-    min-height: 40px;
-
-    padding:
-        8px
-        10px;
-
-    display: grid;
-
-    grid-template-columns:
-        26px
-        1fr
-        auto;
-
-    align-items: center;
-
-    gap: 7px;
-
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 9px;
-
-    background:
-        rgba(255, 255, 255, 0.02);
-
-    color: var(--muted);
-
-    text-align: left;
-
-    font-size: 0.65rem;
-    font-weight: 700;
-}
-
-.mc-inventory-item:hover {
-    border-color:
-        rgba(195, 154, 85, 0.4);
-
-    background:
-        rgba(195, 154, 85, 0.055);
-}
-
-.mc-inventory-item.selected {
-    border-color: var(--gold);
-
-    background:
-        rgba(195, 154, 85, 0.1);
-
-    color: var(--gold-light);
-}
-
-.mc-inventory-icon {
-    font-size: 1rem;
-}
-
-.mc-inventory-count {
-    color: var(--cream);
-
-    font-size: 0.62rem;
-}
-
-
-/* =========================================================
-   31. SELECTED BLOCK
-========================================================= */
-
-.mc-selected-block {
-    padding:
-        12px
-        14px;
-
-    border: 1px solid var(--gold);
-    border-radius: 10px;
-
-    background:
-        rgba(195, 154, 85, 0.08);
-
-    color: var(--gold-light);
-
-    font-size: 0.72rem;
-    font-weight: 800;
-
-    text-align: center;
-}
-
-
-/* =========================================================
-   32. ADVENTURE LOG
-========================================================= */
-
-.mc-log {
-    max-height: 170px;
-
-    overflow-y: auto;
-
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-
-    background:
-        rgba(0, 0, 0, 0.18);
-}
-
-.mc-log div {
-    padding:
-        8px
-        10px;
-
-    border-bottom:
-        1px solid rgba(255, 255, 255, 0.04);
-
-    color: #8e98a8;
-
-    font-size: 0.61rem;
-    line-height: 1.4;
-}
-
-.mc-log div:first-child {
-    color: var(--cream);
-}
-
-.mc-log div:last-child {
-    border-bottom: 0;
-}
-
-
-/* =========================================================
-   33. DEPTH ROADMAP
-========================================================= */
-
-.mc-depth-roadmap {
-    margin-top: 85px;
-}
-
-.mc-depth-grid {
-    display: grid;
-
-    grid-template-columns:
-        repeat(6, 1fr);
-
-    gap: 12px;
-}
-
-.mc-depth-grid article {
-    min-height: 190px;
-
-    padding:
-        24px
-        14px;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-
-    border: 1px solid var(--border);
-    border-radius: 18px;
-
-    background:
-        linear-gradient(
-            145deg,
-            var(--panel),
-            var(--panel-2)
-        );
-
-    text-align: center;
-
-    transition:
-        transform 0.2s ease,
-        border-color 0.2s ease;
-}
-
-.mc-depth-grid article:hover {
-    transform: translateY(-4px);
-
-    border-color: var(--gold);
-}
-
-.mc-depth-grid article > span {
-    margin-bottom: 14px;
-
-    font-size: 2.2rem;
-}
-
-.mc-depth-grid h3 {
-    font-size: 1.25rem;
-}
-
-.mc-depth-grid p {
-    margin-top: 7px;
-
-    color: var(--muted);
-
-    font-size: 0.62rem;
-}
-
-
-/* =========================================================
-   34. MOBILE MUSICCRAFT CONTROLS
-========================================================= */
-
-.mc-mobile-controls {
-    display: none;
-
-    margin:
-        24px
-        auto
-        0;
-
-    text-align: center;
-}
-
-.mc-mobile-controls > button,
-.mc-mobile-controls div button {
-    width: 58px;
-    height: 58px;
-
-    margin: 3px;
-
-    border: 1px solid var(--border-strong);
-    border-radius: 14px;
-
-    background:
-        linear-gradient(
-            145deg,
-            var(--panel),
-            var(--panel-2)
-        );
-
-    color: var(--cream);
-
-    font-size: 1.2rem;
-    font-weight: 900;
-}
-
-.mc-mobile-controls button:active {
-    transform: scale(0.93);
-
-    border-color: var(--gold);
-
-    background:
-        rgba(195, 154, 85, 0.12);
-}
-
-
-/* =========================================================
-   35. QUIZ
-========================================================= */
-
-.quiz-top {
-    margin-bottom: 26px;
-
-    display: flex;
-    justify-content: space-between;
-
-    color: var(--muted);
-
-    font-size: 0.72rem;
-}
-
-.quiz-top strong {
-    color: var(--gold-light);
-}
-
-.quiz-box h3 {
-    margin-bottom: 24px;
-
-    font-size: 2rem;
-}
-
-#answerButtons {
-    display: grid;
-
-    grid-template-columns:
-        repeat(2, 1fr);
-
-    gap: 11px;
-}
-
-.quiz-answer {
-    min-height: 58px;
-
-    padding: 12px;
-
-    border: 1px solid var(--border);
-    border-radius: 13px;
-
-    background:
-        rgba(255, 255, 255, 0.025);
-
-    color: var(--cream);
-
-    font-weight: 700;
-}
-
-.quiz-answer:hover:not(:disabled) {
-    border-color: var(--gold);
-
-    background:
-        rgba(195, 154, 85, 0.08);
-}
-
-.quiz-answer.correct-answer {
-    border-color: var(--success);
-
-    background:
-        rgba(120, 192, 145, 0.12);
-
-    color: #baf0cb;
-}
-
-.quiz-answer.wrong-answer {
-    border-color: var(--danger);
-
-    background:
-        rgba(215, 108, 108, 0.12);
-
-    color: #f2b4b4;
-}
-
-#quizResult {
-    min-height: 30px;
-
-    margin-top: 18px;
-}
-
-#nextQuestion {
-    margin-top: 10px;
-}
-
-
-/* =========================================================
-   36. FUN FACT
-========================================================= */
-
-.fact-card p {
-    min-height: 70px;
-
-    display: grid;
-    place-items: center;
-
-    margin-bottom: 20px;
-
-    color: var(--cream);
-
-    font-family: var(--serif);
-    font-size: 1.6rem;
-}
-
-
-/* =========================================================
-   37. MODAL
-========================================================= */
-
-.instrument-modal {
-    position: fixed;
-
-    inset: 0;
-
-    z-index: 1000;
-
-    padding: 20px;
-
-    display: none;
-    justify-content: center;
-    align-items: center;
-
-    background:
-        rgba(2, 5, 10, 0.82);
-
-    backdrop-filter:
-        blur(10px);
-}
-
-.instrument-modal.modal-active {
-    display: flex;
-}
-
-.modal-content {
-    width:
-        min(
-            600px,
-            100%
-        );
-
-    max-height:
-        calc(100vh - 40px);
-
-    overflow-y: auto;
-
-    position: relative;
-
-    padding: 42px;
-
-    border: 1px solid var(--border-strong);
-    border-radius: 28px;
-
-    background:
-        linear-gradient(
-            145deg,
-            #101a2c,
-            #0b1426
-        );
-
-    box-shadow:
-        0 30px 100px rgba(0, 0, 0, 0.55);
-
-    text-align: center;
-}
-
-.close-modal {
-    position: absolute;
-
-    right: 18px;
-    top: 16px;
-
-    width: 40px;
-    height: 40px;
-
-    border: 1px solid var(--border);
-    border-radius: 50%;
-
-    background:
-        rgba(255, 255, 255, 0.03);
-
-    color: var(--cream);
-
-    font-size: 1.4rem;
-}
-
-.close-modal:hover {
-    border-color: var(--gold);
-
-    color: var(--gold-light);
-}
-
-.modal-icon {
-    width: 100px;
-    height: 100px;
-
-    margin:
-        0
-        auto
-        20px;
-
-    display: grid;
-    place-items: center;
-
-    border: 1px solid var(--border);
-    border-radius: 50%;
-
-    background:
-        rgba(195, 154, 85, 0.08);
-
-    font-size: 3.3rem;
-}
-
-.modal-content h2 {
-    margin:
-        8px
-        0
-        14px;
-
-    font-size: 3rem;
-}
-
-#modalDescription {
-    color: var(--muted);
-}
-
-.modal-details {
-    margin-top: 25px;
-
-    padding-top: 20px;
-
-    border-top:
-        1px solid var(--border);
-
-    text-align: left;
-}
-
-.modal-details p {
-    margin: 8px 0;
-
-    color: var(--muted);
-
-    font-size: 0.82rem;
-}
-
-.modal-details strong {
-    color: var(--gold-light);
-}
-
-
-/* =========================================================
-   38. FOOTER
-========================================================= */
-
-footer {
-    margin-top: 80px;
-
-    padding:
-        70px
-        20px;
-
-    border-top:
-        1px solid var(--border);
-
-    background:
-        #050a12;
-
-    text-align: center;
-}
-
-footer h2 {
-    color: var(--gold-light);
-
-    font-size: 2.4rem;
-}
-
-footer p {
-    margin-top: 8px;
-
-    color: var(--muted);
-
-    font-size: 0.72rem;
-}
-
-
-/* =========================================================
-   39. SCROLLBARS
-========================================================= */
-
-::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-}
-
-::-webkit-scrollbar-track {
-    background: #070c15;
-}
-
-::-webkit-scrollbar-thumb {
-    border:
-        2px solid #070c15;
-
-    border-radius: 999px;
-
-    background: #26334a;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #344562;
-}
-
-.mc-log::-webkit-scrollbar,
-.battle-log::-webkit-scrollbar {
-    width: 6px;
-}
-
-
-/* =========================================================
-   40. LIGHT MODE
-========================================================= */
-
-body.light-mode {
-    --bg: #eee9df;
-    --bg-alt: #f5f1e8;
-    --bg-deep: #e4ddd1;
-
-    --panel: #fffdf8;
-    --panel-2: #f3eee5;
-    --panel-3: #ebe3d6;
-
-    --cream: #132038;
-    --text: #39465b;
-    --muted: #70798a;
-
-    --border:
-        rgba(24, 38, 60, 0.12);
-
-    --border-strong:
-        rgba(161, 119, 55, 0.32);
-}
-
-body.light-mode {
-    background:
-        radial-gradient(
-            circle at top,
-            rgba(195, 154, 85, 0.08),
-            transparent 30%
-        ),
-        var(--bg);
 }
-
-body.light-mode .navbar {
-    background:
-        rgba(245, 241, 232, 0.85);
-}
-
-body.light-mode .hero {
-    background:
-        radial-gradient(
-            circle at 72% 30%,
-            rgba(195, 154, 85, 0.12),
-            transparent 28%
-        ),
-        #eee9df;
-}
-
-body.light-mode .search-box input {
-    color: var(--cream);
-}
-
-body.light-mode .musiccraft-game-wrap,
-body.light-mode #musiccraftCanvas {
-    background: #171a1f;
-}
-
-body.light-mode .musiccraft-sidebar {
-    background:
-        linear-gradient(
-            180deg,
-            #fffdf8,
-            #f1ebdf
-        );
-}
-
-body.light-mode footer {
-    background: #e6dfd3;
-}
-
-
-/* =========================================================
-   41. LARGE TABLET
-========================================================= */
-
-@media (max-width: 1100px) {
-
-    .instrument-grid {
-        grid-template-columns:
-            repeat(2, 1fr);
-    }
-
-    .battle-instrument-grid {
-        grid-template-columns:
-            repeat(4, 1fr);
-    }
-
-    .mc-depth-grid {
-        grid-template-columns:
-            repeat(3, 1fr);
-    }
-
-    .musiccraft-layout {
-        grid-template-columns:
-            minmax(0, 1fr)
-            280px;
-    }
-
-}
-
-
-/* =========================================================
-   42. TABLET
-========================================================= */
-
-@media (max-width: 900px) {
-
-    .section {
-        padding:
-            80px
-            0;
-    }
-
-    .navbar {
-        border-radius: 24px;
-    }
-
-    .nav-links {
-        position: absolute;
-
-        left: 0;
-        right: 0;
-        top: calc(100% + 10px);
-
-        display: none;
-
-        padding: 12px;
-
-        flex-direction: column;
-        align-items: stretch;
-
-        border: 1px solid var(--border);
-        border-radius: 18px;
-
-        background:
-            rgba(8, 14, 26, 0.97);
-
-        box-shadow: var(--shadow);
-    }
-
-    .nav-links.nav-active {
-        display: flex;
-    }
-
-    .nav-links a {
-        padding: 12px 14px;
-    }
-
-    .menu-toggle {
-        display: block;
-    }
-
-    .hero-content {
-        padding:
-            90px
-            0
-            100px;
-    }
-
-    .feature-instrument {
-        grid-template-columns:
-            1fr;
-
-        text-align: center;
-    }
-
-    .feature-icon {
-        margin: auto;
-    }
-
-    .battle-arena {
-        grid-template-columns:
-            1fr;
-    }
-
-    .battle-vs {
-        font-size: 2rem;
-    }
-
-    .upgrade-grid {
-        grid-template-columns:
-            repeat(2, 1fr);
-    }
-
-    .musiccraft-layout {
-        grid-template-columns:
-            1fr;
-    }
-
-    .musiccraft-sidebar {
-        display: grid;
-
-        grid-template-columns:
-            repeat(2, 1fr);
-
-        gap:
-            10px
-            18px;
-    }
-
-    .musiccraft-sidebar > h3 {
-        grid-column:
-            1 / -1;
-    }
-
-    .musiccraft-sidebar .full-button {
-        grid-column:
-            1 / -1;
-    }
-
-    .mc-mobile-controls {
-        display: block;
-    }
-
-}
-
-
-/* =========================================================
-   43. MOBILE
-========================================================= */
-
-@media (max-width: 650px) {
-
-    body {
-        font-size: 14px;
-    }
-
-    .navbar,
-    .section,
-    .musiccraft-section {
-        width:
-            min(
-                100% - 24px,
-                1180px
-            );
-    }
-
-    .navbar {
-        margin-top: 12px;
-
-        min-height: 62px;
-
-        padding:
-            8px
-            10px
-            8px
-            16px;
-    }
-
-    .logo {
-        font-size: 1.25rem;
-    }
-
-    .theme-toggle,
-    .menu-toggle {
-        width: 40px;
-        height: 40px;
-    }
-
-    .hero {
-        min-height: 760px;
-    }
-
-    .hero-content {
-        width:
-            calc(100% - 28px);
-
-        padding:
-            90px
-            0;
-    }
-
-    h1 {
-        font-size:
-            clamp(
-                3rem,
-                16vw,
-                4.8rem
-            );
-    }
-
-    h2 {
-        font-size:
-            clamp(
-                2.3rem,
-                12vw,
-                3.4rem
-            );
-    }
-
-    .hero-text {
-        font-size: 0.9rem;
-    }
-
-    .hero-actions {
-        flex-direction: column;
-    }
-
-    .hero-actions a {
-        width: 100%;
-    }
-
-    .section {
-        padding:
-            65px
-            0;
-    }
-
-    .section-title {
-        margin-bottom: 34px;
-    }
-
-    .intro-grid {
-        grid-template-columns:
-            1fr;
-    }
-
-    .intro-grid p {
-        padding: 23px;
-    }
-
-    .instrument-grid {
-        grid-template-columns:
-            1fr;
-    }
-
-    .instrument-card > p {
-        min-height: 0;
-    }
-
-    .feature-instrument {
-        padding: 28px 20px;
-    }
-
-    .feature-icon {
-        width: 125px;
-        height: 125px;
-
-        font-size: 3.8rem;
-    }
-
-    .feature-instrument h3 {
-        font-size: 2.2rem;
-    }
-
-    .virtual-piano {
-        justify-content: flex-start;
-
-        padding: 12px;
-    }
-
-    .piano-key {
-        min-width: 52px;
-        height: 180px;
-    }
-
-    .black-key {
-        min-width: 38px;
-        height: 112px;
-
-        margin:
-            0
-            -21px;
-    }
-
-    .drum-pad {
-        grid-template-columns:
-            repeat(2, 1fr);
-    }
-
-    .drum-pad-button {
-        min-height: 100px;
-    }
-
-    .game-card,
-    .quiz-box,
-    .fact-card {
-        padding:
-            26px
-            18px;
-    }
-
-    .game-options,
-    #answerButtons {
-        grid-template-columns:
-            1fr;
-    }
-
-    .battle-instrument-grid {
-        grid-template-columns:
-            repeat(3, 1fr);
-    }
-
-    .battle-instrument-option {
-        min-height: 90px;
-
-        font-size: 0.58rem;
-    }
-
-    .fighter-card {
-        padding:
-            28px
-            18px;
-    }
-
-    .fighter-icon {
-        width: 90px;
-        height: 90px;
-
-        font-size: 3rem;
-    }
-
-    .battle-stats {
-        grid-template-columns:
-            1fr;
-    }
-
-    .battle-record {
-        grid-template-columns:
-            repeat(2, 1fr);
-    }
-
-    .upgrade-grid {
-        grid-template-columns:
-            1fr;
-    }
-
-    .musiccraft-hud {
-        grid-template-columns:
-            repeat(2, 1fr);
-    }
-
-    .mc-stat {
-        padding:
-            11px
-            12px;
-
-        font-size: 0.62rem;
-    }
-
-    .musiccraft-game-wrap {
-        padding: 7px;
-    }
-
-    #musiccraftCanvas {
-        border-radius: 8px;
-    }
-
-    .musiccraft-help {
-        justify-content: flex-start;
-    }
-
-    .musiccraft-sidebar {
-        display: block;
-
-        padding: 16px;
-    }
-
-    .musiccraft-sidebar > h3 {
-        margin-top: 22px;
-    }
-
-    .mc-resource-guide {
-        grid-template-columns:
-            repeat(2, 1fr);
-    }
-
-    .mc-depth-grid {
-        grid-template-columns:
-            repeat(2, 1fr);
-    }
-
-    .mc-depth-grid article {
-        min-height: 160px;
-
-        padding:
-            18px
-            10px;
-    }
-
-    .mc-depth-roadmap {
-        margin-top: 60px;
-    }
-
-    .modal-content {
-        padding:
-            35px
-            22px;
-    }
-
-    .modal-content h2 {
-        font-size: 2.4rem;
-    }
-
-}
-
-
-/* =========================================================
-   44. VERY SMALL MOBILE
-========================================================= */
-
-@media (max-width: 430px) {
-
-    .battle-instrument-grid {
-        grid-template-columns:
-            repeat(2, 1fr);
-    }
-
-    .musiccraft-hud {
-        grid-template-columns:
-            1fr
-            1fr;
-    }
-
-    .mc-resource-guide {
-        grid-template-columns:
-            1fr;
-    }
-
-    .mc-depth-grid {
-        grid-template-columns:
-            1fr;
-    }
-
-    .mc-depth-grid article {
-        min-height: 140px;
-    }
-
-    .battle-record {
-        grid-template-columns:
-            1fr
-            1fr;
-    }
-
-}
-
 
-/* =========================================================
-   45. REDUCED MOTION
-========================================================= */
 
-@media (
-    prefers-reduced-motion:
-    reduce
+function randomNumber(
+    min,
+    max
 ) {
 
-    html {
-        scroll-behavior: auto;
+    return Math.floor(
+        Math.random() *
+        (max - min + 1)
+    ) + min;
+
+}
+
+
+function delay(ms) {
+
+    return new Promise(
+        resolve =>
+            setTimeout(
+                resolve,
+                ms
+            )
+    );
+
+}
+
+
+
+/* =========================================================
+   INSTRUMENT DATABASE
+========================================================= */
+
+const instruments = [
+
+    {
+        name: "Guitar",
+        icon: "🎸",
+        category: "string",
+        family: "String",
+        origin: "Spain",
+        description:
+            "A versatile string instrument played by plucking or strumming.",
+        sound:
+            "Plucked vibrating strings",
+        styles:
+            "Rock, Pop, Jazz, Blues",
+        difficulty:
+            "Intermediate",
+        frequency:
+            220
+    },
+
+    {
+        name: "Violin",
+        icon: "🎻",
+        category: "string",
+        family: "String",
+        origin: "Italy",
+        description:
+            "A bowed string instrument known for its expressive tone.",
+        sound:
+            "Bowed strings",
+        styles:
+            "Classical, Folk, Film",
+        difficulty:
+            "Advanced",
+        frequency:
+            659.25
+    },
+
+    {
+        name: "Cello",
+        icon: "🎻",
+        category: "string",
+        family: "String",
+        origin: "Italy",
+        description:
+            "A large bowed instrument with a deep and warm tone.",
+        sound:
+            "Bowed strings",
+        styles:
+            "Classical, Chamber, Film",
+        difficulty:
+            "Advanced",
+        frequency:
+            196
+    },
+
+    {
+        name: "Ukulele",
+        icon: "🎸",
+        category: "string",
+        family: "String",
+        origin: "Hawaii",
+        description:
+            "A small four-string instrument with a cheerful sound.",
+        sound:
+            "Plucked strings",
+        styles:
+            "Pop, Folk, Hawaiian",
+        difficulty:
+            "Beginner",
+        frequency:
+            392
+    },
+
+    {
+        name: "Piano",
+        icon: "🎹",
+        category: "keyboard",
+        family: "Keyboard",
+        origin: "Italy",
+        description:
+            "A keyboard instrument where hammers strike strings.",
+        sound:
+            "Hammered strings",
+        styles:
+            "Classical, Jazz, Pop",
+        difficulty:
+            "Intermediate",
+        frequency:
+            440
+    },
+
+    {
+        name: "Organ",
+        icon: "🎹",
+        category: "keyboard",
+        family: "Keyboard",
+        origin: "Europe",
+        description:
+            "A keyboard instrument capable of sustained tones.",
+        sound:
+            "Pipes or oscillators",
+        styles:
+            "Classical, Church, Rock",
+        difficulty:
+            "Advanced",
+        frequency:
+            261.63
+    },
+
+    {
+        name: "Flute",
+        icon: "🪈",
+        category: "woodwind",
+        family: "Woodwind",
+        origin: "Ancient",
+        description:
+            "A wind instrument that creates sound from moving air.",
+        sound:
+            "Air vibration",
+        styles:
+            "Classical, Folk, World",
+        difficulty:
+            "Intermediate",
+        frequency:
+            698.46
+    },
+
+    {
+        name: "Clarinet",
+        icon: "🎶",
+        category: "woodwind",
+        family: "Woodwind",
+        origin: "Germany",
+        description:
+            "A single-reed woodwind with a flexible tone.",
+        sound:
+            "Single reed",
+        styles:
+            "Classical, Jazz, Band",
+        difficulty:
+            "Intermediate",
+        frequency:
+            293.66
+    },
+
+    {
+        name: "Oboe",
+        icon: "🪈",
+        category: "woodwind",
+        family: "Woodwind",
+        origin: "Europe",
+        description:
+            "A double-reed instrument with a focused tone.",
+        sound:
+            "Double reed",
+        styles:
+            "Classical, Orchestra",
+        difficulty:
+            "Advanced",
+        frequency:
+            466.16
+    },
+
+    {
+        name: "Saxophone",
+        icon: "🎷",
+        category: "woodwind",
+        family: "Woodwind",
+        origin: "Belgium",
+        description:
+            "A reed instrument famous for jazz and popular music.",
+        sound:
+            "Single reed",
+        styles:
+            "Jazz, Blues, Pop",
+        difficulty:
+            "Intermediate",
+        frequency:
+            369.99
+    },
+
+    {
+        name: "Trumpet",
+        icon: "🎺",
+        category: "brass",
+        family: "Brass",
+        origin: "Ancient",
+        description:
+            "A bright brass instrument played by buzzing the lips.",
+        sound:
+            "Lip vibration",
+        styles:
+            "Jazz, Classical, Band",
+        difficulty:
+            "Advanced",
+        frequency:
+            523.25
+    },
+
+    {
+        name: "Trombone",
+        icon: "🎺",
+        category: "brass",
+        family: "Brass",
+        origin: "Europe",
+        description:
+            "A brass instrument that commonly uses a movable slide.",
+        sound:
+            "Lip vibration",
+        styles:
+            "Jazz, Classical",
+        difficulty:
+            "Intermediate",
+        frequency:
+            233.08
+    },
+
+    {
+        name: "French Horn",
+        icon: "📯",
+        category: "brass",
+        family: "Brass",
+        origin: "Europe",
+        description:
+            "A coiled brass instrument with a warm orchestral tone.",
+        sound:
+            "Lip vibration",
+        styles:
+            "Classical, Orchestra, Film",
+        difficulty:
+            "Advanced",
+        frequency:
+            349.23
+    },
+
+    {
+        name: "Drums",
+        icon: "🥁",
+        category: "percussion",
+        family: "Percussion",
+        origin: "Ancient",
+        description:
+            "Percussion instruments used to create rhythm.",
+        sound:
+            "Struck membranes and cymbals",
+        styles:
+            "Rock, Pop, Jazz, Hip-Hop",
+        difficulty:
+            "Beginner to Advanced",
+        drum:
+            true
+    },
+
+    {
+        name: "Xylophone",
+        icon: "🎼",
+        category: "percussion",
+        family: "Percussion",
+        origin: "Ancient",
+        description:
+            "A tuned percussion instrument made from bars.",
+        sound:
+            "Struck bars",
+        styles:
+            "Classical, World",
+        difficulty:
+            "Beginner",
+        frequency:
+            783.99
+    },
+
+    {
+        name: "Synthesizer",
+        icon: "🎛️",
+        category: "electronic",
+        family: "Electronic",
+        origin: "20th Century",
+        description:
+            "An electronic instrument capable of creating many sounds.",
+        sound:
+            "Electronic synthesis",
+        styles:
+            "Electronic, Pop, Film",
+        difficulty:
+            "Intermediate",
+        frequency:
+            329.63
+    },
+
+    {
+        name: "Digital Piano",
+        icon: "🎹",
+        category: "electronic",
+        family: "Electronic",
+        origin: "20th Century",
+        description:
+            "A digital keyboard designed to reproduce piano sounds.",
+        sound:
+            "Digital piano",
+        styles:
+            "Pop, Classical, Education",
+        difficulty:
+            "Beginner",
+        frequency:
+            440
+    },
+
+    {
+        name: "Drum Machine",
+        icon: "🎛️",
+        category: "electronic",
+        family: "Electronic",
+        origin: "20th Century",
+        description:
+            "An electronic instrument for programmed rhythms.",
+        sound:
+            "Electronic percussion",
+        styles:
+            "Hip-Hop, Electronic, Dance",
+        difficulty:
+            "Beginner",
+        drum:
+            true
     }
 
-    *,
-    *::before,
-    *::after {
-        animation-duration:
-            0.01ms !important;
+];
 
-        animation-iteration-count:
-            1 !important;
 
-        transition-duration:
-            0.01ms !important;
+function getInstrument(name) {
+
+    return instruments.find(
+        instrument =>
+            instrument.name === name
+    );
+
+}
+
+
+
+/* =========================================================
+   AUDIO ENGINE
+========================================================= */
+
+let audioContext = null;
+
+
+function getAudioContext() {
+
+    if (!audioContext) {
+
+        const AudioClass =
+            window.AudioContext ||
+            window.webkitAudioContext;
+
+
+        if (!AudioClass) {
+            return null;
+        }
+
+
+        audioContext =
+            new AudioClass();
+
+    }
+
+
+    if (
+        audioContext.state ===
+        "suspended"
+    ) {
+
+        audioContext.resume();
+
+    }
+
+
+    return audioContext;
+
+}
+
+
+function createVoice({
+
+    frequency,
+    type = "sine",
+    volume = .1,
+    attack = .01,
+    duration = .7,
+    release = .4,
+    destination = null
+
+}) {
+
+    const context =
+        getAudioContext();
+
+
+    if (!context) {
+        return null;
+    }
+
+
+    const oscillator =
+        context.createOscillator();
+
+
+    const gain =
+        context.createGain();
+
+
+    const now =
+        context.currentTime;
+
+
+    oscillator.type =
+        type;
+
+
+    oscillator.frequency.setValueAtTime(
+        frequency,
+        now
+    );
+
+
+    gain.gain.setValueAtTime(
+        .0001,
+        now
+    );
+
+
+    gain.gain.exponentialRampToValueAtTime(
+        Math.max(
+            .0002,
+            volume
+        ),
+        now + attack
+    );
+
+
+    gain.gain.exponentialRampToValueAtTime(
+        .0001,
+        now + duration + release
+    );
+
+
+    oscillator.connect(
+        gain
+    );
+
+
+    gain.connect(
+        destination ||
+        context.destination
+    );
+
+
+    oscillator.start(
+        now
+    );
+
+
+    oscillator.stop(
+        now +
+        duration +
+        release +
+        .05
+    );
+
+
+    return oscillator;
+
+}
+
+
+function createNoiseBuffer(
+    seconds = .5
+) {
+
+    const context =
+        getAudioContext();
+
+
+    if (!context) {
+        return null;
+    }
+
+
+    const buffer =
+        context.createBuffer(
+            1,
+            context.sampleRate * seconds,
+            context.sampleRate
+        );
+
+
+    const data =
+        buffer.getChannelData(
+            0
+        );
+
+
+    for (
+        let i = 0;
+        i < data.length;
+        i++
+    ) {
+
+        data[i] =
+            Math.random() * 2 - 1;
+
+    }
+
+
+    return buffer;
+
+}
+
+
+
+/* =========================================================
+   INSTRUMENT SOUNDS
+========================================================= */
+
+function playGuitar(
+    frequency
+) {
+
+    [
+        [1,.16],
+        [2,.07],
+        [3,.03],
+        [4,.014]
+    ]
+    .forEach(
+        ([harmonic,volume]) => {
+
+            createVoice({
+
+                frequency:
+                    frequency * harmonic,
+
+                type:
+                    "triangle",
+
+                volume,
+
+                attack:
+                    .002,
+
+                duration:
+                    .32,
+
+                release:
+                    .85
+
+            });
+
+        }
+    );
+
+}
+
+
+function playPiano(
+    frequency
+) {
+
+    [
+        [1,.15],
+        [2,.06],
+        [3,.025],
+        [4,.012]
+    ]
+    .forEach(
+        ([harmonic,volume]) => {
+
+            createVoice({
+
+                frequency:
+                    frequency * harmonic,
+
+                type:
+                    "triangle",
+
+                volume,
+
+                attack:
+                    .002,
+
+                duration:
+                    .45,
+
+                release:
+                    1
+
+            });
+
+        }
+    );
+
+}
+
+
+function playString(
+    frequency,
+    cello = false
+) {
+
+    const context =
+        getAudioContext();
+
+
+    if (!context) return;
+
+
+    const filter =
+        context.createBiquadFilter();
+
+
+    filter.type =
+        "lowpass";
+
+
+    filter.frequency.value =
+        cello
+            ? 1900
+            : 3400;
+
+
+    filter.connect(
+        context.destination
+    );
+
+
+    const oscillator =
+        createVoice({
+
+            frequency,
+
+            type:
+                "sawtooth",
+
+            volume:
+                .08,
+
+            attack:
+                .12,
+
+            duration:
+                1.15,
+
+            release:
+                .45,
+
+            destination:
+                filter
+
+        });
+
+
+    if (!oscillator) return;
+
+
+    const vibrato =
+        context.createOscillator();
+
+
+    const amount =
+        context.createGain();
+
+
+    vibrato.frequency.value =
+        cello
+            ? 4.6
+            : 5.3;
+
+
+    amount.gain.value =
+        cello
+            ? 3
+            : 5;
+
+
+    vibrato.connect(
+        amount
+    );
+
+
+    amount.connect(
+        oscillator.frequency
+    );
+
+
+    vibrato.start();
+
+
+    vibrato.stop(
+        context.currentTime +
+        1.6
+    );
+
+}
+
+
+function playFlute(
+    frequency
+) {
+
+    createVoice({
+
+        frequency,
+
+        type:
+            "sine",
+
+        volume:
+            .12,
+
+        attack:
+            .08,
+
+        duration:
+            1,
+
+        release:
+            .3
+
+    });
+
+}
+
+
+function playClarinet(
+    frequency
+) {
+
+    [
+        [1,.12],
+        [3,.04],
+        [5,.015]
+    ]
+    .forEach(
+        ([harmonic,volume]) => {
+
+            createVoice({
+
+                frequency:
+                    frequency * harmonic,
+
+                type:
+                    "sine",
+
+                volume,
+
+                attack:
+                    .06,
+
+                duration:
+                    .9,
+
+                release:
+                    .3
+
+            });
+
+        }
+    );
+
+}
+
+
+function playOboe(
+    frequency
+) {
+
+    createVoice({
+
+        frequency,
+
+        type:
+            "sawtooth",
+
+        volume:
+            .065,
+
+        attack:
+            .08,
+
+        duration:
+            .9,
+
+        release:
+            .3
+
+    });
+
+}
+
+
+function playSaxophone(
+    frequency
+) {
+
+    createVoice({
+
+        frequency,
+
+        type:
+            "sawtooth",
+
+        volume:
+            .065,
+
+        attack:
+            .06,
+
+        duration:
+            1,
+
+        release:
+            .35
+
+    });
+
+}
+
+
+function playBrass(
+    frequency,
+    warm = false
+) {
+
+    [
+        [1,.08],
+        [2,.045],
+        [3,.025]
+    ]
+    .forEach(
+        ([harmonic,volume]) => {
+
+            createVoice({
+
+                frequency:
+                    frequency * harmonic,
+
+                type:
+                    "sawtooth",
+
+                volume:
+                    warm
+                        ? volume * .75
+                        : volume,
+
+                attack:
+                    warm
+                        ? .1
+                        : .035,
+
+                duration:
+                    1,
+
+                release:
+                    .3
+
+            });
+
+        }
+    );
+
+}
+
+
+function playTrombone(
+    frequency
+) {
+
+    const context =
+        getAudioContext();
+
+
+    if (!context) return;
+
+
+    const oscillator =
+        createVoice({
+
+            frequency,
+
+            type:
+                "sawtooth",
+
+            volume:
+                .075,
+
+            attack:
+                .04,
+
+            duration:
+                1,
+
+            release:
+                .3
+
+        });
+
+
+    if (!oscillator) return;
+
+
+    oscillator.frequency.setValueAtTime(
+
+        frequency * .96,
+
+        context.currentTime
+
+    );
+
+
+    oscillator.frequency.linearRampToValueAtTime(
+
+        frequency,
+
+        context.currentTime +
+        .15
+
+    );
+
+}
+
+
+function playXylophone(
+    frequency
+) {
+
+    [
+        [1,.16],
+        [3,.045],
+        [6,.013]
+    ]
+    .forEach(
+        ([harmonic,volume]) => {
+
+            createVoice({
+
+                frequency:
+                    frequency * harmonic,
+
+                type:
+                    "sine",
+
+                volume,
+
+                attack:
+                    .001,
+
+                duration:
+                    .1,
+
+                release:
+                    .4
+
+            });
+
+        }
+    );
+
+}
+
+
+function playSynth(
+    frequency
+) {
+
+    createVoice({
+
+        frequency,
+
+        type:
+            "sawtooth",
+
+        volume:
+            .075,
+
+        attack:
+            .03,
+
+        duration:
+            1,
+
+        release:
+            .5
+
+    });
+
+
+    createVoice({
+
+        frequency:
+            frequency / 2,
+
+        type:
+            "square",
+
+        volume:
+            .025,
+
+        attack:
+            .03,
+
+        duration:
+            1,
+
+        release:
+            .5
+
+    });
+
+}
+
+
+function playOrgan(
+    frequency
+) {
+
+    [
+        .5,
+        1,
+        2,
+        3
+    ]
+    .forEach(
+        harmonic => {
+
+            createVoice({
+
+                frequency:
+                    frequency * harmonic,
+
+                type:
+                    "sine",
+
+                volume:
+                    .07 /
+                    Math.max(
+                        1,
+                        harmonic
+                    ),
+
+                attack:
+                    .03,
+
+                duration:
+                    1.3,
+
+                release:
+                    .2
+
+            });
+
+        }
+    );
+
+}
+
+
+
+/* =========================================================
+   DRUMS
+========================================================= */
+
+function playKick() {
+
+    const context =
+        getAudioContext();
+
+
+    if (!context) return;
+
+
+    const oscillator =
+        context.createOscillator();
+
+
+    const gain =
+        context.createGain();
+
+
+    oscillator.frequency.setValueAtTime(
+        150,
+        context.currentTime
+    );
+
+
+    oscillator.frequency.exponentialRampToValueAtTime(
+        45,
+        context.currentTime + .28
+    );
+
+
+    gain.gain.setValueAtTime(
+        .65,
+        context.currentTime
+    );
+
+
+    gain.gain.exponentialRampToValueAtTime(
+        .001,
+        context.currentTime + .3
+    );
+
+
+    oscillator.connect(
+        gain
+    );
+
+
+    gain.connect(
+        context.destination
+    );
+
+
+    oscillator.start();
+
+
+    oscillator.stop(
+        context.currentTime + .31
+    );
+
+}
+
+
+function playNoise(
+    cutoff,
+    duration,
+    volume
+) {
+
+    const context =
+        getAudioContext();
+
+
+    if (!context) return;
+
+
+    const source =
+        context.createBufferSource();
+
+
+    const filter =
+        context.createBiquadFilter();
+
+
+    const gain =
+        context.createGain();
+
+
+    source.buffer =
+        createNoiseBuffer(
+            duration + .1
+        );
+
+
+    filter.type =
+        "highpass";
+
+
+    filter.frequency.value =
+        cutoff;
+
+
+    gain.gain.setValueAtTime(
+        volume,
+        context.currentTime
+    );
+
+
+    gain.gain.exponentialRampToValueAtTime(
+        .001,
+        context.currentTime + duration
+    );
+
+
+    source.connect(
+        filter
+    );
+
+
+    filter.connect(
+        gain
+    );
+
+
+    gain.connect(
+        context.destination
+    );
+
+
+    source.start();
+
+
+    source.stop(
+        context.currentTime + duration
+    );
+
+}
+
+
+function playSnare() {
+
+    playNoise(
+        1200,
+        .2,
+        .3
+    );
+
+}
+
+
+function playHiHat() {
+
+    playNoise(
+        6500,
+        .08,
+        .2
+    );
+
+}
+
+
+function playCymbal() {
+
+    playNoise(
+        4200,
+        .8,
+        .18
+    );
+
+}
+
+
+function playTom() {
+
+    createVoice({
+
+        frequency:
+            130,
+
+        type:
+            "sine",
+
+        volume:
+            .3,
+
+        attack:
+            .001,
+
+        duration:
+            .13,
+
+        release:
+            .25
+
+    });
+
+}
+
+
+function playClap() {
+
+    playNoise(
+        1000,
+        .13,
+        .25
+    );
+
+}
+
+
+
+/* =========================================================
+   MASTER INSTRUMENT SOUND
+========================================================= */
+
+function playInstrumentSound(
+    instrument
+) {
+
+    if (!instrument) return;
+
+
+    switch (
+        instrument.name
+    ) {
+
+        case "Guitar":
+
+            playGuitar(
+                instrument.frequency
+            );
+
+            break;
+
+
+        case "Ukulele":
+
+            playGuitar(
+                instrument.frequency
+            );
+
+            break;
+
+
+        case "Violin":
+
+            playString(
+                instrument.frequency
+            );
+
+            break;
+
+
+        case "Cello":
+
+            playString(
+                instrument.frequency,
+                true
+            );
+
+            break;
+
+
+        case "Piano":
+
+        case "Digital Piano":
+
+            playPiano(
+                instrument.frequency
+            );
+
+            break;
+
+
+        case "Organ":
+
+            playOrgan(
+                instrument.frequency
+            );
+
+            break;
+
+
+        case "Flute":
+
+            playFlute(
+                instrument.frequency
+            );
+
+            break;
+
+
+        case "Clarinet":
+
+            playClarinet(
+                instrument.frequency
+            );
+
+            break;
+
+
+        case "Oboe":
+
+            playOboe(
+                instrument.frequency
+            );
+
+            break;
+
+
+        case "Saxophone":
+
+            playSaxophone(
+                instrument.frequency
+            );
+
+            break;
+
+
+        case "Trumpet":
+
+            playBrass(
+                instrument.frequency
+            );
+
+            break;
+
+
+        case "French Horn":
+
+            playBrass(
+                instrument.frequency,
+                true
+            );
+
+            break;
+
+
+        case "Trombone":
+
+            playTrombone(
+                instrument.frequency
+            );
+
+            break;
+
+
+        case "Xylophone":
+
+            playXylophone(
+                instrument.frequency
+            );
+
+            break;
+
+
+        case "Synthesizer":
+
+            playSynth(
+                instrument.frequency
+            );
+
+            break;
+
+
+        case "Drums":
+
+            playKick();
+
+            setTimeout(
+                playHiHat,
+                160
+            );
+
+            setTimeout(
+                playSnare,
+                320
+            );
+
+            break;
+
+
+        case "Drum Machine":
+
+            playKick();
+
+            setTimeout(
+                playHiHat,
+                150
+            );
+
+            setTimeout(
+                playSnare,
+                300
+            );
+
+            break;
+
     }
 
 }
+
+
+
+/* =========================================================
+   INSTRUMENT LIBRARY
+========================================================= */
+
+const instrumentGrid =
+    document.getElementById(
+        "instrumentGrid"
+    );
+
+
+const searchInput =
+    document.getElementById(
+        "searchInput"
+    );
+
+
+let currentCategory =
+    "all";
+
+
+let currentSearch =
+    "";
+
+
+function renderInstruments() {
+
+    const results =
+        instruments.filter(
+            instrument => {
+
+                const categoryMatch =
+
+                    currentCategory ===
+                    "all" ||
+
+                    instrument.category ===
+                    currentCategory;
+
+
+                const searchable = [
+
+                    instrument.name,
+                    instrument.family,
+                    instrument.origin,
+                    instrument.description,
+                    instrument.sound,
+                    instrument.styles,
+                    instrument.difficulty
+
+                ]
+                .join(" ")
+                .toLowerCase();
+
+
+                return (
+                    categoryMatch &&
+                    searchable.includes(
+                        currentSearch
+                    )
+                );
+
+            }
+        );
+
+
+    instrumentGrid.innerHTML =
+        "";
+
+
+    results.forEach(
+        instrument => {
+
+            const card =
+                document.createElement(
+                    "article"
+                );
+
+
+            card.className =
+                "instrument-card";
+
+
+            card.innerHTML = `
+
+                <div class="instrument-icon">
+                    ${instrument.icon}
+                </div>
+
+                <span class="category-label">
+                    ${instrument.family.toUpperCase()}
+                </span>
+
+                <h3>
+                    ${instrument.name}
+                </h3>
+
+                <p>
+                    ${instrument.description}
+                </p>
+
+                <div class="instrument-details">
+
+                    <p>
+                        <strong>Origin:</strong>
+                        ${instrument.origin}
+                    </p>
+
+                    <p>
+                        <strong>Styles:</strong>
+                        ${instrument.styles}
+                    </p>
+
+                    <p>
+                        <strong>Difficulty:</strong>
+                        ${instrument.difficulty}
+                    </p>
+
+                </div>
+
+                <button
+                    class="sound-btn"
+                    type="button"
+                >
+                    ▶ Play Sound
+                </button>
+
+                <button
+                    class="info-btn"
+                    type="button"
+                >
+                    Learn More →
+                </button>
+
+            `;
+
+
+            card
+                .querySelector(
+                    ".sound-btn"
+                )
+                .addEventListener(
+                    "click",
+                    () => {
+
+                        playInstrumentSound(
+                            instrument
+                        );
+
+                    }
+                );
+
+
+            card
+                .querySelector(
+                    ".info-btn"
+                )
+                .addEventListener(
+                    "click",
+                    () => {
+
+                        openInstrumentModal(
+                            instrument
+                        );
+
+                    }
+                );
+
+
+            instrumentGrid.appendChild(
+                card
+            );
+
+        }
+    );
+
+
+    document.getElementById(
+        "noInstrumentResults"
+    ).hidden =
+        results.length > 0;
+
+
+    document.getElementById(
+        "searchStatus"
+    ).textContent =
+
+        currentSearch
+
+        ? `${results.length} instrument${
+            results.length === 1
+                ? ""
+                : "s"
+          } found`
+
+        : "";
+
+}
+
+
+document
+    .querySelectorAll(
+        ".tab-btn"
+    )
+    .forEach(
+        button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    currentCategory =
+                        button.dataset.category;
+
+
+                    document
+                        .querySelectorAll(
+                            ".tab-btn"
+                        )
+                        .forEach(
+                            tab => {
+
+                                tab.classList.remove(
+                                    "active"
+                                );
+
+                            }
+                        );
+
+
+                    button.classList.add(
+                        "active"
+                    );
+
+
+                    renderInstruments();
+
+                }
+            );
+
+        }
+    );
+
+
+searchInput.addEventListener(
+    "input",
+    () => {
+
+        currentSearch =
+            searchInput.value
+                .trim()
+                .toLowerCase();
+
+
+        renderInstruments();
+
+    }
+);
+
+
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+const instrumentModal =
+    document.getElementById(
+        "instrumentModal"
+    );
+
+
+function openInstrumentModal(
+    instrument
+) {
+
+    document.getElementById(
+        "modalIcon"
+    ).textContent =
+        instrument.icon;
+
+
+    document.getElementById(
+        "modalFamily"
+    ).textContent =
+        instrument.family;
+
+
+    document.getElementById(
+        "modalTitle"
+    ).textContent =
+        instrument.name;
+
+
+    document.getElementById(
+        "modalDescription"
+    ).textContent =
+        instrument.description;
+
+
+    document.getElementById(
+        "modalOrigin"
+    ).textContent =
+        instrument.origin;
+
+
+    document.getElementById(
+        "modalSound"
+    ).textContent =
+        instrument.sound;
+
+
+    document.getElementById(
+        "modalStyles"
+    ).textContent =
+        instrument.styles;
+
+
+    document.getElementById(
+        "modalDifficulty"
+    ).textContent =
+        instrument.difficulty;
+
+
+    instrumentModal.classList.add(
+        "modal-active"
+    );
+
+}
+
+
+function closeInstrumentModal() {
+
+    instrumentModal.classList.remove(
+        "modal-active"
+    );
+
+}
+
+
+document.getElementById(
+    "closeModal"
+).addEventListener(
+    "click",
+    closeInstrumentModal
+);
+
+
+instrumentModal.addEventListener(
+    "click",
+    event => {
+
+        if (
+            event.target ===
+            instrumentModal
+        ) {
+
+            closeInstrumentModal();
+
+        }
+
+    }
+);
+
+
+
+/* =========================================================
+   FEATURED INSTRUMENT
+========================================================= */
+
+function showFeaturedInstrument() {
+
+    const instrument =
+        randomItem(
+            instruments
+        );
+
+
+    document.getElementById(
+        "featuredInstrumentIcon"
+    ).textContent =
+        instrument.icon;
+
+
+    document.getElementById(
+        "featuredInstrumentFamily"
+    ).textContent =
+        instrument.family.toUpperCase();
+
+
+    document.getElementById(
+        "featuredInstrumentName"
+    ).textContent =
+        instrument.name;
+
+
+    document.getElementById(
+        "featuredInstrumentText"
+    ).textContent =
+        instrument.description;
+
+
+    document.getElementById(
+        "featuredInstrumentOrigin"
+    ).textContent =
+        instrument.origin;
+
+
+    document.getElementById(
+        "featuredInstrumentSound"
+    ).textContent =
+        instrument.sound;
+
+
+    document.getElementById(
+        "featuredInstrumentStyles"
+    ).textContent =
+        instrument.styles;
+
+}
+
+
+document.getElementById(
+    "newFeaturedInstrument"
+).addEventListener(
+    "click",
+    showFeaturedInstrument
+);
+
+
+
+/* =========================================================
+   PIANO
+========================================================= */
+
+document
+    .querySelectorAll(
+        ".piano-key"
+    )
+    .forEach(
+        key => {
+
+            key.addEventListener(
+                "click",
+                () => {
+
+                    playPiano(
+                        Number(
+                            key.dataset.note
+                        )
+                    );
+
+                }
+            );
+
+        }
+    );
+
+
+
+/* =========================================================
+   DRUM PAD
+========================================================= */
+
+document
+    .querySelectorAll(
+        ".drum-pad-button"
+    )
+    .forEach(
+        button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    const sound =
+                        button.dataset.drum;
+
+
+                    if (sound === "kick") {
+                        playKick();
+                    }
+
+                    if (sound === "snare") {
+                        playSnare();
+                    }
+
+                    if (sound === "hihat") {
+                        playHiHat();
+                    }
+
+                    if (sound === "tom") {
+                        playTom();
+                    }
+
+                    if (sound === "clap") {
+                        playClap();
+                    }
+
+                    if (sound === "cymbal") {
+                        playCymbal();
+                    }
+
+                }
+            );
+
+        }
+    );
+
+
+
+/* =========================================================
+   GUESS THE INSTRUMENT
+========================================================= */
+
+let currentGuess =
+    null;
+
+
+function createGuessQuestion() {
+
+    currentGuess =
+        randomItem(
+            instruments
+        );
+
+
+    document.getElementById(
+        "instrumentClue"
+    ).textContent =
+
+        `I belong to the ${currentGuess.family} family and I am often used in ${currentGuess.styles}.`;
+
+
+    const wrongAnswers =
+        instruments
+            .filter(
+                instrument =>
+                    instrument.name !==
+                    currentGuess.name
+            )
+            .sort(
+                () =>
+                    Math.random() - .5
+            )
+            .slice(
+                0,
+                3
+            );
+
+
+    const answers = [
+
+        currentGuess,
+
+        ...wrongAnswers
+
+    ]
+    .sort(
+        () =>
+            Math.random() - .5
+    );
+
+
+    const container =
+        document.getElementById(
+            "guessOptions"
+        );
+
+
+    container.innerHTML =
+        answers.map(
+            instrument => `
+
+                <button
+                    data-guess="${instrument.name}"
+                    type="button"
+                >
+                    ${instrument.icon}
+                    ${instrument.name}
+                </button>
+
+            `
+        ).join("");
+
+
+    let answered =
+        false;
+
+
+    container
+        .querySelectorAll(
+            "[data-guess]"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        if (answered) return;
+
+
+                        answered =
+                            true;
+
+
+                        container
+                            .querySelectorAll(
+                                "button"
+                            )
+                            .forEach(
+                                option => {
+
+                                    option.disabled =
+                                        true;
+
+                                }
+                            );
+
+
+                        document.getElementById(
+                            "guessResult"
+                        ).textContent =
+
+                            button.dataset.guess ===
+                            currentGuess.name
+
+                            ? "🎉 Correct!"
+
+                            : `❌ It was ${currentGuess.name}.`;
+
+                    }
+                );
+
+            }
+        );
+
+}
+
+
+document.getElementById(
+    "newGuessQuestion"
+).addEventListener(
+    "click",
+    createGuessQuestion
+);
+
+
+
+/* =========================================================
+   TRUE / FALSE
+========================================================= */
+
+const trueFalseQuestions = [
+
+    [
+        "The saxophone is a woodwind instrument.",
+        true
+    ],
+
+    [
+        "The trumpet is a string instrument.",
+        false
+    ],
+
+    [
+        "The trombone commonly uses a slide.",
+        true
+    ],
+
+    [
+        "The oboe uses a double reed.",
+        true
+    ],
+
+    [
+        "Tempo describes how loud music is.",
+        false
+    ],
+
+    [
+        "A ukulele commonly has four strings.",
+        true
+    ]
+
+];
+
+
+let currentTrueFalse =
+    null;
+
+
+let trueFalseAnswered =
+    false;
+
+
+function nextTrueFalse() {
+
+    currentTrueFalse =
+        randomItem(
+            trueFalseQuestions
+        );
+
+
+    trueFalseAnswered =
+        false;
+
+
+    document.getElementById(
+        "trueFalseQuestion"
+    ).textContent =
+        currentTrueFalse[0];
+
+
+    document.getElementById(
+        "trueFalseResult"
+    ).textContent =
+        "";
+
+}
+
+
+function answerTrueFalse(
+    answer
+) {
+
+    if (
+        !currentTrueFalse ||
+        trueFalseAnswered
+    ) {
+
+        return;
+    }
+
+
+    trueFalseAnswered =
+        true;
+
+
+    document.getElementById(
+        "trueFalseResult"
+    ).textContent =
+
+        answer ===
+        currentTrueFalse[1]
+
+        ? "🎉 Correct!"
+
+        : `❌ The answer is ${
+            currentTrueFalse[1]
+                ? "True"
+                : "False"
+          }.`;
+
+}
+
+
+document.getElementById(
+    "trueButton"
+).addEventListener(
+    "click",
+    () =>
+        answerTrueFalse(
+            true
+        )
+);
+
+
+document.getElementById(
+    "falseButton"
+).addEventListener(
+    "click",
+    () =>
+        answerTrueFalse(
+            false
+        )
+);
+
+
+document.getElementById(
+    "nextTrueFalse"
+).addEventListener(
+    "click",
+    nextTrueFalse
+);
+
+
+
+/* =========================================================
+   BATTLE DATA
+========================================================= */
+
+const battleBaseStats = {
+
+    Guitar:
+        [68,78,72,58],
+
+    Violin:
+        [62,92,65,55],
+
+    Cello:
+        [76,85,58,72],
+
+    Ukulele:
+        [45,72,70,48],
+
+    Piano:
+        [74,90,82,72],
+
+    Organ:
+        [88,82,58,86],
+
+    Flute:
+        [50,88,62,52],
+
+    Clarinet:
+        [58,84,68,60],
+
+    Oboe:
+        [60,88,58,64],
+
+    Saxophone:
+        [74,84,82,62],
+
+    Trumpet:
+        [90,76,74,68],
+
+    Trombone:
+        [86,72,75,76],
+
+    "French Horn":
+        [82,84,62,82],
+
+    Drums:
+        [94,38,98,78],
+
+    Xylophone:
+        [58,82,86,50],
+
+    Synthesizer:
+        [82,86,88,65],
+
+    "Digital Piano":
+        [70,86,78,68],
+
+    "Drum Machine":
+        [84,46,96,70]
+
+};
+
+
+const specialAttacks = {
+
+    Guitar:
+        ["🔥 Power Riff","power",28],
+
+    Violin:
+        ["🎻 Perfect Pitch","melody",32],
+
+    Cello:
+        ["🌊 Deep Resonance","defense",30],
+
+    Ukulele:
+        ["🌴 Happy Strum","rhythm",26],
+
+    Piano:
+        ["🎹 88-Key Combo","melody",30],
+
+    Organ:
+        ["⛪ Cathedral Blast","power",31],
+
+    Flute:
+        ["💨 Wind Melody","melody",29],
+
+    Clarinet:
+        ["🎶 Reed Rush","melody",28],
+
+    Oboe:
+        ["🌀 Double Reed Strike","melody",31],
+
+    Saxophone:
+        ["🎷 Jazz Solo","rhythm",31],
+
+    Trumpet:
+        ["🎺 Brass Blast","power",33],
+
+    Trombone:
+        ["💥 Slide Smash","power",31],
+
+    "French Horn":
+        ["📯 Royal Call","defense",31],
+
+    Drums:
+        ["🥁 Rhythm Rush","rhythm",34],
+
+    Xylophone:
+        ["✨ Mallet Storm","rhythm",29],
+
+    Synthesizer:
+        ["⚡ Bass Drop","power",32],
+
+    "Digital Piano":
+        ["🎹 Digital Cascade","melody",29],
+
+    "Drum Machine":
+        ["🤖 Beat Overdrive","rhythm",33]
+
+};
+
+
+function freshBattleData() {
+
+    return {
+
+        instrument:
+            null,
+
+        level:
+            1,
+
+        xp:
+            0,
+
+        wins:
+            0,
+
+        losses:
+            0,
+
+        highestLevel:
+            1,
+
+        upgradePoints:
+            0,
+
+        upgrades: {
+
+            power:
+                0,
+
+            melody:
+                0,
+
+            rhythm:
+                0,
+
+            defense:
+                0
+
+        }
+
+    };
+
+}
+
+
+let battleData =
+    freshBattleData();
+
+
+try {
+
+    const saved =
+        JSON.parse(
+            localStorage.getItem(
+                "musicverseBattle"
+            )
+        );
+
+
+    if (saved) {
+
+        battleData = {
+
+            ...battleData,
+
+            ...saved,
+
+            upgrades: {
+
+                ...battleData.upgrades,
+
+                ...saved.upgrades
+
+            }
+
+        };
+
+    }
+
+}
+catch (error) {}
+
+
+function saveBattleData() {
+
+    try {
+
+        localStorage.setItem(
+
+            "musicverseBattle",
+
+            JSON.stringify(
+                battleData
+            )
+
+        );
+
+    }
+    catch (error) {}
+
+}
+
+
+
+/* =========================================================
+   BATTLE STATS
+========================================================= */
+
+function getPlayerBattleStats() {
+
+    if (!battleData.instrument) {
+        return null;
+    }
+
+
+    const base =
+        battleBaseStats[
+            battleData.instrument
+        ];
+
+
+    const levelBonus =
+        (
+            battleData.level - 1
+        ) * 2;
+
+
+    return {
+
+        power:
+            base[0] +
+            levelBonus +
+            battleData.upgrades.power * 3,
+
+        melody:
+            base[1] +
+            levelBonus +
+            battleData.upgrades.melody * 3,
+
+        rhythm:
+            base[2] +
+            levelBonus +
+            battleData.upgrades.rhythm * 3,
+
+        defense:
+            base[3] +
+            levelBonus +
+            battleData.upgrades.defense * 3
+
+    };
+
+}
+
+
+
+/* =========================================================
+   BATTLE CHOICES
+========================================================= */
+
+function renderBattleChoices() {
+
+    const grid =
+        document.getElementById(
+            "battleInstrumentGrid"
+        );
+
+
+    grid.innerHTML =
+        instruments.map(
+            instrument => `
+
+                <button
+                    class="battle-instrument-option ${
+                        battleData.instrument ===
+                        instrument.name
+                            ? "active"
+                            : ""
+                    }"
+                    data-battle-choice="${instrument.name}"
+                    type="button"
+                >
+
+                    <span class="battle-option-icon">
+                        ${instrument.icon}
+                    </span>
+
+                    ${instrument.name}
+
+                </button>
+
+            `
+        ).join("");
+
+
+    grid
+        .querySelectorAll(
+            "[data-battle-choice]"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        chooseBattleInstrument(
+                            button.dataset.battleChoice
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+}
+
+
+function chooseBattleInstrument(
+    name
+) {
+
+    if (
+        battleData.instrument &&
+        battleData.instrument !== name
+    ) {
+
+        const hasProgress =
+
+            battleData.level > 1 ||
+            battleData.xp > 0 ||
+            battleData.wins > 0 ||
+            battleData.losses > 0 ||
+            Object.values(
+                battleData.upgrades
+            ).some(
+                value =>
+                    value > 0
+            );
+
+
+        if (hasProgress) {
+
+            const confirmed =
+                confirm(
+
+                    "Changing your instrument resets your battle progress. Continue?"
+
+                );
+
+
+            if (!confirmed) {
+                return;
+            }
+
+        }
+
+    }
+
+
+    if (
+        battleData.instrument !== name
+    ) {
+
+        battleData =
+            freshBattleData();
+
+
+        battleData.instrument =
+            name;
+
+    }
+
+
+    currentCPU =
+        null;
+
+
+    saveBattleData();
+
+    renderBattleChoices();
+
+    renderBattlePlayer();
+
+    clearCPU();
+
+
+    document.getElementById(
+        "battleStatus"
+    ).textContent =
+
+        `${name} entered the arena!`;
+
+}
+
+
+
+/* =========================================================
+   BATTLE PLAYER
+========================================================= */
+
+function renderBattlePlayer() {
+
+    if (!battleData.instrument) {
+        return;
+    }
+
+
+    const instrument =
+        getInstrument(
+            battleData.instrument
+        );
+
+
+    const stats =
+        getPlayerBattleStats();
+
+
+    document.getElementById(
+        "playerBattleIcon"
+    ).textContent =
+        instrument.icon;
+
+
+    document.getElementById(
+        "playerBattleName"
+    ).textContent =
+        instrument.name;
+
+
+    document.getElementById(
+        "playerBattleLevel"
+    ).textContent =
+        battleData.level;
+
+
+    document.getElementById(
+        "playerPower"
+    ).textContent =
+        stats.power;
+
+
+    document.getElementById(
+        "playerMelody"
+    ).textContent =
+        stats.melody;
+
+
+    document.getElementById(
+        "playerRhythm"
+    ).textContent =
+        stats.rhythm;
+
+
+    document.getElementById(
+        "playerDefense"
+    ).textContent =
+        stats.defense;
+
+
+    document.getElementById(
+        "playerXPText"
+    ).textContent =
+        `${battleData.xp} / 100`;
+
+
+    document.getElementById(
+        "playerXPBar"
+    ).style.width =
+        `${Math.min(
+            100,
+            Math.max(
+                0,
+                battleData.xp
+            )
+        )}%`;
+
+
+    document.getElementById(
+        "upgradePoints"
+    ).textContent =
+        battleData.upgradePoints;
+
+
+    renderBattleRecord();
+
+}
+
+
+
+/* =========================================================
+   CPU
+========================================================= */
+
+let currentCPU =
+    null;
+
+
+function createCPU() {
+
+    if (!battleData.instrument) {
+
+        document.getElementById(
+            "battleStatus"
+        ).textContent =
+            "Choose an instrument first.";
+
+        return;
+
+    }
+
+
+    const instrument =
+        randomItem(
+
+            instruments.filter(
+                item =>
+                    item.name !==
+                    battleData.instrument
+            )
+
+        );
+
+
+    const level =
+        Math.max(
+
+            1,
+
+            battleData.level +
+            randomNumber(
+                -1,
+                1
+            )
+
+        );
+
+
+    const base =
+        battleBaseStats[
+            instrument.name
+        ];
+
+
+    const bonus =
+        (
+            level - 1
+        ) * 2;
+
+
+    currentCPU = {
+
+        instrument,
+
+        level,
+
+        stats: {
+
+            power:
+                base[0] + bonus,
+
+            melody:
+                base[1] + bonus,
+
+            rhythm:
+                base[2] + bonus,
+
+            defense:
+                base[3] + bonus
+
+        }
+
+    };
+
+
+    renderCPU();
+
+}
+
+
+function renderCPU() {
+
+    if (!currentCPU) return;
+
+
+    document.getElementById(
+        "cpuBattleIcon"
+    ).textContent =
+        currentCPU.instrument.icon;
+
+
+    document.getElementById(
+        "cpuBattleName"
+    ).textContent =
+        currentCPU.instrument.name;
+
+
+    document.getElementById(
+        "cpuBattleLevel"
+    ).textContent =
+        currentCPU.level;
+
+
+    document.getElementById(
+        "cpuPower"
+    ).textContent =
+        currentCPU.stats.power;
+
+
+    document.getElementById(
+        "cpuMelody"
+    ).textContent =
+        currentCPU.stats.melody;
+
+
+    document.getElementById(
+        "cpuRhythm"
+    ).textContent =
+        currentCPU.stats.rhythm;
+
+
+    document.getElementById(
+        "cpuDefense"
+    ).textContent =
+        currentCPU.stats.defense;
+
+
+    document.getElementById(
+        "battleButton"
+    ).disabled =
+        false;
+
+
+    document.getElementById(
+        "battleStatus"
+    ).textContent =
+
+        `Level ${currentCPU.level} ${currentCPU.instrument.name} challenges you!`;
+
+}
+
+
+function clearCPU() {
+
+    currentCPU =
+        null;
+
+
+    document.getElementById(
+        "cpuBattleIcon"
+    ).textContent =
+        "❓";
+
+
+    document.getElementById(
+        "cpuBattleName"
+    ).textContent =
+        "Waiting...";
+
+
+    document.getElementById(
+        "cpuBattleLevel"
+    ).textContent =
+        "?";
+
+
+    [
+        "cpuPower",
+        "cpuMelody",
+        "cpuRhythm",
+        "cpuDefense"
+    ]
+    .forEach(
+        id => {
+
+            document.getElementById(
+                id
+            ).textContent =
+                "?";
+
+        }
+    );
+
+
+    document.getElementById(
+        "battleButton"
+    ).disabled =
+        true;
+
+}
+
+
+document.getElementById(
+    "findOpponentButton"
+).addEventListener(
+    "click",
+    createCPU
+);
+
+
+
+/* =========================================================
+   BATTLE LOG
+========================================================= */
+
+function addBattleLog(
+    message
+) {
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+
+    div.className =
+        "battle-log-entry";
+
+
+    div.textContent =
+        message;
+
+
+    document.getElementById(
+        "battleLog"
+    ).appendChild(
+        div
+    );
+
+}
+
+
+
+/* =========================================================
+   BATTLE FORMULA
+========================================================= */
+
+function calculateBattleScore(
+    stats
+) {
+
+    const base =
+
+        stats.power * 1.05 +
+
+        stats.melody * .9 +
+
+        stats.rhythm * .95 +
+
+        stats.defense * .75;
+
+
+    return (
+
+        base *
+
+        (
+            .88 +
+            Math.random() * .24
+        )
+
+    );
+
+}
+
+
+function activateSpecial(
+    instrument,
+    stats
+) {
+
+    if (
+        Math.random() >
+        .35
+    ) {
+
+        return {
+
+            bonus:
+                0,
+
+            message:
+                ""
+
+        };
+
+    }
+
+
+    const special =
+        specialAttacks[
+            instrument.name
+        ];
+
+
+    const bonus =
+
+        special[2] +
+
+        stats[
+            special[1]
+        ] * .2;
+
+
+    return {
+
+        bonus,
+
+        message:
+
+            `${instrument.icon} ${instrument.name} used ${special[0]}!`
+
+    };
+
+}
+
+
+
+/* =========================================================
+   RUN BATTLE
+========================================================= */
+
+document.getElementById(
+    "battleButton"
+).addEventListener(
+    "click",
+    async () => {
+
+        if (
+            !battleData.instrument ||
+            !currentCPU
+        ) {
+
+            return;
+        }
+
+
+        document.getElementById(
+            "battleButton"
+        ).disabled =
+            true;
+
+
+        document.getElementById(
+            "battleLog"
+        ).innerHTML =
+            "";
+
+
+        const playerInstrument =
+            getInstrument(
+                battleData.instrument
+            );
+
+
+        const playerStats =
+            getPlayerBattleStats();
+
+
+        playInstrumentSound(
+            playerInstrument
+        );
+
+
+        addBattleLog(
+
+            `${playerInstrument.icon} ${playerInstrument.name} begins the performance!`
+
+        );
+
+
+        await delay(
+            500
+        );
+
+
+        playInstrumentSound(
+            currentCPU.instrument
+        );
+
+
+        addBattleLog(
+
+            `${currentCPU.instrument.icon} CPU ${currentCPU.instrument.name} responds!`
+
+        );
+
+
+        await delay(
+            500
+        );
+
+
+        const rounds = [
+
+            ["power","⚡ POWER SOLO"],
+
+            ["melody","🎵 MELODY DUEL"],
+
+            ["rhythm","🥁 RHYTHM CLASH"],
+
+            ["defense","🛡 ENDURANCE ROUND"]
+
+        ];
+
+
+        const round =
+            randomItem(
+                rounds
+            );
+
+
+        addBattleLog(
+            round[1]
+        );
+
+
+        let playerScore =
+
+            calculateBattleScore(
+                playerStats
+            ) +
+
+            playerStats[
+                round[0]
+            ] * .7;
+
+
+        let cpuScore =
+
+            calculateBattleScore(
+                currentCPU.stats
+            ) +
+
+            currentCPU.stats[
+                round[0]
+            ] * .7;
+
+
+        const playerSpecial =
+            activateSpecial(
+
+                playerInstrument,
+
+                playerStats
+
+            );
+
+
+        const cpuSpecial =
+            activateSpecial(
+
+                currentCPU.instrument,
+
+                currentCPU.stats
+
+            );
+
+
+        if (
+            playerSpecial.bonus
+        ) {
+
+            playerScore +=
+                playerSpecial.bonus;
+
+
+            addBattleLog(
+                playerSpecial.message
+            );
+
+        }
+
+
+        if (
+            cpuSpecial.bonus
+        ) {
+
+            cpuScore +=
+                cpuSpecial.bonus;
+
+
+            addBattleLog(
+                `CPU ${cpuSpecial.message}`
+            );
+
+        }
+
+
+        await delay(
+            450
+        );
+
+
+        addBattleLog(
+
+            `YOU ${Math.round(playerScore)} ⚔️ ${Math.round(cpuScore)} CPU`
+
+        );
+
+
+        await delay(
+            500
+        );
+
+
+        if (
+            playerScore >=
+            cpuScore
+        ) {
+
+            battleWin();
+
+        }
+        else {
+
+            battleLoss();
+
+        }
+
+    }
+);
+
+
+
+/* =========================================================
+   BATTLE WIN / LOSS
+========================================================= */
+
+function battleWin() {
+
+    const gained =
+        randomNumber(
+            20,
+            35
+        );
+
+
+    battleData.wins++;
+
+
+    battleData.xp +=
+        gained;
+
+
+    document.getElementById(
+        "battleStatus"
+    ).innerHTML =
+
+        `🏆 <strong>YOU WIN!</strong> +${gained} EXP`;
+
+
+    addBattleLog(
+
+        `You gained ${gained} EXP.`
+
+    );
+
+
+    checkLevelUp();
+
+    finishBattle();
+
+}
+
+
+function battleLoss() {
+
+    const lost =
+        randomNumber(
+            12,
+            25
+        );
+
+
+    battleData.losses++;
+
+
+    battleData.xp -=
+        lost;
+
+
+    document.getElementById(
+        "battleStatus"
+    ).innerHTML =
+
+        `💀 <strong>YOU LOST!</strong> -${lost} EXP`;
+
+
+    addBattleLog(
+
+        `You lost ${lost} EXP.`
+
+    );
+
+
+    checkLevelDown();
+
+    finishBattle();
+
+}
+
+
+function checkLevelUp() {
+
+    while (
+        battleData.xp >=
+        100
+    ) {
+
+        battleData.xp -=
+            100;
+
+
+        battleData.level++;
+
+
+        battleData.upgradePoints++;
+
+
+        battleData.highestLevel =
+            Math.max(
+
+                battleData.highestLevel,
+
+                battleData.level
+
+            );
+
+
+        addBattleLog(
+
+            `🌟 LEVEL UP! Level ${battleData.level}.`
+
+        );
+
+
+        addBattleLog(
+
+            "🔧 You earned 1 Upgrade Point."
+
+        );
+
+
+        playPiano(
+            523.25
+        );
+
+
+        setTimeout(
+            () =>
+                playPiano(
+                    659.25
+                ),
+            130
+        );
+
+
+        setTimeout(
+            () =>
+                playPiano(
+                    783.99
+                ),
+            260
+        );
+
+    }
+
+}
+
+
+function checkLevelDown() {
+
+    while (
+        battleData.xp < 0 &&
+        battleData.level > 1
+    ) {
+
+        battleData.level--;
+
+
+        battleData.xp +=
+            100;
+
+
+        addBattleLog(
+
+            `⬇️ LEVEL DOWN! Level ${battleData.level}.`
+
+        );
+
+
+        if (
+            battleData.upgradePoints > 0
+        ) {
+
+            battleData.upgradePoints--;
+
+        }
+        else {
+
+            const upgradedStats =
+                Object.keys(
+                    battleData.upgrades
+                )
+                .filter(
+                    stat =>
+                        battleData.upgrades[
+                            stat
+                        ] > 0
+                );
+
+
+            if (
+                upgradedStats.length
+            ) {
+
+                const stat =
+                    randomItem(
+                        upgradedStats
+                    );
+
+
+                battleData.upgrades[
+                    stat
+                ]--;
+
+
+                addBattleLog(
+
+                    `💔 ${stat.toUpperCase()} lost one upgrade.`
+
+                );
+
+            }
+
+        }
+
+    }
+
+
+    if (
+        battleData.level === 1 &&
+        battleData.xp < 0
+    ) {
+
+        battleData.xp =
+            0;
+
+    }
+
+}
+
+
+function finishBattle() {
+
+    saveBattleData();
+
+    renderBattlePlayer();
+
+    renderBattleRecord();
+
+
+    setTimeout(
+        clearCPU,
+        1200
+    );
+
+}
+
+
+
+/* =========================================================
+   BATTLE UPGRADES
+========================================================= */
+
+document
+    .querySelectorAll(
+        ".upgrade-button"
+    )
+    .forEach(
+        button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    if (
+                        !battleData.instrument
+                    ) {
+
+                        return;
+                    }
+
+
+                    if (
+                        battleData.upgradePoints <=
+                        0
+                    ) {
+
+                        document.getElementById(
+                            "battleStatus"
+                        ).textContent =
+
+                            "You need an Upgrade Point.";
+
+                        return;
+
+                    }
+
+
+                    const stat =
+                        button.dataset.upgrade;
+
+
+                    battleData.upgrades[
+                        stat
+                    ]++;
+
+
+                    battleData.upgradePoints--;
+
+
+                    saveBattleData();
+
+                    renderBattlePlayer();
+
+
+                    document.getElementById(
+                        "battleStatus"
+                    ).textContent =
+
+                        `🔧 ${stat.toUpperCase()} increased by +3!`;
+
+                }
+            );
+
+        }
+    );
+
+
+
+/* =========================================================
+   BATTLE RECORD
+========================================================= */
+
+function renderBattleRecord() {
+
+    const total =
+
+        battleData.wins +
+
+        battleData.losses;
+
+
+    const rate =
+
+        total === 0
+
+        ? 0
+
+        : Math.round(
+
+            battleData.wins /
+
+            total *
+
+            100
+
+        );
+
+
+    document.getElementById(
+        "battleWins"
+    ).textContent =
+        battleData.wins;
+
+
+    document.getElementById(
+        "battleLosses"
+    ).textContent =
+        battleData.losses;
+
+
+    document.getElementById(
+        "battleWinRate"
+    ).textContent =
+        `${rate}%`;
+
+
+    document.getElementById(
+        "battleHighestLevel"
+    ).textContent =
+        battleData.highestLevel;
+
+}
+
+
+
+/* =========================================================
+   CHANGE BATTLE INSTRUMENT
+========================================================= */
+
+document.getElementById(
+    "changeBattleInstrument"
+).addEventListener(
+    "click",
+    () => {
+
+        const confirmed =
+            confirm(
+
+                "Changing your instrument resets Battle Level, EXP and upgrades. Continue?"
+
+            );
+
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        battleData =
+            freshBattleData();
+
+
+        saveBattleData();
+
+        renderBattleChoices();
+
+        renderBattleRecord();
+
+        clearCPU();
+
+
+        document.getElementById(
+            "playerBattleIcon"
+        ).textContent =
+            "🎵";
+
+
+        document.getElementById(
+            "playerBattleName"
+        ).textContent =
+            "Choose Instrument";
+
+
+        document.getElementById(
+            "playerBattleLevel"
+        ).textContent =
+            "1";
+
+
+        [
+            "playerPower",
+            "playerMelody",
+            "playerRhythm",
+            "playerDefense"
+        ]
+        .forEach(
+            id => {
+
+                document.getElementById(
+                    id
+                ).textContent =
+                    "0";
+
+            }
+        );
+
+
+        document.getElementById(
+            "playerXPText"
+        ).textContent =
+            "0 / 100";
+
+
+        document.getElementById(
+            "playerXPBar"
+        ).style.width =
+            "0%";
+
+
+        document.getElementById(
+            "upgradePoints"
+        ).textContent =
+            "0";
+
+
+        document.getElementById(
+            "battleStatus"
+        ).textContent =
+            "Choose an instrument.";
+
+    }
+);
+
+
+
+/* =========================================================
+   MUSICCRAFT
+========================================================= */
+
+const mcCanvas =
+    document.getElementById(
+        "musiccraftCanvas"
+    );
+
+
+const mcContext =
+    mcCanvas.getContext(
+        "2d"
+    );
+
+
+mcContext.imageSmoothingEnabled =
+    false;
+
+
+const MC_TILE_SIZE =
+    40;
+
+
+const MC_WORLD_SIZE =
+    140;
+
+
+const MC_COLUMNS =
+    Math.ceil(
+        mcCanvas.width /
+        MC_TILE_SIZE
+    );
+
+
+const MC_ROWS =
+    Math.ceil(
+        mcCanvas.height /
+        MC_TILE_SIZE
+    );
+
+
+
+/* =========================================================
+   MUSICCRAFT BLOCKS
+========================================================= */
+
+const mcBlocks = {
+
+    air: {
+
+        name:
+            "Empty",
+
+        icon:
+            "",
+
+        color:
+            "#171a1f",
+
+        solid:
+            false,
+
+        mineable:
+            false,
+
+        xp:
+            0
+
+    },
+
+
+    grass: {
+
+        name:
+            "Grass",
+
+        icon:
+            "🌱",
+
+        color:
+            "#557d3b",
+
+        solid:
+            false,
+
+        mineable:
+            true,
+
+        xp:
+            1
+
+    },
+
+
+    dirt: {
+
+        name:
+            "Dirt",
+
+        icon:
+            "🟫",
+
+        color:
+            "#735038",
+
+        solid:
+            true,
+
+        mineable:
+            true,
+
+        xp:
+            1
+
+    },
+
+
+    stone: {
+
+        name:
+            "Stone",
+
+        icon:
+            "🪨",
+
+        color:
+            "#727981",
+
+        solid:
+            true,
+
+        mineable:
+            true,
+
+        xp:
+            2
+
+    },
+
+
+    coal: {
+
+        name:
+            "Coal",
+
+        icon:
+            "⬛",
+
+        color:
+            "#303238",
+
+        solid:
+            true,
+
+        mineable:
+            true,
+
+        xp:
+            4
+
+    },
+
+
+    iron: {
+
+        name:
+            "Iron",
+
+        icon:
+            "🔩",
+
+        color:
+            "#9b8f82",
+
+        solid:
+            true,
+
+        mineable:
+            true,
+
+        xp:
+            6
+
+    },
+
+
+    gold: {
+
+        name:
+            "Gold",
+
+        icon:
+            "🟨",
+
+        color:
+            "#caa84c",
+
+        solid:
+            true,
+
+        mineable:
+            true,
+
+        xp:
+            10
+
+    },
+
+
+    diamond: {
+
+        name:
+            "Diamond",
+
+        icon:
+            "💎",
+
+        color:
+            "#57c8d1",
+
+        solid:
+            true,
+
+        mineable:
+            true,
+
+        xp:
+            18
+
+    },
+
+
+    music: {
+
+        name:
+            "Music Crystal",
+
+        icon:
+            "🎵",
+
+        color:
+            "#9165af",
+
+        solid:
+            true,
+
+        mineable:
+            true,
+
+        xp:
+            25
+
+    },
+
+
+    water: {
+
+        name:
+            "Water",
+
+        icon:
+            "💧",
+
+        color:
+            "#286b9d",
+
+        solid:
+            true,
+
+        mineable:
+            false,
+
+        xp:
+            0
+
+    },
+
+
+    lava: {
+
+        name:
+            "Lava",
+
+        icon:
+            "🌋",
+
+        color:
+            "#b94c28",
+
+        solid:
+            true,
+
+        mineable:
+            false,
+
+        xp:
+            0
+
+    }
+
+};
+
+
+
+/* =========================================================
+   DEPTHS
+========================================================= */
+
+let mcDepth =
+    0;
+
+
+const mcDepthNames = [
+
+    "🌱 Surface",
+
+    "⛏️ Underground",
+
+    "🪨 Deep Caves",
+
+    "💎 Crystal Depths",
+
+    "🌋 Ancient Depths",
+
+    "🎵 Music Core"
+
+];
+
+
+const mcDepthDescriptions = [
+
+    "Begin your mining journey with Dirt and Stone.",
+
+    "Coal starts appearing underground.",
+
+    "Iron and small amounts of Gold can now be discovered.",
+
+    "Diamonds and rare Music Crystals begin appearing.",
+
+    "Dangerous lava surrounds valuable rare ores.",
+
+    "The deepest layer of MusicCraft, rich in Music Crystals."
+
+];
+
+
+const mcMissions = [
+
+    {
+
+        name:
+            "Getting Started",
+
+        requirements: {
+
+            dirt:
+                6,
+
+            stone:
+                8
+
+        }
+
+    },
+
+
+    {
+
+        name:
+            "Into the Underground",
+
+        requirements: {
+
+            stone:
+                12,
+
+            coal:
+                5
+
+        }
+
+    },
+
+
+    {
+
+        name:
+            "Iron Explorer",
+
+        requirements: {
+
+            coal:
+                8,
+
+            iron:
+                5
+
+        }
+
+    },
+
+
+    {
+
+        name:
+            "Treasure Hunter",
+
+        requirements: {
+
+            iron:
+                8,
+
+            gold:
+                4,
+
+            diamond:
+                1
+
+        }
+
+    },
+
+
+    {
+
+        name:
+            "Ancient Miner",
+
+        requirements: {
+
+            gold:
+                8,
+
+            diamond:
+                4,
+
+            music:
+                2
+
+        }
+
+    },
+
+
+    {
+
+        name:
+            "Master of the Music Core",
+
+        requirements: {
+
+            diamond:
+                10,
+
+            music:
+                8
+
+        }
+
+    }
+
+];
+
+
+
+/* =========================================================
+   MUSICCRAFT STATE
+========================================================= */
+
+let mcWorld =
+    [];
+
+
+let mcPlayer = {
+
+    x:
+        Math.floor(
+            MC_WORLD_SIZE / 2
+        ),
+
+    y:
+        Math.floor(
+            MC_WORLD_SIZE / 2
+        ),
+
+    health:
+        10,
+
+    xp:
+        0
+
+};
+
+
+let mcCamera = {
+
+    x:
+        0,
+
+    y:
+        0
+
+};
+
+
+let mcSelectedBlock =
+    "dirt";
+
+
+let mcInventory = {
+
+    dirt:
+        0,
+
+    stone:
+        0,
+
+    coal:
+        0,
+
+    iron:
+        0,
+
+    gold:
+        0,
+
+    diamond:
+        0,
+
+    music:
+        0
+
+};
+
+
+
+/* =========================================================
+   BLOCK DISTRIBUTION BY DEPTH
+========================================================= */
+
+function getBlockForDepth(
+    random
+) {
+
+    if (
+        mcDepth === 0
+    ) {
+
+        if (random < .05) {
+            return "water";
+        }
+
+        if (random < .26) {
+            return "dirt";
+        }
+
+        if (random < .44) {
+            return "stone";
+        }
+
+        return "grass";
+
+    }
+
+
+    if (
+        mcDepth === 1
+    ) {
+
+        if (random < .10) {
+            return "coal";
+        }
+
+        if (random < .48) {
+            return "stone";
+        }
+
+        return "dirt";
+
+    }
+
+
+    if (
+        mcDepth === 2
+    ) {
+
+        if (random < .11) {
+            return "coal";
+        }
+
+        if (random < .20) {
+            return "iron";
+        }
+
+        if (random < .225) {
+            return "gold";
+        }
+
+        return "stone";
+
+    }
+
+
+    if (
+        mcDepth === 3
+    ) {
+
+        if (random < .09) {
+            return "iron";
+        }
+
+        if (random < .17) {
+            return "gold";
+        }
+
+        if (random < .215) {
+            return "diamond";
+        }
+
+        if (random < .235) {
+            return "music";
+        }
+
+        return "stone";
+
+    }
+
+
+    if (
+        mcDepth === 4
+    ) {
+
+        if (random < .07) {
+            return "lava";
+        }
+
+        if (random < .15) {
+            return "gold";
+        }
+
+        if (random < .215) {
+            return "diamond";
+        }
+
+        if (random < .26) {
+            return "music";
+        }
+
+        return "stone";
+
+    }
+
+
+    if (random < .07) {
+        return "lava";
+    }
+
+    if (random < .17) {
+        return "diamond";
+    }
+
+    if (random < .30) {
+        return "music";
+    }
+
+    if (random < .39) {
+        return "gold";
+    }
+
+
+    return "stone";
+
+}
+
+
+
+/* =========================================================
+   WORLD GENERATION
+========================================================= */
+
+function generateMusicCraftWorld() {
+
+    mcWorld =
+        [];
+
+
+    for (
+        let y = 0;
+        y < MC_WORLD_SIZE;
+        y++
+    ) {
+
+        const row =
+            [];
+
+
+        for (
+            let x = 0;
+            x < MC_WORLD_SIZE;
+            x++
+        ) {
+
+            row.push(
+
+                getBlockForDepth(
+                    Math.random()
+                )
+
+            );
+
+        }
+
+
+        mcWorld.push(
+            row
+        );
+
+    }
+
+
+    /*
+       SAFE OPEN SPAWN AREA
+    */
+
+    for (
+        let y =
+            mcPlayer.y - 2;
+
+        y <=
+            mcPlayer.y + 2;
+
+        y++
+    ) {
+
+        for (
+            let x =
+                mcPlayer.x - 2;
+
+            x <=
+                mcPlayer.x + 2;
+
+            x++
+        ) {
+
+            if (
+                mcWorld[y] &&
+                mcWorld[y][x] !== undefined
+            ) {
+
+                mcWorld[y][x] =
+                    "air";
+
+            }
+
+        }
+
+    }
+
+
+    /*
+       GUARANTEE SOME MINEABLE MATERIAL
+       AROUND SPAWN SO THE GAME CANNOT GET STUCK.
+    */
+
+    const nearbyResources =
+        mcDepth === 0
+
+        ? [
+            "dirt",
+            "stone",
+            "stone",
+            "dirt"
+          ]
+
+        : mcDepth === 1
+
+        ? [
+            "stone",
+            "coal",
+            "stone",
+            "coal"
+          ]
+
+        : mcDepth === 2
+
+        ? [
+            "stone",
+            "coal",
+            "iron",
+            "stone"
+          ]
+
+        : mcDepth === 3
+
+        ? [
+            "iron",
+            "gold",
+            "stone",
+            "diamond"
+          ]
+
+        : mcDepth === 4
+
+        ? [
+            "gold",
+            "diamond",
+            "stone",
+            "music"
+          ]
+
+        : [
+            "diamond",
+            "music",
+            "gold",
+            "music"
+          ];
+
+
+    const positions = [
+
+        [3,0],
+        [-3,0],
+        [0,3],
+        [0,-3]
+
+    ];
+
+
+    positions.forEach(
+        (offset,index) => {
+
+            const x =
+                mcPlayer.x +
+                offset[0];
+
+
+            const y =
+                mcPlayer.y +
+                offset[1];
+
+
+            mcWorld[y][x] =
+                nearbyResources[index];
+
+        }
+    );
+
+
+    addMusicCraftLog(
+
+        `⛏️ Entered ${mcDepthNames[mcDepth]}.`
+
+    );
+
+
+    updateMiningMission();
+
+    renderMusicCraftInventory();
+
+    drawMusicCraft();
+
+}
+
+
+
+/* =========================================================
+   DRAW MUSICCRAFT TILE
+========================================================= */
+
+function drawMusicCraftTile(
+    screenX,
+    screenY,
+    blockName,
+    worldX,
+    worldY
+) {
+
+    const block =
+        mcBlocks[
+            blockName
+        ];
+
+
+    if (!block) {
+        return;
+    }
+
+
+    /*
+       EMPTY / CAVE FLOOR
+    */
+
+    if (
+        blockName ===
+        "air"
+    ) {
+
+        mcContext.fillStyle =
+
+            mcDepth === 0
+
+            ? "#344b2b"
+
+            : "#171a1f";
+
+
+        mcContext.fillRect(
+
+            screenX,
+            screenY,
+
+            MC_TILE_SIZE,
+            MC_TILE_SIZE
+
+        );
+
+
+        const seed =
+
+            (
+                worldX * 19 +
+                worldY * 29
+            ) % 17;
+
+
+        mcContext.fillStyle =
+            "rgba(255,255,255,.025)";
+
+
+        mcContext.fillRect(
+
+            screenX +
+            6 +
+            seed,
+
+            screenY +
+            12,
+
+            3,
+            3
+
+        );
+
+
+        mcContext.strokeStyle =
+            "rgba(0,0,0,.12)";
+
+
+        mcContext.strokeRect(
+
+            screenX,
+            screenY,
+
+            MC_TILE_SIZE,
+            MC_TILE_SIZE
+
+        );
+
+
+        return;
+
+    }
+
+
+    /*
+       BLOCK BASE
+    */
+
+    mcContext.fillStyle =
+        block.color;
+
+
+    mcContext.fillRect(
+
+        screenX,
+        screenY,
+
+        MC_TILE_SIZE,
+        MC_TILE_SIZE
+
+    );
+
+
+    const seed =
+
+        (
+            worldX * 17 +
+            worldY * 31
+        ) % 13;
+
+
+    mcContext.fillStyle =
+        "rgba(255,255,255,.06)";
+
+
+    mcContext.fillRect(
+
+        screenX +
+        5 +
+        seed,
+
+        screenY +
+        8,
+
+        4,
+        4
+
+    );
+
+
+    mcContext.fillStyle =
+        "rgba(0,0,0,.1)";
+
+
+    mcContext.fillRect(
+
+        screenX +
+        20,
+
+        screenY +
+        25,
+
+        5,
+        4
+
+    );
+
+
+    mcContext.strokeStyle =
+        "rgba(0,0,0,.18)";
+
+
+    mcContext.strokeRect(
+
+        screenX,
+        screenY,
+
+        MC_TILE_SIZE,
+        MC_TILE_SIZE
+
+    );
+
+
+    /*
+       MUSIC CRYSTAL
+    */
+
+    if (
+        blockName ===
+        "music"
+    ) {
+
+        mcContext.fillStyle =
+            "#f8e9ff";
+
+
+        mcContext.font =
+            "22px serif";
+
+
+        mcContext.textAlign =
+            "center";
+
+
+        mcContext.textBaseline =
+            "middle";
+
+
+        mcContext.fillText(
+
+            "♪",
+
+            screenX +
+            MC_TILE_SIZE / 2,
+
+            screenY +
+            MC_TILE_SIZE / 2
+
+        );
+
+    }
+
+
+    /*
+       DIAMOND
+    */
+
+    if (
+        blockName ===
+        "diamond"
+    ) {
+
+        mcContext.fillStyle =
+            "#c7ffff";
+
+
+        mcContext.fillRect(
+
+            screenX + 12,
+            screenY + 10,
+
+            6,
+            6
+
+        );
+
+
+        mcContext.fillRect(
+
+            screenX + 25,
+            screenY + 24,
+
+            5,
+            5
+
+        );
+
+    }
+
+
+    /*
+       GOLD
+    */
+
+    if (
+        blockName ===
+        "gold"
+    ) {
+
+        mcContext.fillStyle =
+            "#ffe49a";
+
+
+        mcContext.fillRect(
+
+            screenX + 10,
+            screenY + 10,
+
+            6,
+            5
+
+        );
+
+
+        mcContext.fillRect(
+
+            screenX + 26,
+            screenY + 25,
+
+            5,
+            5
+
+        );
+
+    }
+
+
+    /*
+       COAL
+    */
+
+    if (
+        blockName ===
+        "coal"
+    ) {
+
+        mcContext.fillStyle =
+            "#101116";
+
+
+        mcContext.fillRect(
+
+            screenX + 10,
+            screenY + 9,
+
+            7,
+            6
+
+        );
+
+
+        mcContext.fillRect(
+
+            screenX + 24,
+            screenY + 26,
+
+            6,
+            5
+
+        );
+
+    }
+
+
+    /*
+       IRON
+    */
+
+    if (
+        blockName ===
+        "iron"
+    ) {
+
+        mcContext.fillStyle =
+            "#d0bda9";
+
+
+        mcContext.fillRect(
+
+            screenX + 8,
+            screenY + 12,
+
+            7,
+            5
+
+        );
+
+
+        mcContext.fillRect(
+
+            screenX + 26,
+            screenY + 24,
+
+            6,
+            5
+
+        );
+
+    }
+
+
+    /*
+       LAVA
+    */
+
+    if (
+        blockName ===
+        "lava"
+    ) {
+
+        mcContext.fillStyle =
+            "#f47c33";
+
+
+        mcContext.fillRect(
+
+            screenX + 5,
+            screenY + 9,
+
+            30,
+            5
+
+        );
+
+
+        mcContext.fillStyle =
+            "#ffd166";
+
+
+        mcContext.fillRect(
+
+            screenX + 12,
+            screenY + 25,
+
+            17,
+            4
+
+        );
+
+    }
+
+}
+
+
+
+/* =========================================================
+   DRAW PLAYER
+========================================================= */
+
+function drawMusicCraftPlayer(
+    x,
+    y
+) {
+
+    mcContext.fillStyle =
+        "rgba(0,0,0,.28)";
+
+
+    mcContext.fillRect(
+
+        x + 7,
+        y + 31,
+
+        27,
+        5
+
+    );
+
+
+    /*
+       BODY
+    */
+
+    mcContext.fillStyle =
+        "#c39a55";
+
+
+    mcContext.fillRect(
+
+        x + 10,
+        y + 15,
+
+        20,
+        19
+
+    );
+
+
+    /*
+       HEAD
+    */
+
+    mcContext.fillStyle =
+        "#e8c9a1";
+
+
+    mcContext.fillRect(
+
+        x + 11,
+        y + 4,
+
+        18,
+        16
+
+    );
+
+
+    /*
+       HAIR
+    */
+
+    mcContext.fillStyle =
+        "#3e2d22";
+
+
+    mcContext.fillRect(
+
+        x + 11,
+        y + 4,
+
+        18,
+        5
+
+    );
+
+
+    /*
+       EYES
+    */
+
+    mcContext.fillStyle =
+        "#111820";
+
+
+    mcContext.fillRect(
+
+        x + 15,
+        y + 11,
+
+        2,
+        2
+
+    );
+
+
+    mcContext.fillRect(
+
+        x + 24,
+        y + 11,
+
+        2,
+        2
+
+    );
+
+
+    /*
+       PICKAXE
+    */
+
+    mcContext.fillStyle =
+        "#b8bec6";
+
+
+    mcContext.fillRect(
+
+        x + 29,
+        y + 16,
+
+        8,
+        3
+
+    );
+
+
+    mcContext.fillStyle =
+        "#7b5230";
+
+
+    mcContext.fillRect(
+
+        x + 32,
+        y + 18,
+
+        3,
+        11
+
+    );
+
+}
+
+
+
+/* =========================================================
+   DRAW WORLD
+========================================================= */
+
+function drawMusicCraft() {
+
+    mcContext.clearRect(
+
+        0,
+        0,
+
+        mcCanvas.width,
+        mcCanvas.height
+
+    );
+
+
+    mcCamera.x =
+
+        mcPlayer.x -
+
+        Math.floor(
+            MC_COLUMNS / 2
+        );
+
+
+    mcCamera.y =
+
+        mcPlayer.y -
+
+        Math.floor(
+            MC_ROWS / 2
+        );
+
+
+    for (
+        let viewY = 0;
+        viewY <= MC_ROWS;
+        viewY++
+    ) {
+
+        for (
+            let viewX = 0;
+            viewX <= MC_COLUMNS;
+            viewX++
+        ) {
+
+            const worldX =
+
+                mcCamera.x +
+                viewX;
+
+
+            const worldY =
+
+                mcCamera.y +
+                viewY;
+
+
+            if (
+                worldX < 0 ||
+                worldY < 0 ||
+                worldX >= MC_WORLD_SIZE ||
+                worldY >= MC_WORLD_SIZE
+            ) {
+
+                continue;
+
+            }
+
+
+            const blockName =
+                mcWorld[
+                    worldY
+                ][
+                    worldX
+                ];
+
+
+            drawMusicCraftTile(
+
+                viewX * MC_TILE_SIZE,
+
+                viewY * MC_TILE_SIZE,
+
+                blockName,
+
+                worldX,
+
+                worldY
+
+            );
+
+        }
+
+    }
+
+
+    const playerScreenX =
+
+        (
+            mcPlayer.x -
+            mcCamera.x
+        ) * MC_TILE_SIZE;
+
+
+    const playerScreenY =
+
+        (
+            mcPlayer.y -
+            mcCamera.y
+        ) * MC_TILE_SIZE;
+
+
+    drawMusicCraftPlayer(
+
+        playerScreenX,
+        playerScreenY
+
+    );
+
+
+    updateMusicCraftHUD();
+
+}
+
+
+
+/* =========================================================
+   MOVEMENT
+========================================================= */
+
+function moveMusicCraftPlayer(
+    dx,
+    dy
+) {
+
+    const nextX =
+        mcPlayer.x + dx;
+
+
+    const nextY =
+        mcPlayer.y + dy;
+
+
+    if (
+        nextX < 0 ||
+        nextY < 0 ||
+        nextX >= MC_WORLD_SIZE ||
+        nextY >= MC_WORLD_SIZE
+    ) {
+
+        addMusicCraftLog(
+
+            "🗺️ You reached the edge of the region."
+
+        );
+
+
+        return;
+
+    }
+
+
+    const blockName =
+        mcWorld[
+            nextY
+        ][
+            nextX
+        ];
+
+
+    const block =
+        mcBlocks[
+            blockName
+        ];
+
+
+    if (
+        block.solid
+    ) {
+
+        if (
+            blockName ===
+            "lava"
+        ) {
+
+            mcPlayer.health =
+                Math.max(
+                    1,
+                    mcPlayer.health - 1
+                );
+
+
+            addMusicCraftLog(
+
+                "🔥 Lava burned you! -1 Health."
+
+            );
+
+
+            updateMusicCraftHUD();
+
+        }
+        else if (
+            blockName ===
+            "water"
+        ) {
+
+            addMusicCraftLog(
+
+                "💧 Deep water blocks your path."
+
+            );
+
+        }
+        else {
+
+            addMusicCraftLog(
+
+                `⛏️ Mine the ${block.name} first.`
+
+            );
+
+        }
+
+
+        return;
+
+    }
+
+
+    mcPlayer.x =
+        nextX;
+
+
+    mcPlayer.y =
+        nextY;
+
+
+    drawMusicCraft();
+
+}
+
+
+
+/* =========================================================
+   KEYBOARD CONTROLS
+========================================================= */
+
+mcCanvas.addEventListener(
+    "keydown",
+    event => {
+
+        const key =
+            event.key.toLowerCase();
+
+
+        const movementKeys = [
+
+            "w",
+            "a",
+            "s",
+            "d",
+            "arrowup",
+            "arrowdown",
+            "arrowleft",
+            "arrowright"
+
+        ];
+
+
+        if (
+            movementKeys.includes(
+                key
+            )
+        ) {
+
+            event.preventDefault();
+
+        }
+
+
+        if (
+            key === "w" ||
+            key === "arrowup"
+        ) {
+
+            moveMusicCraftPlayer(
+                0,
+                -1
+            );
+
+        }
+
+
+        if (
+            key === "s" ||
+            key === "arrowdown"
+        ) {
+
+            moveMusicCraftPlayer(
+                0,
+                1
+            );
+
+        }
+
+
+        if (
+            key === "a" ||
+            key === "arrowleft"
+        ) {
+
+            moveMusicCraftPlayer(
+                -1,
+                0
+            );
+
+        }
+
+
+        if (
+            key === "d" ||
+            key === "arrowright"
+        ) {
+
+            moveMusicCraftPlayer(
+                1,
+                0
+            );
+
+        }
+
+
+        const inventoryKeys = {
+
+            "1":
+                "dirt",
+
+            "2":
+                "stone",
+
+            "3":
+                "coal",
+
+            "4":
+                "iron",
+
+            "5":
+                "gold",
+
+            "6":
+                "diamond",
+
+            "7":
+                "music"
+
+        };
+
+
+        if (
+            inventoryKeys[
+                key
+            ]
+        ) {
+
+            selectMusicCraftBlock(
+
+                inventoryKeys[
+                    key
+                ]
+
+            );
+
+        }
+
+    }
+);
+
+
+
+/* =========================================================
+   MOBILE MOVEMENT
+========================================================= */
+
+document
+    .querySelectorAll(
+        "[data-mc-move]"
+    )
+    .forEach(
+        button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    const direction =
+                        button.dataset.mcMove;
+
+
+                    if (
+                        direction ===
+                        "up"
+                    ) {
+
+                        moveMusicCraftPlayer(
+                            0,
+                            -1
+                        );
+
+                    }
+
+
+                    if (
+                        direction ===
+                        "down"
+                    ) {
+
+                        moveMusicCraftPlayer(
+                            0,
+                            1
+                        );
+
+                    }
+
+
+                    if (
+                        direction ===
+                        "left"
+                    ) {
+
+                        moveMusicCraftPlayer(
+                            -1,
+                            0
+                        );
+
+                    }
+
+
+                    if (
+                        direction ===
+                        "right"
+                    ) {
+
+                        moveMusicCraftPlayer(
+                            1,
+                            0
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+
+
+/* =========================================================
+   CANVAS CLICK → WORLD TILE
+========================================================= */
+
+function getMusicCraftTile(
+    event
+) {
+
+    const rect =
+        mcCanvas.getBoundingClientRect();
+
+
+    const scaleX =
+        mcCanvas.width /
+        rect.width;
+
+
+    const scaleY =
+        mcCanvas.height /
+        rect.height;
+
+
+    const mouseX =
+
+        (
+            event.clientX -
+            rect.left
+        ) * scaleX;
+
+
+    const mouseY =
+
+        (
+            event.clientY -
+            rect.top
+        ) * scaleY;
+
+
+    return {
+
+        x:
+
+            mcCamera.x +
+
+            Math.floor(
+                mouseX /
+                MC_TILE_SIZE
+            ),
+
+
+        y:
+
+            mcCamera.y +
+
+            Math.floor(
+                mouseY /
+                MC_TILE_SIZE
+            )
+
+    };
+
+}
+
+
+
+/* =========================================================
+   MINING
+========================================================= */
+
+mcCanvas.addEventListener(
+    "click",
+    event => {
+
+        mcCanvas.focus();
+
+
+        const tile =
+            getMusicCraftTile(
+                event
+            );
+
+
+        mineMusicCraftBlock(
+
+            tile.x,
+
+            tile.y
+
+        );
+
+    }
+);
+
+
+function mineMusicCraftBlock(
+    x,
+    y
+) {
+
+    /*
+       WORLD BOUNDS
+    */
+
+    if (
+        x < 0 ||
+        y < 0 ||
+        x >= MC_WORLD_SIZE ||
+        y >= MC_WORLD_SIZE
+    ) {
+
+        return;
+
+    }
+
+
+    /*
+       CAN'T MINE YOUR OWN TILE
+    */
+
+    if (
+        x === mcPlayer.x &&
+        y === mcPlayer.y
+    ) {
+
+        addMusicCraftLog(
+
+            "❌ You cannot mine the block you are standing on."
+
+        );
+
+
+        return;
+
+    }
+
+
+    /*
+       MINING RANGE
+
+       Up to 2 tiles horizontally and vertically.
+       Diagonals work too.
+    */
+
+    const distanceX =
+        Math.abs(
+            x -
+            mcPlayer.x
+        );
+
+
+    const distanceY =
+        Math.abs(
+            y -
+            mcPlayer.y
+        );
+
+
+    if (
+        distanceX > 2 ||
+        distanceY > 2
+    ) {
+
+        addMusicCraftLog(
+
+            "⛏️ Move closer to mine that block."
+
+        );
+
+
+        return;
+
+    }
+
+
+    const blockName =
+        mcWorld[
+            y
+        ][
+            x
+        ];
+
+
+    const block =
+        mcBlocks[
+            blockName
+        ];
+
+
+    /*
+       EMPTY TILE
+    */
+
+    if (
+        blockName ===
+        "air"
+    ) {
+
+        addMusicCraftLog(
+
+            "There is nothing there to mine."
+
+        );
+
+
+        return;
+
+    }
+
+
+    /*
+       UNMINEABLE
+    */
+
+    if (
+        !block.mineable
+    ) {
+
+        if (
+            blockName ===
+            "water"
+        ) {
+
+            addMusicCraftLog(
+
+                "💧 Water cannot be mined."
+
+            );
+
+        }
+        else if (
+            blockName ===
+            "lava"
+        ) {
+
+            addMusicCraftLog(
+
+                "🔥 Lava is too hot to mine!"
+
+            );
+
+        }
+        else {
+
+            addMusicCraftLog(
+
+                `❌ ${block.name} cannot be mined.`
+
+            );
+
+        }
+
+
+        return;
+
+    }
+
+
+    /*
+       ADD RESOURCE
+    */
+
+    if (
+        blockName ===
+        "grass"
+    ) {
+
+        mcInventory.dirt++;
+
+    }
+    else if (
+
+        Object.prototype.hasOwnProperty.call(
+
+            mcInventory,
+
+            blockName
+
+        )
+
+    ) {
+
+        mcInventory[
+            blockName
+        ]++;
+
+    }
+
+
+    /*
+       EXP
+    */
+
+    mcPlayer.xp +=
+        block.xp;
+
+
+    /*
+       IMPORTANT FIX:
+
+       ACTUALLY REMOVE BLOCK.
+    */
+
+    mcWorld[
+        y
+    ][
+        x
+    ] =
+        "air";
+
+
+    addMusicCraftLog(
+
+        `${block.icon} Mined ${block.name}! +${block.xp} EXP`
+
+    );
+
+
+    /*
+       MINING SOUND
+    */
+
+    if (
+        blockName ===
+        "stone" ||
+        blockName ===
+        "coal" ||
+        blockName ===
+        "iron"
+    ) {
+
+        playXylophone(
+            260
+        );
+
+    }
+
+
+    if (
+        blockName ===
+        "gold"
+    ) {
+
+        playXylophone(
+            523.25
+        );
+
+    }
+
+
+    if (
+        blockName ===
+        "diamond"
+    ) {
+
+        playPiano(
+            783.99
+        );
+
+
+        setTimeout(
+            () =>
+                playPiano(
+                    1046.5
+                ),
+            120
+        );
+
+    }
+
+
+    if (
+        blockName ===
+        "music"
+    ) {
+
+        playPiano(
+
+            randomItem(
+                [
+                    261.63,
+                    293.66,
+                    329.63,
+                    349.23,
+                    392,
+                    440,
+                    493.88,
+                    523.25
+                ]
+            )
+
+        );
+
+
+        addMusicCraftLog(
+
+            "🎵 You discovered a rare Music Crystal!"
+
+        );
+
+    }
+
+
+    renderMusicCraftInventory();
+
+    updateMiningMission();
+
+    updateMusicCraftHUD();
+
+    drawMusicCraft();
+
+}
+
+
+
+/* =========================================================
+   PLACE BLOCKS
+========================================================= */
+
+mcCanvas.addEventListener(
+    "contextmenu",
+    event => {
+
+        event.preventDefault();
+
+
+        mcCanvas.focus();
+
+
+        const tile =
+            getMusicCraftTile(
+                event
+            );
+
+
+        placeMusicCraftBlock(
+
+            tile.x,
+
+            tile.y
+
+        );
+
+    }
+);
+
+
+function placeMusicCraftBlock(
+    x,
+    y
+) {
+
+    if (
+        x < 0 ||
+        y < 0 ||
+        x >= MC_WORLD_SIZE ||
+        y >= MC_WORLD_SIZE
+    ) {
+
+        return;
+
+    }
+
+
+    /*
+       RANGE
+    */
+
+    const distanceX =
+        Math.abs(
+            x -
+            mcPlayer.x
+        );
+
+
+    const distanceY =
+        Math.abs(
+            y -
+            mcPlayer.y
+        );
+
+
+    if (
+        distanceX > 2 ||
+        distanceY > 2
+    ) {
+
+        addMusicCraftLog(
+
+            "🧱 That location is too far away."
+
+        );
+
+
+        return;
+
+    }
+
+
+    if (
+        x === mcPlayer.x &&
+        y === mcPlayer.y
+    ) {
+
+        addMusicCraftLog(
+
+            "❌ You cannot place a block on yourself."
+
+        );
+
+
+        return;
+
+    }
+
+
+    /*
+       ONLY BUILD ON EMPTY SPACE
+    */
+
+    if (
+        mcWorld[y][x] !==
+        "air"
+    ) {
+
+        addMusicCraftLog(
+
+            "❌ Mine that block before building there."
+
+        );
+
+
+        return;
+
+    }
+
+
+    if (
+        !mcInventory[
+            mcSelectedBlock
+        ]
+    ) {
+
+        addMusicCraftLog(
+
+            `❌ You have no ${mcBlocks[mcSelectedBlock].name}.`
+
+        );
+
+
+        return;
+
+    }
+
+
+    mcWorld[
+        y
+    ][
+        x
+    ] =
+        mcSelectedBlock;
+
+
+    mcInventory[
+        mcSelectedBlock
+    ]--;
+
+
+    addMusicCraftLog(
+
+        `🧱 Placed ${mcBlocks[mcSelectedBlock].name}.`
+
+    );
+
+
+    if (
+        mcSelectedBlock ===
+        "music"
+    ) {
+
+        playPiano(
+            523.25
+        );
+
+    }
+
+
+    renderMusicCraftInventory();
+
+    updateMiningMission();
+
+    drawMusicCraft();
+
+}
+
+
+
+/* =========================================================
+   INVENTORY
+========================================================= */
+
+function renderMusicCraftInventory() {
+
+    const container =
+        document.getElementById(
+            "mcInventory"
+        );
+
+
+    container.innerHTML =
+        "";
+
+
+    Object.entries(
+        mcInventory
+    )
+    .forEach(
+        (
+            [
+                blockName,
+                amount
+            ],
+            index
+        ) => {
+
+            const block =
+                mcBlocks[
+                    blockName
+                ];
+
+
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+
+            button.type =
+                "button";
+
+
+            button.className =
+
+                `mc-inventory-item ${
+                    mcSelectedBlock ===
+                    blockName
+                        ? "selected"
+                        : ""
+                }`;
+
+
+            button.innerHTML = `
+
+                <span class="mc-inventory-icon">
+                    ${block.icon}
+                </span>
+
+                ${index + 1}. ${block.name}
+
+                <span class="mc-inventory-count">
+                    × ${amount}
+                </span>
+
+            `;
+
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    selectMusicCraftBlock(
+                        blockName
+                    );
+
+                }
+            );
+
+
+            container.appendChild(
+                button
+            );
+
+        }
+    );
+
+}
+
+
+function selectMusicCraftBlock(
+    blockName
+) {
+
+    if (
+        mcInventory[
+            blockName
+        ] === undefined
+    ) {
+
+        return;
+
+    }
+
+
+    mcSelectedBlock =
+        blockName;
+
+
+    document.getElementById(
+        "mcSelectedBlock"
+    ).textContent =
+
+        `${mcBlocks[blockName].icon} ${mcBlocks[blockName].name}`;
+
+
+    renderMusicCraftInventory();
+
+}
+
+
+
+/* =========================================================
+   MINING MISSIONS
+========================================================= */
+
+function updateMiningMission() {
+
+    const mission =
+        mcMissions[
+            mcDepth
+        ];
+
+
+    document.getElementById(
+        "mcDepth"
+    ).textContent =
+        mcDepthNames[
+            mcDepth
+        ];
+
+
+    const descriptionElement =
+        document.getElementById(
+            "mcDepthDescription"
+        );
+
+
+    if (
+        descriptionElement
+    ) {
+
+        descriptionElement.textContent =
+            mcDepthDescriptions[
+                mcDepth
+            ];
+
+    }
+
+
+    document.getElementById(
+        "mcMissionTitle"
+    ).textContent =
+        mission.name;
+
+
+    const list =
+        document.getElementById(
+            "mcMissionList"
+        );
+
+
+    list.innerHTML =
+        "";
+
+
+    let totalNeeded =
+        0;
+
+
+    let totalHave =
+        0;
+
+
+    Object.entries(
+        mission.requirements
+    )
+    .forEach(
+        (
+            [
+                resource,
+                required
+            ]
+        ) => {
+
+            const current =
+                Math.min(
+
+                    mcInventory[
+                        resource
+                    ] || 0,
+
+                    required
+
+                );
+
+
+            totalNeeded +=
+                required;
+
+
+            totalHave +=
+                current;
+
+
+            const complete =
+
+                current >=
+                required;
+
+
+            const row =
+                document.createElement(
+                    "div"
+                );
+
+
+            row.className =
+
+                `mc-mission-item ${
+                    complete
+                        ? "complete"
+                        : ""
+                }`;
+
+
+            row.innerHTML = `
+
+                <span>
+
+                    ${mcBlocks[resource].icon}
+                    ${mcBlocks[resource].name}
+
+                </span>
+
+                <strong>
+
+                    ${current}/${required}
+
+                    ${complete ? "✓" : ""}
+
+                </strong>
+
+            `;
+
+
+            list.appendChild(
+                row
+            );
+
+        }
+    );
+
+
+    const percentage =
+
+        totalNeeded === 0
+
+        ? 100
+
+        : Math.round(
+
+            totalHave /
+            totalNeeded *
+            100
+
+        );
+
+
+    document.getElementById(
+        "mcMissionProgressBar"
+    ).style.width =
+
+        `${percentage}%`;
+
+
+    const complete =
+
+        Object.entries(
+            mission.requirements
+        )
+        .every(
+            (
+                [
+                    resource,
+                    amount
+                ]
+            ) =>
+
+                (
+                    mcInventory[
+                        resource
+                    ] || 0
+                ) >= amount
+
+        );
+
+
+    const button =
+        document.getElementById(
+            "mcGoDeeper"
+        );
+
+
+    if (
+        mcDepth ===
+        mcDepthNames.length - 1
+    ) {
+
+        button.disabled =
+            true;
+
+
+        button.textContent =
+
+            complete
+
+            ? "🏆 Music Core Conquered!"
+
+            : "🎵 Complete Final Mission";
+
+
+        return;
+
+    }
+
+
+    button.disabled =
+        !complete;
+
+
+    button.textContent =
+
+        complete
+
+        ? "⛏️ Mine Deeper!"
+
+        : "🔒 Complete Mission First";
+
+}
+
+
+
+/* =========================================================
+   MINE DEEPER
+========================================================= */
+
+document.getElementById(
+    "mcGoDeeper"
+).addEventListener(
+    "click",
+    () => {
+
+        const mission =
+            mcMissions[
+                mcDepth
+            ];
+
+
+        const complete =
+
+            Object.entries(
+                mission.requirements
+            )
+            .every(
+                (
+                    [
+                        resource,
+                        amount
+                    ]
+                ) =>
+
+                    (
+                        mcInventory[
+                            resource
+                        ] || 0
+                    ) >= amount
+
+            );
+
+
+        if (!complete) {
+
+            addMusicCraftLog(
+
+                "🔒 Finish your mining mission first."
+
+            );
+
+
+            return;
+
+        }
+
+
+        if (
+            mcDepth >=
+            mcDepthNames.length - 1
+        ) {
+
+            return;
+
+        }
+
+
+        /*
+           SPEND REQUIRED MATERIALS
+        */
+
+        Object.entries(
+            mission.requirements
+        )
+        .forEach(
+            (
+                [
+                    resource,
+                    amount
+                ]
+            ) => {
+
+                mcInventory[
+                    resource
+                ] -=
+                    amount;
+
+            }
+        );
+
+
+        mcDepth++;
+
+
+        mcPlayer.x =
+            Math.floor(
+                MC_WORLD_SIZE / 2
+            );
+
+
+        mcPlayer.y =
+            Math.floor(
+                MC_WORLD_SIZE / 2
+            );
+
+
+        addMusicCraftLog(
+
+            `⬇️ Descending to ${mcDepthNames[mcDepth]}...`
+
+        );
+
+
+        playPiano(
+            392
+        );
+
+
+        setTimeout(
+            () =>
+                playPiano(
+                    329.63
+                ),
+            130
+        );
+
+
+        setTimeout(
+            () =>
+                playPiano(
+                    261.63
+                ),
+            260
+        );
+
+
+        generateMusicCraftWorld();
+
+        renderMusicCraftInventory();
+
+        updateMiningMission();
+
+    }
+);
+
+
+
+/* =========================================================
+   MUSICCRAFT HUD
+========================================================= */
+
+function updateMusicCraftHUD() {
+
+    document.getElementById(
+        "mcHealth"
+    ).textContent =
+        mcPlayer.health;
+
+
+    document.getElementById(
+        "mcExperience"
+    ).textContent =
+        mcPlayer.xp;
+
+
+    document.getElementById(
+        "mcPlayerX"
+    ).textContent =
+        mcPlayer.x;
+
+
+    document.getElementById(
+        "mcPlayerY"
+    ).textContent =
+        mcPlayer.y;
+
+}
+
+
+
+/* =========================================================
+   MUSICCRAFT LOG
+========================================================= */
+
+function addMusicCraftLog(
+    message
+) {
+
+    const log =
+        document.getElementById(
+            "mcLog"
+        );
+
+
+    const row =
+        document.createElement(
+            "div"
+        );
+
+
+    row.textContent =
+        message;
+
+
+    log.prepend(
+        row
+    );
+
+
+    while (
+        log.children.length > 12
+    ) {
+
+        log.lastChild.remove();
+
+    }
+
+}
+
+
+
+/* =========================================================
+   REGENERATE CURRENT DEPTH
+========================================================= */
+
+document.getElementById(
+    "mcNewWorld"
+).addEventListener(
+    "click",
+    () => {
+
+        const confirmed =
+            confirm(
+
+                `Regenerate ${mcDepthNames[mcDepth]}? Your inventory will remain.`
+
+            );
+
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        mcPlayer.x =
+            Math.floor(
+                MC_WORLD_SIZE / 2
+            );
+
+
+        mcPlayer.y =
+            Math.floor(
+                MC_WORLD_SIZE / 2
+            );
+
+
+        generateMusicCraftWorld();
+
+    }
+);
+
+
+
+/* =========================================================
+   QUIZ
+========================================================= */
+
+const quizQuestions = [
+
+    {
+        question:
+            "Which instrument belongs to the string family?",
+
+        answers:
+            [
+                "Trumpet",
+                "Guitar",
+                "Flute",
+                "Drums"
+            ],
+
+        correct:
+            1
+    },
+
+    {
+        question:
+            "Which instrument uses a keyboard?",
+
+        answers:
+            [
+                "Violin",
+                "Piano",
+                "Trumpet",
+                "Flute"
+            ],
+
+        correct:
+            1
+    },
+
+    {
+        question:
+            "Which is a brass instrument?",
+
+        answers:
+            [
+                "Clarinet",
+                "Trumpet",
+                "Violin",
+                "Piano"
+            ],
+
+        correct:
+            1
+    },
+
+    {
+        question:
+            "The saxophone belongs to which family?",
+
+        answers:
+            [
+                "String",
+                "Woodwind",
+                "Percussion",
+                "Keyboard"
+            ],
+
+        correct:
+            1
+    },
+
+    {
+        question:
+            "Which instrument uses a slide?",
+
+        answers:
+            [
+                "Trombone",
+                "Guitar",
+                "Piano",
+                "Flute"
+            ],
+
+        correct:
+            0
+    },
+
+    {
+        question:
+            "Which instrument uses a double reed?",
+
+        answers:
+            [
+                "Oboe",
+                "Trumpet",
+                "Guitar",
+                "Drums"
+            ],
+
+        correct:
+            0
+    },
+
+    {
+        question:
+            "What does BPM measure?",
+
+        answers:
+            [
+                "Tempo",
+                "Pitch",
+                "Volume",
+                "Timbre"
+            ],
+
+        correct:
+            0
+    },
+
+    {
+        question:
+            "Which instrument commonly has four strings?",
+
+        answers:
+            [
+                "Ukulele",
+                "Trumpet",
+                "Clarinet",
+                "Drums"
+            ],
+
+        correct:
+            0
+    },
+
+    {
+        question:
+            "What is timbre?",
+
+        answers:
+            [
+                "Character of a sound",
+                "Speed",
+                "Volume only",
+                "Silence"
+            ],
+
+        correct:
+            0
+    },
+
+    {
+        question:
+            "What is a chord?",
+
+        answers:
+            [
+                "Several notes together",
+                "A drumstick",
+                "A microphone",
+                "A tempo"
+            ],
+
+        correct:
+            0
+    }
+
+];
+
+
+let quizIndex =
+    0;
+
+
+let quizScore =
+    0;
+
+
+let quizAnswered =
+    false;
+
+
+let quizFinished =
+    false;
+
+
+function loadQuizQuestion() {
+
+    quizAnswered =
+        false;
+
+
+    const question =
+        quizQuestions[
+            quizIndex
+        ];
+
+
+    document.getElementById(
+        "questionNumber"
+    ).textContent =
+        quizIndex + 1;
+
+
+    document.getElementById(
+        "totalQuestions"
+    ).textContent =
+        quizQuestions.length;
+
+
+    document.getElementById(
+        "questionText"
+    ).textContent =
+        question.question;
+
+
+    document.getElementById(
+        "quizResult"
+    ).textContent =
+        "";
+
+
+    const container =
+        document.getElementById(
+            "answerButtons"
+        );
+
+
+    container.innerHTML =
+        "";
+
+
+    document.getElementById(
+        "nextQuestion"
+    ).style.display =
+        "none";
+
+
+    question.answers.forEach(
+        (answer,index) => {
+
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+
+            button.type =
+                "button";
+
+
+            button.className =
+                "quiz-answer";
+
+
+            button.textContent =
+                answer;
+
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    if (
+                        quizAnswered
+                    ) {
+
+                        return;
+                    }
+
+
+                    quizAnswered =
+                        true;
+
+
+                    container
+                        .querySelectorAll(
+                            ".quiz-answer"
+                        )
+                        .forEach(
+                            (
+                                option,
+                                optionIndex
+                            ) => {
+
+                                option.disabled =
+                                    true;
+
+
+                                if (
+                                    optionIndex ===
+                                    question.correct
+                                ) {
+
+                                    option.classList.add(
+                                        "correct-answer"
+                                    );
+
+                                }
+
+                            }
+                        );
+
+
+                    if (
+                        index ===
+                        question.correct
+                    ) {
+
+                        quizScore++;
+
+
+                        button.classList.add(
+                            "correct-answer"
+                        );
+
+
+                        document.getElementById(
+                            "quizResult"
+                        ).textContent =
+                            "🎉 Correct!";
+
+                    }
+                    else {
+
+                        button.classList.add(
+                            "wrong-answer"
+                        );
+
+
+                        document.getElementById(
+                            "quizResult"
+                        ).textContent =
+
+                            `❌ Correct answer: ${question.answers[question.correct]}`;
+
+                    }
+
+
+                    document.getElementById(
+                        "score"
+                    ).textContent =
+                        quizScore;
+
+
+                    document.getElementById(
+                        "nextQuestion"
+                    ).style.display =
+                        "inline-flex";
+
+                }
+            );
+
+
+            container.appendChild(
+                button
+            );
+
+        }
+    );
+
+}
+
+
+function startQuiz() {
+
+    quizIndex =
+        0;
+
+
+    quizScore =
+        0;
+
+
+    quizFinished =
+        false;
+
+
+    document.getElementById(
+        "score"
+    ).textContent =
+        "0";
+
+
+    document.getElementById(
+        "nextQuestion"
+    ).textContent =
+        "Next →";
+
+
+    loadQuizQuestion();
+
+}
+
+
+function finishQuiz() {
+
+    quizFinished =
+        true;
+
+
+    document.getElementById(
+        "questionText"
+    ).textContent =
+        "🎉 Quiz Complete!";
+
+
+    document.getElementById(
+        "answerButtons"
+    ).innerHTML =
+        "";
+
+
+    document.getElementById(
+        "quizResult"
+    ).innerHTML =
+
+        `You scored <strong>${quizScore}/${quizQuestions.length}</strong>.`;
+
+
+    const next =
+        document.getElementById(
+            "nextQuestion"
+        );
+
+
+    next.textContent =
+        "🔄 Play Again";
+
+
+    next.style.display =
+        "inline-flex";
+
+}
+
+
+document.getElementById(
+    "nextQuestion"
+).addEventListener(
+    "click",
+    () => {
+
+        if (
+            quizFinished
+        ) {
+
+            startQuiz();
+
+            return;
+
+        }
+
+
+        if (
+            !quizAnswered
+        ) {
+
+            return;
+        }
+
+
+        quizIndex++;
+
+
+        if (
+            quizIndex >=
+            quizQuestions.length
+        ) {
+
+            finishQuiz();
+
+        }
+        else {
+
+            loadQuizQuestion();
+
+        }
+
+    }
+);
+
+
+
+/* =========================================================
+   FUN FACTS
+========================================================= */
+
+const funFacts = [
+
+    "🎹 A modern piano normally has 88 keys.",
+
+    "🎷 The saxophone is made from brass but belongs to the woodwind family.",
+
+    "🥁 Drums are among the oldest musical instruments.",
+
+    "🎻 The cello has a lower range than the violin.",
+
+    "🎺 Brass instruments begin with vibrating lips.",
+
+    "🎵 BPM means beats per minute.",
+
+    "🎧 Timbre describes the character of a sound.",
+
+    "🎶 The clarinet uses a single reed.",
+
+    "🪈 The oboe uses a double reed.",
+
+    "🎸 A ukulele commonly has four strings.",
+
+    "🎛️ Synthesizers can create completely electronic sounds.",
+
+    "🎺 The trombone commonly changes pitch using a slide."
+
+];
+
+
+let previousFact =
+    -1;
+
+
+document.getElementById(
+    "factButton"
+).addEventListener(
+    "click",
+    () => {
+
+        let index;
+
+
+        do {
+
+            index =
+                randomNumber(
+                    0,
+                    funFacts.length - 1
+                );
+
+        }
+        while (
+            index ===
+            previousFact &&
+            funFacts.length > 1
+        );
+
+
+        previousFact =
+            index;
+
+
+        document.getElementById(
+            "funFact"
+        ).textContent =
+            funFacts[
+                index
+            ];
+
+    }
+);
+
+
+
+/* =========================================================
+   NAV
+========================================================= */
+
+document.getElementById(
+    "menuToggle"
+).addEventListener(
+    "click",
+    () => {
+
+        document.getElementById(
+            "navLinks"
+        ).classList.toggle(
+            "nav-active"
+        );
+
+    }
+);
+
+
+document
+    .querySelectorAll(
+        "#navLinks a"
+    )
+    .forEach(
+        link => {
+
+            link.addEventListener(
+                "click",
+                () => {
+
+                    document.getElementById(
+                        "navLinks"
+                    ).classList.remove(
+                        "nav-active"
+                    );
+
+                }
+            );
+
+        }
+    );
+
+
+
+/* =========================================================
+   THEME
+========================================================= */
+
+const themeToggle =
+    document.getElementById(
+        "themeToggle"
+    );
+
+
+try {
+
+    const savedTheme =
+        localStorage.getItem(
+            "musicverseTheme"
+        );
+
+
+    if (
+        savedTheme ===
+        "light"
+    ) {
+
+        document.body.classList.add(
+            "light-mode"
+        );
+
+
+        themeToggle.textContent =
+            "☀️";
+
+    }
+
+}
+catch (error) {}
+
+
+themeToggle.addEventListener(
+    "click",
+    () => {
+
+        document.body.classList.toggle(
+            "light-mode"
+        );
+
+
+        const isLight =
+            document.body.classList.contains(
+                "light-mode"
+            );
+
+
+        themeToggle.textContent =
+
+            isLight
+
+            ? "☀️"
+
+            : "🌙";
+
+
+        try {
+
+            localStorage.setItem(
+
+                "musicverseTheme",
+
+                isLight
+                    ? "light"
+                    : "dark"
+
+            );
+
+        }
+        catch (error) {}
+
+    }
+);
+
+
+
+/* =========================================================
+   ESCAPE
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.key ===
+            "Escape"
+        ) {
+
+            closeInstrumentModal();
+
+        }
+
+    }
+);
+
+
+
+/* =========================================================
+   INITIALISE
+========================================================= */
+
+renderInstruments();
+
+showFeaturedInstrument();
+
+nextTrueFalse();
+
+renderBattleChoices();
+
+renderBattleRecord();
+
+clearCPU();
+
+
+if (
+    battleData.instrument
+) {
+
+    renderBattlePlayer();
+
+}
+
+
+generateMusicCraftWorld();
+
+renderMusicCraftInventory();
+
+updateMiningMission();
+
+updateMusicCraftHUD();
+
+startQuiz();
+
+
+});
