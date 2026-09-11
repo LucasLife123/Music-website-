@@ -1,43 +1,122 @@
 <!DOCTYPE html>
-
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-```
-<title>MusicVerse | Explore Musical Instruments</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-<link rel="stylesheet" href="style.css">
-```
+    <meta
+        name="description"
+        content="MusicVerse - explore instruments, learn music, play mini games, battle instruments and explore MusicCraft."
+    >
 
+    <title>
+        MusicVerse
+    </title>
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Montserrat:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 </head>
+
 
 <body>
 
-```
 
+<!-- =====================================================
+     NAVIGATION + HERO
+===================================================== -->
 
-<!-- Header -->
-<header class="hero" id="home">
+<header
+    class="hero"
+    id="home"
+>
 
     <nav class="navbar">
 
-        <a href="#home" class="logo">🎵 MusicVerse</a>
+        <a
+            href="#home"
+            class="logo"
+        >
+            🎵 MusicVerse
+        </a>
 
-        <ul class="nav-links" id="navLinks">
-            <li><a href="#home">Home</a></li>
-            <li><a href="#instruments">Instruments</a></li>
-            <li><a href="#world">World Music</a></li>
-            <li><a href="#learn">Learn</a></li>
-            <li><a href="#quiz">Quiz</a></li>
+
+        <ul
+            class="nav-links"
+            id="navLinks"
+        >
+
+            <li>
+                <a href="#instruments">
+                    Instruments
+                </a>
+            </li>
+
+            <li>
+                <a href="#games">
+                    Games
+                </a>
+            </li>
+
+            <li>
+                <a href="#battle">
+                    ⚔️ Battle
+                </a>
+            </li>
+
+            <li>
+                <a href="#musiccraft">
+                    ⛏️ MusicCraft
+                </a>
+            </li>
+
+            <li>
+                <a href="#quiz">
+                    Quiz
+                </a>
+            </li>
+
         </ul>
 
-        <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+
+        <button
+            id="themeToggle"
+            class="theme-toggle"
+            type="button"
+            aria-label="Toggle theme"
+        >
             🌙
         </button>
 
-        <button id="menuToggle" class="menu-toggle" aria-label="Open menu">
+
+        <button
+            id="menuToggle"
+            class="menu-toggle"
+            type="button"
+            aria-label="Open navigation"
+        >
             <span></span>
             <span></span>
             <span></span>
@@ -46,52 +125,89 @@
     </nav>
 
 
+
     <div class="hero-content">
 
-        <p class="small-title">
-            EXPLORE THE WORLD OF SOUND
+        <p class="eyebrow">
+            DISCOVER • LISTEN • LEARN • PLAY • BUILD
         </p>
+
 
         <h1>
-            Discover Musical
-            <span>Instruments</span>
+            Enter the
+            <em>
+                World of Music
+            </em>
         </h1>
 
+
         <p class="hero-text">
-            Explore instruments from around the world,
-            discover how they create sound, learn their
-            history, and test your musical knowledge.
+            Discover instruments, hear their sounds,
+            play musical games, battle CPU instruments
+            and explore the underground world of MusicCraft.
         </p>
 
-        <a href="#instruments" class="hero-button">
-            Explore Instruments 🎵
-        </a>
+
+        <div class="hero-actions">
+
+            <a
+                href="#instruments"
+                class="gold-button"
+            >
+                Explore Instruments
+            </a>
+
+            <a
+                href="#battle"
+                class="outline-button"
+            >
+                ⚔️ Battle Arena
+            </a>
+
+            <a
+                href="#musiccraft"
+                class="outline-button"
+            >
+                ⛏️ MusicCraft
+            </a>
+
+        </div>
 
     </div>
 
 </header>
 
 
-<!-- About -->
-<section class="section about">
+
+<!-- =====================================================
+     INTRO
+===================================================== -->
+
+<section class="section">
 
     <div class="section-title">
-        <p>INTRODUCTION</p>
-        <h2>What Are Musical Instruments?</h2>
-    </div>
-
-    <div class="about-content">
 
         <p>
-            Musical instruments are objects designed to produce sound
-            for musical expression. They create sound through vibrating
-            strings, moving air, striking surfaces, or electronic signals.
+            WELCOME TO MUSICVERSE
+        </p>
+
+        <h2>
+            Music Meets Adventure
+        </h2>
+
+    </div>
+
+
+    <div class="intro-grid">
+
+        <p>
+            Explore instruments from different musical families
+            and discover how they make sound.
         </p>
 
         <p>
-            Music connects people across cultures and generations.
-            From ancient drums to modern synthesizers, instruments
-            continue to evolve and inspire musicians around the world.
+            Play interactive games, build your instrument
+            fighter and travel deeper underground in MusicCraft.
         </p>
 
     </div>
@@ -99,557 +215,305 @@
 </section>
 
 
-<!-- Search -->
+
+<!-- =====================================================
+     SEARCH
+===================================================== -->
+
 <section class="search-section">
 
-    <h2>🔍 Find an Instrument</h2>
+    <div class="search-box">
 
-    <input
-        type="text"
-        id="searchInput"
-        placeholder="Search for an instrument..."
-    >
+        <span>
+            🔍
+        </span>
+
+        <input
+            id="searchInput"
+            type="text"
+            placeholder="Search guitar, piano, trumpet..."
+            autocomplete="off"
+        >
+
+    </div>
+
+
+    <p id="searchStatus"></p>
 
 </section>
 
 
-<!-- Instruments -->
-<section class="section instruments-section" id="instruments">
+
+<!-- =====================================================
+     INSTRUMENT LIBRARY
+===================================================== -->
+
+<section
+    class="section"
+    id="instruments"
+>
 
     <div class="section-title">
-        <p>INSTRUMENT LIBRARY</p>
-        <h2>Explore Instrument Families</h2>
+
+        <p>
+            INSTRUMENT LIBRARY
+        </p>
+
+        <h2>
+            Explore Instrument Families
+        </h2>
+
     </div>
 
 
-    <!-- Category Tabs -->
     <div class="instrument-tabs">
 
-        <button class="tab-btn active" data-category="all">
-            🎵 All
+        <button
+            class="tab-btn active"
+            data-category="all"
+            type="button"
+        >
+            All
         </button>
 
-        <button class="tab-btn" data-category="string">
-            🎻 String
+        <button
+            class="tab-btn"
+            data-category="string"
+            type="button"
+        >
+            🎻 Strings
         </button>
 
-        <button class="tab-btn" data-category="woodwind">
-            🪈 Woodwind
+        <button
+            class="tab-btn"
+            data-category="woodwind"
+            type="button"
+        >
+            🪈 Woodwinds
         </button>
 
-        <button class="tab-btn" data-category="brass">
+        <button
+            class="tab-btn"
+            data-category="brass"
+            type="button"
+        >
             🎺 Brass
         </button>
 
-        <button class="tab-btn" data-category="percussion">
+        <button
+            class="tab-btn"
+            data-category="percussion"
+            type="button"
+        >
             🥁 Percussion
         </button>
 
-        <button class="tab-btn" data-category="keyboard">
+        <button
+            class="tab-btn"
+            data-category="keyboard"
+            type="button"
+        >
             🎹 Keyboard
         </button>
 
-        <button class="tab-btn" data-category="electronic">
+        <button
+            class="tab-btn"
+            data-category="electronic"
+            type="button"
+        >
             🎛️ Electronic
         </button>
 
     </div>
 
 
-    <!-- Instrument Cards -->
-    <div class="instrument-grid">
-
-
-        <!-- Guitar -->
-        <article
-            class="instrument-card"
-            data-category="string"
-            data-name="guitar"
-            data-icon="🎸"
-            data-family="String"
-            data-origin="Spain"
-            data-description="A popular string instrument played by plucking or strumming its strings."
-            data-sound="Vibrating strings"
-            data-styles="Rock, Pop, Jazz, Blues, Classical"
-            data-difficulty="Intermediate"
-        >
-
-            <div class="instrument-icon">🎸</div>
-
-            <span class="category-label">STRING</span>
-
-            <h3>Guitar</h3>
-
-            <p>
-                A versatile string instrument played by
-                plucking or strumming its strings.
-            </p>
-
-            <div class="instrument-details">
-                <p><strong>Sound:</strong> Vibrating strings</p>
-                <p><strong>Styles:</strong> Rock, Pop, Jazz, Blues</p>
-                <p><strong>Difficulty:</strong> ⭐⭐⭐☆☆</p>
-            </div>
-
-            <button class="sound-btn" data-frequency="220">
-                ▶ Play Sound
-            </button>
-
-            <button class="info-btn">
-                Learn More →
-            </button>
-
-        </article>
-
-
-        <!-- Violin -->
-        <article
-            class="instrument-card"
-            data-category="string"
-            data-name="violin"
-            data-icon="🎻"
-            data-family="String"
-            data-origin="Italy"
-            data-description="A bowed string instrument famous for its expressive sound."
-            data-sound="Bowed or plucked strings"
-            data-styles="Classical, Folk, Film Music"
-            data-difficulty="Advanced"
-        >
-
-            <div class="instrument-icon">🎻</div>
-
-            <span class="category-label">STRING</span>
-
-            <h3>Violin</h3>
-
-            <p>
-                A bowed string instrument widely used
-                in orchestras and classical music.
-            </p>
-
-            <div class="instrument-details">
-                <p><strong>Sound:</strong> Bowed strings</p>
-                <p><strong>Styles:</strong> Classical, Folk</p>
-                <p><strong>Difficulty:</strong> ⭐⭐⭐⭐☆</p>
-            </div>
-
-            <button class="sound-btn" data-frequency="660">
-                ▶ Play Sound
-            </button>
-
-            <button class="info-btn">
-                Learn More →
-            </button>
-
-        </article>
-
-
-        <!-- Piano -->
-        <article
-            class="instrument-card"
-            data-category="keyboard"
-            data-name="piano"
-            data-icon="🎹"
-            data-family="Keyboard"
-            data-origin="Italy"
-            data-description="A keyboard instrument that produces sound when hammers strike strings."
-            data-sound="Hammers striking strings"
-            data-styles="Classical, Jazz, Pop, Film Music"
-            data-difficulty="Intermediate"
-        >
-
-            <div class="instrument-icon">🎹</div>
-
-            <span class="category-label">KEYBOARD</span>
-
-            <h3>Piano</h3>
-
-            <p>
-                A keyboard instrument that creates sound
-                when hammers strike strings.
-            </p>
-
-            <div class="instrument-details">
-                <p><strong>Keys:</strong> Usually 88</p>
-                <p><strong>Styles:</strong> Classical, Jazz, Pop</p>
-                <p><strong>Difficulty:</strong> ⭐⭐⭐☆☆</p>
-            </div>
-
-            <button class="sound-btn" data-frequency="440">
-                ▶ Play Sound
-            </button>
-
-            <button class="info-btn">
-                Learn More →
-            </button>
-
-        </article>
-
-
-        <!-- Flute -->
-        <article
-            class="instrument-card"
-            data-category="woodwind"
-            data-name="flute"
-            data-icon="🪈"
-            data-family="Woodwind"
-            data-origin="Ancient"
-            data-description="A woodwind instrument that produces sound when air flows across an opening."
-            data-sound="Moving air"
-            data-styles="Classical, Folk, World Music"
-            data-difficulty="Intermediate"
-        >
-
-            <div class="instrument-icon">🪈</div>
-
-            <span class="category-label">WOODWIND</span>
-
-            <h3>Flute</h3>
-
-            <p>
-                A wind instrument that produces sound
-                using controlled airflow.
-            </p>
-
-            <div class="instrument-details">
-                <p><strong>Sound:</strong> Air vibrations</p>
-                <p><strong>Styles:</strong> Classical, Folk</p>
-                <p><strong>Difficulty:</strong> ⭐⭐⭐☆☆</p>
-            </div>
-
-            <button class="sound-btn" data-frequency="698">
-                ▶ Play Sound
-            </button>
-
-            <button class="info-btn">
-                Learn More →
-            </button>
-
-        </article>
-
-
-        <!-- Saxophone -->
-        <article
-            class="instrument-card"
-            data-category="woodwind"
-            data-name="saxophone"
-            data-icon="🎷"
-            data-family="Woodwind"
-            data-origin="Belgium"
-            data-description="A woodwind instrument that uses a reed to create sound."
-            data-sound="Vibrating reed"
-            data-styles="Jazz, Blues, Pop, Classical"
-            data-difficulty="Intermediate"
-        >
-
-            <div class="instrument-icon">🎷</div>
-
-            <span class="category-label">WOODWIND</span>
-
-            <h3>Saxophone</h3>
-
-            <p>
-                A reed instrument popular in jazz,
-                blues, pop, and classical music.
-            </p>
-
-            <div class="instrument-details">
-                <p><strong>Sound:</strong> Vibrating reed</p>
-                <p><strong>Styles:</strong> Jazz, Blues, Pop</p>
-                <p><strong>Difficulty:</strong> ⭐⭐⭐☆☆</p>
-            </div>
-
-            <button class="sound-btn" data-frequency="370">
-                ▶ Play Sound
-            </button>
-
-            <button class="info-btn">
-                Learn More →
-            </button>
-
-        </article>
-
-
-        <!-- Trumpet -->
-        <article
-            class="instrument-card"
-            data-category="brass"
-            data-name="trumpet"
-            data-icon="🎺"
-            data-family="Brass"
-            data-origin="Ancient Civilizations"
-            data-description="A brass instrument played by buzzing the lips into a mouthpiece."
-            data-sound="Lip vibration"
-            data-styles="Jazz, Classical, Marching Band"
-            data-difficulty="Advanced"
-        >
-
-            <div class="instrument-icon">🎺</div>
-
-            <span class="category-label">BRASS</span>
-
-            <h3>Trumpet</h3>
-
-            <p>
-                A brass instrument played by buzzing
-                the lips into a mouthpiece.
-            </p>
-
-            <div class="instrument-details">
-                <p><strong>Sound:</strong> Lip vibration</p>
-                <p><strong>Styles:</strong> Jazz, Classical</p>
-                <p><strong>Difficulty:</strong> ⭐⭐⭐⭐☆</p>
-            </div>
-
-            <button class="sound-btn" data-frequency="523">
-                ▶ Play Sound
-            </button>
-
-            <button class="info-btn">
-                Learn More →
-            </button>
-
-        </article>
-
-
-        <!-- Drums -->
-        <article
-            class="instrument-card"
-            data-category="percussion"
-            data-name="drums"
-            data-icon="🥁"
-            data-family="Percussion"
-            data-origin="Ancient Cultures"
-            data-description="A group of percussion instruments used to create rhythm and beats."
-            data-sound="Striking vibrating surfaces"
-            data-styles="Rock, Pop, Jazz, Hip-Hop"
-            data-difficulty="Beginner to Advanced"
-        >
-
-            <div class="instrument-icon">🥁</div>
-
-            <span class="category-label">PERCUSSION</span>
-
-            <h3>Drums</h3>
-
-            <p>
-                Percussion instruments used to create
-                rhythm and musical energy.
-            </p>
-
-            <div class="instrument-details">
-                <p><strong>Sound:</strong> Striking surfaces</p>
-                <p><strong>Styles:</strong> Rock, Pop, Jazz</p>
-                <p><strong>Difficulty:</strong> ⭐⭐☆☆☆</p>
-            </div>
-
-            <button class="drum-btn">
-                🥁 Play Drum
-            </button>
-
-            <button class="info-btn">
-                Learn More →
-            </button>
-
-        </article>
-
-
-        <!-- Synthesizer -->
-        <article
-            class="instrument-card"
-            data-category="electronic"
-            data-name="synthesizer"
-            data-icon="🎛️"
-            data-family="Electronic"
-            data-origin="20th Century"
-            data-description="An electronic instrument capable of creating and modifying many different sounds."
-            data-sound="Electronic signals"
-            data-styles="Electronic, Pop, Film Music"
-            data-difficulty="Intermediate"
-        >
-
-            <div class="instrument-icon">🎛️</div>
-
-            <span class="category-label">ELECTRONIC</span>
-
-            <h3>Synthesizer</h3>
-
-            <p>
-                An electronic instrument capable of
-                creating a huge variety of sounds.
-            </p>
-
-            <div class="instrument-details">
-                <p><strong>Sound:</strong> Electronic signals</p>
-                <p><strong>Styles:</strong> Electronic, Pop</p>
-                <p><strong>Difficulty:</strong> ⭐⭐⭐☆☆</p>
-            </div>
-
-            <button class="sound-btn" data-frequency="330">
-                ▶ Play Sound
-            </button>
-
-            <button class="info-btn">
-                Learn More →
-            </button>
-
-        </article>
-
-    </div>
-
-</section>
-
-
-<!-- World Instruments -->
-<section class="section world" id="world">
-
-    <div class="section-title">
-        <p>WORLD MUSIC</p>
-        <h2>Instruments Around the World</h2>
-    </div>
-
-    <div class="world-grid">
-
-        <div class="world-card">
-            <span>🌍</span>
-            <h3>Djembe</h3>
-            <p><strong>West Africa</strong></p>
-            <p>A hand drum known for powerful and expressive sounds.</p>
-        </div>
-
-        <div class="world-card">
-            <span>🇮🇳</span>
-            <h3>Sitar</h3>
-            <p><strong>India</strong></p>
-            <p>A traditional string instrument with a resonant sound.</p>
-        </div>
-
-        <div class="world-card">
-            <span>🇯🇵</span>
-            <h3>Shamisen</h3>
-            <p><strong>Japan</strong></p>
-            <p>A traditional three-string instrument.</p>
-        </div>
-
-        <div class="world-card">
-            <span>🇨🇳</span>
-            <h3>Erhu</h3>
-            <p><strong>China</strong></p>
-            <p>A traditional two-string bowed instrument.</p>
-        </div>
-
-        <div class="world-card">
-            <span>🇦🇺</span>
-            <h3>Didgeridoo</h3>
-            <p><strong>Australia</strong></p>
-            <p>A traditional wind instrument.</p>
-        </div>
-
-        <div class="world-card">
-            <span>🏴</span>
-            <h3>Bagpipes</h3>
-            <p><strong>Scotland</strong></p>
-            <p>An instrument using bags, pipes, and reeds.</p>
-        </div>
-
-    </div>
-
-</section>
-
-
-<!-- Learning Tips -->
-<section class="section learn" id="learn">
-
-    <div class="section-title">
-        <p>LEARN MUSIC</p>
-        <h2>Tips for Learning an Instrument</h2>
-    </div>
-
-    <div class="tips-grid">
-
-        <div class="tip">
-            <span>1️⃣</span>
-            <h3>Practice Regularly</h3>
-            <p>Short and consistent practice sessions help develop skills.</p>
-        </div>
-
-        <div class="tip">
-            <span>2️⃣</span>
-            <h3>Start Slowly</h3>
-            <p>Focus on the basics before moving on to difficult techniques.</p>
-        </div>
-
-        <div class="tip">
-            <span>3️⃣</span>
-            <h3>Listen Carefully</h3>
-            <p>Listening develops rhythm, timing, and musical awareness.</p>
-        </div>
-
-        <div class="tip">
-            <span>4️⃣</span>
-            <h3>Have Fun</h3>
-            <p>Enjoying your instrument helps you stay motivated.</p>
-        </div>
-
-    </div>
-
-</section>
-
-
-<!-- Favorite -->
-<section class="favorite">
-
-    <h2>❤️ Choose Your Favorite Instrument</h2>
-
-    <div class="favorite-buttons">
-
-        <button data-favorite="Guitar">🎸 Guitar</button>
-        <button data-favorite="Piano">🎹 Piano</button>
-        <button data-favorite="Drums">🥁 Drums</button>
-        <button data-favorite="Violin">🎻 Violin</button>
-        <button data-favorite="Trumpet">🎺 Trumpet</button>
-
-    </div>
-
-    <p id="favoriteResult">
-        Choose an instrument!
+    <div
+        id="instrumentGrid"
+        class="instrument-grid"
+    ></div>
+
+
+    <p
+        id="noInstrumentResults"
+        class="no-results"
+        hidden
+    >
+        No instruments found.
     </p>
 
 </section>
 
 
-<!-- Quiz -->
-<section class="section quiz" id="quiz">
+
+<!-- =====================================================
+     FEATURED INSTRUMENT
+===================================================== -->
+
+<section class="section alt-section">
 
     <div class="section-title">
-        <p>TEST YOUR KNOWLEDGE</p>
-        <h2>Musical Instrument Quiz</h2>
+
+        <p>
+            FEATURED SPOTLIGHT
+        </p>
+
+        <h2>
+            Instrument Spotlight
+        </h2>
+
     </div>
 
-    <div class="quiz-box">
 
-        <div class="quiz-progress">
-            Question
-            <span id="questionNumber">1</span>
-            /
-            <span id="totalQuestions">5</span>
+    <div class="feature-instrument">
+
+        <div
+            class="feature-icon"
+            id="featuredInstrumentIcon"
+        >
+            🎷
         </div>
 
-        <div class="quiz-score">
-            Score:
-            <span id="score">0</span>
+
+        <div>
+
+            <span
+                class="gold-label"
+                id="featuredInstrumentFamily"
+            >
+                WOODWIND
+            </span>
+
+
+            <h3 id="featuredInstrumentName">
+                Saxophone
+            </h3>
+
+
+            <p id="featuredInstrumentText">
+            </p>
+
+
+            <div class="feature-details">
+
+                <p>
+                    <strong>
+                        Origin:
+                    </strong>
+
+                    <span id="featuredInstrumentOrigin">
+                    </span>
+                </p>
+
+
+                <p>
+                    <strong>
+                        Sound:
+                    </strong>
+
+                    <span id="featuredInstrumentSound">
+                    </span>
+                </p>
+
+
+                <p>
+                    <strong>
+                        Styles:
+                    </strong>
+
+                    <span id="featuredInstrumentStyles">
+                    </span>
+                </p>
+
+            </div>
+
+
+            <button
+                id="newFeaturedInstrument"
+                class="gold-button"
+                type="button"
+            >
+                Show Another
+            </button>
+
         </div>
 
-        <h3 id="questionText">
-            Loading question...
-        </h3>
+    </div>
 
-        <div id="answerButtons"></div>
+</section>
 
-        <p id="quizResult"></p>
 
-        <button id="nextQuestion" class="next-question">
-            Next Question →
+
+<!-- =====================================================
+     VIRTUAL PIANO
+===================================================== -->
+
+<section class="section">
+
+    <div class="section-title">
+
+        <p>
+            PLAY MUSIC
+        </p>
+
+        <h2>
+            Virtual Piano
+        </h2>
+
+    </div>
+
+
+    <div class="virtual-piano">
+
+        <button class="piano-key" data-note="261.63">
+            C
+        </button>
+
+        <button class="piano-key black-key" data-note="277.18">
+            C#
+        </button>
+
+        <button class="piano-key" data-note="293.66">
+            D
+        </button>
+
+        <button class="piano-key black-key" data-note="311.13">
+            D#
+        </button>
+
+        <button class="piano-key" data-note="329.63">
+            E
+        </button>
+
+        <button class="piano-key" data-note="349.23">
+            F
+        </button>
+
+        <button class="piano-key black-key" data-note="369.99">
+            F#
+        </button>
+
+        <button class="piano-key" data-note="392">
+            G
+        </button>
+
+        <button class="piano-key black-key" data-note="415.3">
+            G#
+        </button>
+
+        <button class="piano-key" data-note="440">
+            A
+        </button>
+
+        <button class="piano-key black-key" data-note="466.16">
+            A#
+        </button>
+
+        <button class="piano-key" data-note="493.88">
+            B
+        </button>
+
+        <button class="piano-key" data-note="523.25">
+            C
         </button>
 
     </div>
@@ -657,61 +521,1389 @@
 </section>
 
 
-<!-- Fun Facts -->
-<section class="fact-section">
 
-    <h2>⭐ Musical Fun Fact</h2>
+<!-- =====================================================
+     DRUM PAD
+===================================================== -->
 
-    <p id="funFact">
-        Click the button to discover something interesting!
-    </p>
+<section class="section alt-section">
 
-    <button id="factButton">
-        Show Fun Fact 🎵
+    <div class="section-title">
+
+        <p>
+            CREATE A BEAT
+        </p>
+
+        <h2>
+            Drum Pad
+        </h2>
+
+    </div>
+
+
+    <div class="drum-pad">
+
+        <button
+            class="drum-pad-button"
+            data-drum="kick"
+            type="button"
+        >
+            KICK
+        </button>
+
+        <button
+            class="drum-pad-button"
+            data-drum="snare"
+            type="button"
+        >
+            SNARE
+        </button>
+
+        <button
+            class="drum-pad-button"
+            data-drum="hihat"
+            type="button"
+        >
+            HI-HAT
+        </button>
+
+        <button
+            class="drum-pad-button"
+            data-drum="tom"
+            type="button"
+        >
+            TOM
+        </button>
+
+        <button
+            class="drum-pad-button"
+            data-drum="clap"
+            type="button"
+        >
+            CLAP
+        </button>
+
+        <button
+            class="drum-pad-button"
+            data-drum="cymbal"
+            type="button"
+        >
+            CYMBAL
+        </button>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     GUESS GAME
+===================================================== -->
+
+<section
+    class="section"
+    id="games"
+>
+
+    <div class="section-title">
+
+        <p>
+            MINI GAME
+        </p>
+
+        <h2>
+            Guess the Instrument
+        </h2>
+
+    </div>
+
+
+    <div class="game-card">
+
+        <p
+            id="instrumentClue"
+            class="clue"
+        >
+            Press Start to begin.
+        </p>
+
+
+        <div
+            id="guessOptions"
+            class="game-options"
+        ></div>
+
+
+        <button
+            id="newGuessQuestion"
+            class="gold-button"
+            type="button"
+        >
+            New Question
+        </button>
+
+
+        <p id="guessResult">
+        </p>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     TRUE OR FALSE
+===================================================== -->
+
+<section class="section alt-section">
+
+    <div class="section-title">
+
+        <p>
+            QUICK GAME
+        </p>
+
+        <h2>
+            True or False
+        </h2>
+
+    </div>
+
+
+    <div class="game-card">
+
+        <h3 id="trueFalseQuestion">
+            Ready?
+        </h3>
+
+
+        <div class="game-options">
+
+            <button
+                id="trueButton"
+                type="button"
+            >
+                TRUE
+            </button>
+
+            <button
+                id="falseButton"
+                type="button"
+            >
+                FALSE
+            </button>
+
+        </div>
+
+
+        <p id="trueFalseResult">
+        </p>
+
+
+        <button
+            id="nextTrueFalse"
+            class="gold-button"
+            type="button"
+        >
+            New Statement
+        </button>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     INSTRUMENT BATTLE
+===================================================== -->
+
+<section
+    class="section battle-section"
+    id="battle"
+>
+
+    <div class="section-title">
+
+        <p>
+            MUSICVERSE ARENA
+        </p>
+
+        <h2>
+            ⚔️ Instrument Battle
+        </h2>
+
+        <p>
+            Choose an instrument, battle CPU opponents,
+            gain EXP and upgrade your stats.
+        </p>
+
+    </div>
+
+
+
+    <!-- FIGHTER CHOICE -->
+
+    <div class="battle-selection">
+
+        <h3>
+            Choose Your Fighter
+        </h3>
+
+
+        <div
+            id="battleInstrumentGrid"
+            class="battle-instrument-grid"
+        ></div>
+
+    </div>
+
+
+
+    <!-- BATTLE FIELD -->
+
+    <div class="battle-arena">
+
+
+        <!-- PLAYER -->
+
+        <article class="fighter-card">
+
+            <span class="fighter-label">
+                YOU
+            </span>
+
+
+            <div
+                id="playerBattleIcon"
+                class="fighter-icon"
+            >
+                🎵
+            </div>
+
+
+            <h3 id="playerBattleName">
+                Choose Instrument
+            </h3>
+
+
+            <p>
+                Level
+
+                <strong id="playerBattleLevel">
+                    1
+                </strong>
+            </p>
+
+
+
+            <div class="xp-container">
+
+                <div class="xp-label">
+
+                    <span>
+                        EXP
+                    </span>
+
+                    <span id="playerXPText">
+                        0 / 100
+                    </span>
+
+                </div>
+
+
+                <div class="xp-bar">
+
+                    <div
+                        id="playerXPBar"
+                        class="xp-fill"
+                    ></div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="battle-stats">
+
+                <div>
+                    ⚡ Power
+                    <strong id="playerPower">
+                        0
+                    </strong>
+                </div>
+
+                <div>
+                    🎵 Melody
+                    <strong id="playerMelody">
+                        0
+                    </strong>
+                </div>
+
+                <div>
+                    🥁 Rhythm
+                    <strong id="playerRhythm">
+                        0
+                    </strong>
+                </div>
+
+                <div>
+                    🛡 Defense
+                    <strong id="playerDefense">
+                        0
+                    </strong>
+                </div>
+
+            </div>
+
+        </article>
+
+
+
+        <div class="battle-vs">
+            VS
+        </div>
+
+
+
+        <!-- CPU -->
+
+        <article class="fighter-card">
+
+            <span class="fighter-label">
+                CPU
+            </span>
+
+
+            <div
+                id="cpuBattleIcon"
+                class="fighter-icon"
+            >
+                ❓
+            </div>
+
+
+            <h3 id="cpuBattleName">
+                Waiting...
+            </h3>
+
+
+            <p>
+                Level
+
+                <strong id="cpuBattleLevel">
+                    ?
+                </strong>
+            </p>
+
+
+
+            <div class="battle-stats">
+
+                <div>
+                    ⚡ Power
+                    <strong id="cpuPower">
+                        ?
+                    </strong>
+                </div>
+
+                <div>
+                    🎵 Melody
+                    <strong id="cpuMelody">
+                        ?
+                    </strong>
+                </div>
+
+                <div>
+                    🥁 Rhythm
+                    <strong id="cpuRhythm">
+                        ?
+                    </strong>
+                </div>
+
+                <div>
+                    🛡 Defense
+                    <strong id="cpuDefense">
+                        ?
+                    </strong>
+                </div>
+
+            </div>
+
+        </article>
+
+    </div>
+
+
+
+    <!-- BATTLE CONTROLS -->
+
+    <div class="battle-controls">
+
+        <button
+            id="findOpponentButton"
+            class="gold-button"
+            type="button"
+        >
+            🎯 Find CPU
+        </button>
+
+
+        <button
+            id="battleButton"
+            class="battle-button"
+            type="button"
+            disabled
+        >
+            ⚔️ BATTLE!
+        </button>
+
+    </div>
+
+
+
+    <div
+        id="battleStatus"
+        class="battle-status"
+    >
+        Choose an instrument.
+    </div>
+
+
+    <div
+        id="battleLog"
+        class="battle-log"
+    ></div>
+
+
+
+    <!-- BATTLE RECORD -->
+
+    <div class="battle-record">
+
+        <article>
+
+            <strong id="battleWins">
+                0
+            </strong>
+
+            <span>
+                Wins
+            </span>
+
+        </article>
+
+
+        <article>
+
+            <strong id="battleLosses">
+                0
+            </strong>
+
+            <span>
+                Losses
+            </span>
+
+        </article>
+
+
+        <article>
+
+            <strong id="battleWinRate">
+                0%
+            </strong>
+
+            <span>
+                Win Rate
+            </span>
+
+        </article>
+
+
+        <article>
+
+            <strong id="battleHighestLevel">
+                1
+            </strong>
+
+            <span>
+                Highest Level
+            </span>
+
+        </article>
+
+    </div>
+
+
+
+    <!-- UPGRADES -->
+
+    <div class="upgrade-section">
+
+        <h3>
+            🔧 Instrument Upgrades
+        </h3>
+
+
+        <p>
+            Earn an Upgrade Point each time you level up.
+        </p>
+
+
+        <div class="upgrade-points">
+
+            Upgrade Points:
+
+            <strong id="upgradePoints">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="upgrade-grid">
+
+            <button
+                class="upgrade-button"
+                data-upgrade="power"
+                type="button"
+            >
+                ⚡ Power
+                <span>
+                    +3
+                </span>
+            </button>
+
+
+            <button
+                class="upgrade-button"
+                data-upgrade="melody"
+                type="button"
+            >
+                🎵 Melody
+                <span>
+                    +3
+                </span>
+            </button>
+
+
+            <button
+                class="upgrade-button"
+                data-upgrade="rhythm"
+                type="button"
+            >
+                🥁 Rhythm
+                <span>
+                    +3
+                </span>
+            </button>
+
+
+            <button
+                class="upgrade-button"
+                data-upgrade="defense"
+                type="button"
+            >
+                🛡 Defense
+                <span>
+                    +3
+                </span>
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <button
+        id="changeBattleInstrument"
+        class="outline-button centered-button"
+        type="button"
+    >
+        🔄 Change Instrument
     </button>
 
 </section>
 
 
-<!-- Instrument Modal -->
-<div id="instrumentModal" class="instrument-modal">
+
+<!-- =====================================================
+     MUSICCRAFT OPEN WORLD
+===================================================== -->
+
+<section
+    class="section musiccraft-section"
+    id="musiccraft"
+>
+
+    <div class="section-title">
+
+        <p>
+            OPEN WORLD MINING GAME
+        </p>
+
+        <h2>
+            ⛏️ MusicCraft World
+        </h2>
+
+        <p>
+            Explore the world, mine nearby blocks,
+            complete missions and descend deeper
+            underground to discover rare resources.
+        </p>
+
+    </div>
+
+
+
+    <!-- =================================================
+         MUSICCRAFT HUD
+    ================================================== -->
+
+    <div class="musiccraft-hud">
+
+        <div class="mc-stat">
+
+            ❤️ Health
+
+            <strong id="mcHealth">
+                10
+            </strong>
+
+        </div>
+
+
+        <div class="mc-stat">
+
+            ⭐ Mining EXP
+
+            <strong id="mcExperience">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="mc-stat">
+
+            📍 X
+
+            <strong id="mcPlayerX">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="mc-stat">
+
+            📍 Y
+
+            <strong id="mcPlayerY">
+                0
+            </strong>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =================================================
+         MUSICCRAFT MAIN LAYOUT
+    ================================================== -->
+
+    <div class="musiccraft-layout">
+
+
+        <!-- WORLD -->
+
+        <div class="musiccraft-game-wrap">
+
+            <canvas
+                id="musiccraftCanvas"
+                width="800"
+                height="520"
+                tabindex="0"
+                aria-label="MusicCraft mining world"
+            >
+            </canvas>
+
+
+
+            <div class="musiccraft-help">
+
+                <span>
+                    🎮 WASD / Arrow Keys = Move
+                </span>
+
+                <span>
+                    ⛏️ Left Click = Mine
+                </span>
+
+                <span>
+                    🧱 Right Click = Place
+                </span>
+
+                <span>
+                    🎒 1–7 = Select Inventory
+                </span>
+
+            </div>
+
+
+
+            <div class="mc-instructions">
+
+                <strong>
+                    How to play
+                </strong>
+
+                <p>
+                    Click once inside the game first.
+                    Move close to a block, then left-click it to mine.
+                    You can mine blocks up to two tiles away,
+                    including diagonally.
+                </p>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             SIDEBAR
+        ================================================== -->
+
+        <aside class="musiccraft-sidebar">
+
+
+            <!-- DEPTH -->
+
+            <h3>
+                ⬇️ Current Depth
+            </h3>
+
+
+            <div class="mc-depth-card">
+
+                <strong id="mcDepth">
+                    🌱 Surface
+                </strong>
+
+                <p id="mcDepthDescription">
+                    Begin your mining journey.
+                </p>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 MISSION
+            ================================================== -->
+
+            <h3>
+                🎯 Mining Mission
+            </h3>
+
+
+            <div class="mc-mission-box">
+
+                <p id="mcMissionTitle">
+                    Getting Started
+                </p>
+
+
+                <div
+                    id="mcMissionList"
+                    class="mc-mission-list"
+                >
+                </div>
+
+
+                <div class="mc-mission-progress">
+
+                    <div
+                        id="mcMissionProgressBar"
+                        class="mc-mission-progress-fill"
+                    >
+                    </div>
+
+                </div>
+
+
+                <button
+                    id="mcGoDeeper"
+                    class="gold-button full-button"
+                    type="button"
+                    disabled
+                >
+                    🔒 Complete Mission First
+                </button>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 MINING GUIDE
+            ================================================== -->
+
+            <h3>
+                🪨 Resources
+            </h3>
+
+
+            <div class="mc-resource-guide">
+
+                <div>
+                    <span>🟫</span>
+                    <p>
+                        Dirt
+                        <small>
+                            Surface
+                        </small>
+                    </p>
+                </div>
+
+
+                <div>
+                    <span>🪨</span>
+                    <p>
+                        Stone
+                        <small>
+                            Surface+
+                        </small>
+                    </p>
+                </div>
+
+
+                <div>
+                    <span>⬛</span>
+                    <p>
+                        Coal
+                        <small>
+                            Underground+
+                        </small>
+                    </p>
+                </div>
+
+
+                <div>
+                    <span>🔩</span>
+                    <p>
+                        Iron
+                        <small>
+                            Deep Caves+
+                        </small>
+                    </p>
+                </div>
+
+
+                <div>
+                    <span>🟨</span>
+                    <p>
+                        Gold
+                        <small>
+                            Deep Caves+
+                        </small>
+                    </p>
+                </div>
+
+
+                <div>
+                    <span>💎</span>
+                    <p>
+                        Diamond
+                        <small>
+                            Crystal Depths+
+                        </small>
+                    </p>
+                </div>
+
+
+                <div>
+                    <span>🎵</span>
+                    <p>
+                        Music Crystal
+                        <small>
+                            Very Rare
+                        </small>
+                    </p>
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 INVENTORY
+            ================================================== -->
+
+            <h3>
+                🎒 Inventory
+            </h3>
+
+
+            <div
+                id="mcInventory"
+                class="mc-inventory"
+            >
+            </div>
+
+
+
+            <!-- SELECTED BLOCK -->
+
+            <h3>
+                🧱 Selected Block
+            </h3>
+
+
+            <div
+                id="mcSelectedBlock"
+                class="mc-selected-block"
+            >
+                🟫 Dirt
+            </div>
+
+
+
+            <!-- =================================================
+                 ADVENTURE LOG
+            ================================================== -->
+
+            <h3>
+                📜 Adventure Log
+            </h3>
+
+
+            <div
+                id="mcLog"
+                class="mc-log"
+            >
+
+                <div>
+                    Welcome to MusicCraft!
+                </div>
+
+                <div>
+                    Mine nearby blocks to begin.
+                </div>
+
+            </div>
+
+
+
+            <!-- WORLD RESET -->
+
+            <button
+                id="mcNewWorld"
+                class="outline-button full-button"
+                type="button"
+            >
+                🌎 Regenerate Current Depth
+            </button>
+
+        </aside>
+
+    </div>
+
+
+
+    <!-- =================================================
+         DEPTH PROGRESSION
+    ================================================== -->
+
+    <div class="mc-depth-roadmap">
+
+        <div class="section-title">
+
+            <p>
+                HOW DEEP CAN YOU GO?
+            </p>
+
+            <h2>
+                Mining Depths
+            </h2>
+
+        </div>
+
+
+        <div class="mc-depth-grid">
+
+            <article>
+
+                <span>
+                    🌱
+                </span>
+
+                <h3>
+                    Surface
+                </h3>
+
+                <p>
+                    Dirt and Stone
+                </p>
+
+            </article>
+
+
+            <article>
+
+                <span>
+                    ⛏️
+                </span>
+
+                <h3>
+                    Underground
+                </h3>
+
+                <p>
+                    Stone and Coal
+                </p>
+
+            </article>
+
+
+            <article>
+
+                <span>
+                    🪨
+                </span>
+
+                <h3>
+                    Deep Caves
+                </h3>
+
+                <p>
+                    Coal, Iron and Gold
+                </p>
+
+            </article>
+
+
+            <article>
+
+                <span>
+                    💎
+                </span>
+
+                <h3>
+                    Crystal Depths
+                </h3>
+
+                <p>
+                    Gold, Diamonds and rare crystals
+                </p>
+
+            </article>
+
+
+            <article>
+
+                <span>
+                    🌋
+                </span>
+
+                <h3>
+                    Ancient Depths
+                </h3>
+
+                <p>
+                    Rare ores and dangerous Lava
+                </p>
+
+            </article>
+
+
+            <article>
+
+                <span>
+                    🎵
+                </span>
+
+                <h3>
+                    Music Core
+                </h3>
+
+                <p>
+                    The deepest musical mine
+                </p>
+
+            </article>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =================================================
+         MOBILE CONTROLS
+    ================================================== -->
+
+    <div class="mc-mobile-controls">
+
+        <button
+            data-mc-move="up"
+            type="button"
+        >
+            ▲
+        </button>
+
+
+        <div>
+
+            <button
+                data-mc-move="left"
+                type="button"
+            >
+                ◀
+            </button>
+
+
+            <button
+                data-mc-move="down"
+                type="button"
+            >
+                ▼
+            </button>
+
+
+            <button
+                data-mc-move="right"
+                type="button"
+            >
+                ▶
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     QUIZ
+===================================================== -->
+
+<section
+    class="section alt-section"
+    id="quiz"
+>
+
+    <div class="section-title">
+
+        <p>
+            TEST YOUR KNOWLEDGE
+        </p>
+
+        <h2>
+            Music Quiz
+        </h2>
+
+    </div>
+
+
+    <div class="quiz-box">
+
+        <div class="quiz-top">
+
+            <span>
+
+                Question
+
+                <strong id="questionNumber">
+                    1
+                </strong>
+
+                /
+
+                <strong id="totalQuestions">
+                    10
+                </strong>
+
+            </span>
+
+
+            <span>
+
+                Score:
+
+                <strong id="score">
+                    0
+                </strong>
+
+            </span>
+
+        </div>
+
+
+        <h3 id="questionText">
+            Loading...
+        </h3>
+
+
+        <div id="answerButtons">
+        </div>
+
+
+        <p id="quizResult">
+        </p>
+
+
+        <button
+            id="nextQuestion"
+            class="gold-button"
+            type="button"
+        >
+            Next →
+        </button>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     FUN FACTS
+===================================================== -->
+
+<section class="section">
+
+    <div class="section-title">
+
+        <p>
+            DID YOU KNOW?
+        </p>
+
+        <h2>
+            Music Fun Facts
+        </h2>
+
+    </div>
+
+
+    <div class="fact-card">
+
+        <p id="funFact">
+            Click below to discover a music fact.
+        </p>
+
+
+        <button
+            id="factButton"
+            class="gold-button"
+            type="button"
+        >
+            Show Fun Fact
+        </button>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     INSTRUMENT MODAL
+===================================================== -->
+
+<div
+    id="instrumentModal"
+    class="instrument-modal"
+>
 
     <div class="modal-content">
 
-        <button id="closeModal" class="close-modal">
+        <button
+            id="closeModal"
+            class="close-modal"
+            type="button"
+        >
             ×
         </button>
 
-        <div id="modalIcon" class="modal-icon">
+
+        <div
+            id="modalIcon"
+            class="modal-icon"
+        >
             🎵
         </div>
 
-        <span id="modalFamily" class="modal-family"></span>
 
-        <h2 id="modalTitle"></h2>
+        <span
+            id="modalFamily"
+            class="gold-label"
+        >
+        </span>
 
-        <p id="modalDescription"></p>
 
-        <div class="modal-info">
+        <h2 id="modalTitle">
+        </h2>
+
+
+        <p id="modalDescription">
+        </p>
+
+
+        <div class="modal-details">
 
             <p>
-                🌍 <strong>Origin:</strong>
-                <span id="modalOrigin"></span>
+
+                <strong>
+                    Origin:
+                </strong>
+
+                <span id="modalOrigin">
+                </span>
+
             </p>
 
-            <p>
-                🔊 <strong>Sound:</strong>
-                <span id="modalSound"></span>
-            </p>
 
             <p>
-                🎶 <strong>Styles:</strong>
-                <span id="modalStyles"></span>
+
+                <strong>
+                    Sound:
+                </strong>
+
+                <span id="modalSound">
+                </span>
+
             </p>
 
+
             <p>
-                ⭐ <strong>Difficulty:</strong>
-                <span id="modalDifficulty"></span>
+
+                <strong>
+                    Styles:
+                </strong>
+
+                <span id="modalStyles">
+                </span>
+
+            </p>
+
+
+            <p>
+
+                <strong>
+                    Difficulty:
+                </strong>
+
+                <span id="modalDifficulty">
+                </span>
+
             </p>
 
         </div>
@@ -721,21 +1913,34 @@
 </div>
 
 
-<!-- Footer -->
+
+<!-- =====================================================
+     FOOTER
+===================================================== -->
+
 <footer>
 
-    <h2>🎵 MusicVerse</h2>
+    <h2>
+        🎵 MusicVerse
+    </h2>
 
-    <p>Explore • Learn • Listen • Play</p>
 
-    <p>© 2026 MusicVerse</p>
+    <p>
+        Discover • Listen • Learn • Battle • Mine
+    </p>
+
+
+    <p>
+        © 2026 MusicVerse
+    </p>
 
 </footer>
 
 
-<!-- JavaScript -->
+
 <script src="script.js"></script>
-```
+
 
 </body>
+
 </html>
