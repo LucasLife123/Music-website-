@@ -1,2311 +1,428 @@
-document.addEventListener("DOMContentLoaded", () => {
+import * as THREE from
+    "https://unpkg.com/three@0.164.1/build/three.module.js";
 
 
 /* =========================================================
    HELPERS
 ========================================================= */
 
-function randomItem(array) {
+const $ =
+    selector =>
+        document.querySelector(selector);
 
-    return array[
+
+const $$ =
+    selector =>
+        [...document.querySelectorAll(selector)];
+
+
+const randomItem =
+    array =>
+        array[
+            Math.floor(
+                Math.random() *
+                array.length
+            )
+        ];
+
+
+const randomNumber =
+    (min,max) =>
         Math.floor(
             Math.random() *
-            array.length
-        )
-    ];
-
-}
+            (max-min+1)
+        ) + min;
 
 
-function randomNumber(
-    min,
-    max
-) {
-
-    return Math.floor(
-        Math.random() *
-        (max - min + 1)
-    ) + min;
-
-}
-
-
-function delay(ms) {
-
-    return new Promise(
-        resolve =>
-            setTimeout(
-                resolve,
-                ms
-            )
-    );
-
-}
+const delay =
+    ms =>
+        new Promise(
+            resolve =>
+                setTimeout(resolve,ms)
+        );
 
 
 
 /* =========================================================
-   INSTRUMENT DATABASE
+   INSTRUMENTS
 ========================================================= */
 
 const instruments = [
 
-    {
-        name: "Guitar",
-        icon: "🎸",
-        category: "string",
-        family: "String",
-        origin: "Spain",
-        description:
-            "A versatile string instrument played by plucking or strumming.",
-        sound:
-            "Plucked vibrating strings",
-        styles:
-            "Rock, Pop, Jazz, Blues",
-        difficulty:
-            "Intermediate",
-        frequency:
-            220
-    },
+{
+    name:"Guitar",
+    icon:"🎸",
+    category:"string",
+    family:"String",
+    description:"A versatile plucked string instrument.",
+    frequency:220
+},
 
-    {
-        name: "Violin",
-        icon: "🎻",
-        category: "string",
-        family: "String",
-        origin: "Italy",
-        description:
-            "A bowed string instrument known for its expressive tone.",
-        sound:
-            "Bowed strings",
-        styles:
-            "Classical, Folk, Film",
-        difficulty:
-            "Advanced",
-        frequency:
-            659.25
-    },
+{
+    name:"Ukulele",
+    icon:"🎸",
+    category:"string",
+    family:"String",
+    description:"A small four-string instrument with a bright tone.",
+    frequency:392
+},
 
-    {
-        name: "Cello",
-        icon: "🎻",
-        category: "string",
-        family: "String",
-        origin: "Italy",
-        description:
-            "A large bowed instrument with a deep and warm tone.",
-        sound:
-            "Bowed strings",
-        styles:
-            "Classical, Chamber, Film",
-        difficulty:
-            "Advanced",
-        frequency:
-            196
-    },
+{
+    name:"Piano",
+    icon:"🎹",
+    category:"keyboard",
+    family:"Keyboard",
+    description:"A keyboard instrument using hammers and strings.",
+    frequency:440
+},
 
-    {
-        name: "Ukulele",
-        icon: "🎸",
-        category: "string",
-        family: "String",
-        origin: "Hawaii",
-        description:
-            "A small four-string instrument with a cheerful sound.",
-        sound:
-            "Plucked strings",
-        styles:
-            "Pop, Folk, Hawaiian",
-        difficulty:
-            "Beginner",
-        frequency:
-            392
-    },
+{
+    name:"Flute",
+    icon:"🪈",
+    category:"woodwind",
+    family:"Woodwind",
+    description:"A light woodwind played by blowing across an opening.",
+    frequency:698.46
+},
 
-    {
-        name: "Piano",
-        icon: "🎹",
-        category: "keyboard",
-        family: "Keyboard",
-        origin: "Italy",
-        description:
-            "A keyboard instrument where hammers strike strings.",
-        sound:
-            "Hammered strings",
-        styles:
-            "Classical, Jazz, Pop",
-        difficulty:
-            "Intermediate",
-        frequency:
-            440
-    },
+{
+    name:"Drums",
+    icon:"🥁",
+    category:"percussion",
+    family:"Percussion",
+    description:"A family of instruments built around rhythm.",
+    drum:true
+},
 
-    {
-        name: "Organ",
-        icon: "🎹",
-        category: "keyboard",
-        family: "Keyboard",
-        origin: "Europe",
-        description:
-            "A keyboard instrument capable of sustained tones.",
-        sound:
-            "Pipes or oscillators",
-        styles:
-            "Classical, Church, Rock",
-        difficulty:
-            "Advanced",
-        frequency:
-            261.63
-    },
+{
+    name:"Clarinet",
+    icon:"🎶",
+    category:"woodwind",
+    family:"Woodwind",
+    description:"A single-reed woodwind with a flexible sound.",
+    frequency:293.66
+},
 
-    {
-        name: "Flute",
-        icon: "🪈",
-        category: "woodwind",
-        family: "Woodwind",
-        origin: "Ancient",
-        description:
-            "A wind instrument that creates sound from moving air.",
-        sound:
-            "Air vibration",
-        styles:
-            "Classical, Folk, World",
-        difficulty:
-            "Intermediate",
-        frequency:
-            698.46
-    },
+{
+    name:"Trumpet",
+    icon:"🎺",
+    category:"brass",
+    family:"Brass",
+    description:"A bright and powerful brass instrument.",
+    frequency:523.25
+},
 
-    {
-        name: "Clarinet",
-        icon: "🎶",
-        category: "woodwind",
-        family: "Woodwind",
-        origin: "Germany",
-        description:
-            "A single-reed woodwind with a flexible tone.",
-        sound:
-            "Single reed",
-        styles:
-            "Classical, Jazz, Band",
-        difficulty:
-            "Intermediate",
-        frequency:
-            293.66
-    },
+{
+    name:"Violin",
+    icon:"🎻",
+    category:"string",
+    family:"String",
+    description:"A bowed string instrument with an expressive sound.",
+    frequency:659.25
+},
 
-    {
-        name: "Oboe",
-        icon: "🪈",
-        category: "woodwind",
-        family: "Woodwind",
-        origin: "Europe",
-        description:
-            "A double-reed instrument with a focused tone.",
-        sound:
-            "Double reed",
-        styles:
-            "Classical, Orchestra",
-        difficulty:
-            "Advanced",
-        frequency:
-            466.16
-    },
+{
+    name:"Saxophone",
+    icon:"🎷",
+    category:"woodwind",
+    family:"Woodwind",
+    description:"A reed instrument famous for jazz and pop.",
+    frequency:369.99
+},
 
-    {
-        name: "Saxophone",
-        icon: "🎷",
-        category: "woodwind",
-        family: "Woodwind",
-        origin: "Belgium",
-        description:
-            "A reed instrument famous for jazz and popular music.",
-        sound:
-            "Single reed",
-        styles:
-            "Jazz, Blues, Pop",
-        difficulty:
-            "Intermediate",
-        frequency:
-            369.99
-    },
+{
+    name:"Cello",
+    icon:"🎻",
+    category:"string",
+    family:"String",
+    description:"A large bowed instrument with a deep tone.",
+    frequency:196
+},
 
-    {
-        name: "Trumpet",
-        icon: "🎺",
-        category: "brass",
-        family: "Brass",
-        origin: "Ancient",
-        description:
-            "A bright brass instrument played by buzzing the lips.",
-        sound:
-            "Lip vibration",
-        styles:
-            "Jazz, Classical, Band",
-        difficulty:
-            "Advanced",
-        frequency:
-            523.25
-    },
+{
+    name:"Xylophone",
+    icon:"🎼",
+    category:"percussion",
+    family:"Percussion",
+    description:"Tuned bars struck with mallets.",
+    frequency:783.99
+},
 
-    {
-        name: "Trombone",
-        icon: "🎺",
-        category: "brass",
-        family: "Brass",
-        origin: "Europe",
-        description:
-            "A brass instrument that commonly uses a movable slide.",
-        sound:
-            "Lip vibration",
-        styles:
-            "Jazz, Classical",
-        difficulty:
-            "Intermediate",
-        frequency:
-            233.08
-    },
+{
+    name:"Trombone",
+    icon:"🎺",
+    category:"brass",
+    family:"Brass",
+    description:"A brass instrument famous for its slide.",
+    frequency:233.08
+},
 
-    {
-        name: "French Horn",
-        icon: "📯",
-        category: "brass",
-        family: "Brass",
-        origin: "Europe",
-        description:
-            "A coiled brass instrument with a warm orchestral tone.",
-        sound:
-            "Lip vibration",
-        styles:
-            "Classical, Orchestra, Film",
-        difficulty:
-            "Advanced",
-        frequency:
-            349.23
-    },
+{
+    name:"Synthesizer",
+    icon:"🎛️",
+    category:"electronic",
+    family:"Electronic",
+    description:"Creates sounds through electronic synthesis.",
+    frequency:329.63
+},
 
-    {
-        name: "Drums",
-        icon: "🥁",
-        category: "percussion",
-        family: "Percussion",
-        origin: "Ancient",
-        description:
-            "Percussion instruments used to create rhythm.",
-        sound:
-            "Struck membranes and cymbals",
-        styles:
-            "Rock, Pop, Jazz, Hip-Hop",
-        difficulty:
-            "Beginner to Advanced",
-        drum:
-            true
-    },
+{
+    name:"French Horn",
+    icon:"📯",
+    category:"brass",
+    family:"Brass",
+    description:"A warm coiled brass instrument.",
+    frequency:349.23
+},
 
-    {
-        name: "Xylophone",
-        icon: "🎼",
-        category: "percussion",
-        family: "Percussion",
-        origin: "Ancient",
-        description:
-            "A tuned percussion instrument made from bars.",
-        sound:
-            "Struck bars",
-        styles:
-            "Classical, World",
-        difficulty:
-            "Beginner",
-        frequency:
-            783.99
-    },
+{
+    name:"Oboe",
+    icon:"🪈",
+    category:"woodwind",
+    family:"Woodwind",
+    description:"A focused double-reed instrument.",
+    frequency:466.16
+},
 
-    {
-        name: "Synthesizer",
-        icon: "🎛️",
-        category: "electronic",
-        family: "Electronic",
-        origin: "20th Century",
-        description:
-            "An electronic instrument capable of creating many sounds.",
-        sound:
-            "Electronic synthesis",
-        styles:
-            "Electronic, Pop, Film",
-        difficulty:
-            "Intermediate",
-        frequency:
-            329.63
-    },
+{
+    name:"Digital Piano",
+    icon:"🎹",
+    category:"electronic",
+    family:"Electronic",
+    description:"An electronic instrument designed to imitate a piano.",
+    frequency:440
+},
 
-    {
-        name: "Digital Piano",
-        icon: "🎹",
-        category: "electronic",
-        family: "Electronic",
-        origin: "20th Century",
-        description:
-            "A digital keyboard designed to reproduce piano sounds.",
-        sound:
-            "Digital piano",
-        styles:
-            "Pop, Classical, Education",
-        difficulty:
-            "Beginner",
-        frequency:
-            440
-    },
+{
+    name:"Organ",
+    icon:"🎹",
+    category:"keyboard",
+    family:"Keyboard",
+    description:"A keyboard instrument known for sustained tones.",
+    frequency:261.63
+},
 
-    {
-        name: "Drum Machine",
-        icon: "🎛️",
-        category: "electronic",
-        family: "Electronic",
-        origin: "20th Century",
-        description:
-            "An electronic instrument for programmed rhythms.",
-        sound:
-            "Electronic percussion",
-        styles:
-            "Hip-Hop, Electronic, Dance",
-        difficulty:
-            "Beginner",
-        drum:
-            true
-    }
+{
+    name:"Drum Machine",
+    icon:"🎛️",
+    category:"electronic",
+    family:"Electronic",
+    description:"Creates programmed electronic rhythms.",
+    drum:true
+}
 
 ];
 
 
-function getInstrument(name) {
-
-    return instruments.find(
-        instrument =>
-            instrument.name === name
-    );
-
-}
-
-
-
-/* =========================================================
-   AUDIO ENGINE
-========================================================= */
-
-let audioContext = null;
-
-
-function getAudioContext() {
-
-    if (!audioContext) {
-
-        const AudioClass =
-            window.AudioContext ||
-            window.webkitAudioContext;
-
-
-        if (!AudioClass) {
-            return null;
-        }
-
-
-        audioContext =
-            new AudioClass();
-
-    }
-
-
-    if (
-        audioContext.state ===
-        "suspended"
-    ) {
-
-        audioContext.resume();
-
-    }
-
-
-    return audioContext;
-
-}
-
-
-function createVoice({
-
-    frequency,
-    type = "sine",
-    volume = .1,
-    attack = .01,
-    duration = .7,
-    release = .4,
-    destination = null
-
-}) {
-
-    const context =
-        getAudioContext();
-
-
-    if (!context) {
-        return null;
-    }
-
-
-    const oscillator =
-        context.createOscillator();
-
-
-    const gain =
-        context.createGain();
-
-
-    const now =
-        context.currentTime;
-
-
-    oscillator.type =
-        type;
-
-
-    oscillator.frequency.setValueAtTime(
-        frequency,
-        now
-    );
-
-
-    gain.gain.setValueAtTime(
-        .0001,
-        now
-    );
-
-
-    gain.gain.exponentialRampToValueAtTime(
-        Math.max(
-            .0002,
-            volume
-        ),
-        now + attack
-    );
-
-
-    gain.gain.exponentialRampToValueAtTime(
-        .0001,
-        now + duration + release
-    );
-
-
-    oscillator.connect(
-        gain
-    );
-
-
-    gain.connect(
-        destination ||
-        context.destination
-    );
-
-
-    oscillator.start(
-        now
-    );
-
-
-    oscillator.stop(
-        now +
-        duration +
-        release +
-        .05
-    );
-
-
-    return oscillator;
-
-}
-
-
-function createNoiseBuffer(
-    seconds = .5
-) {
-
-    const context =
-        getAudioContext();
-
-
-    if (!context) {
-        return null;
-    }
-
-
-    const buffer =
-        context.createBuffer(
-            1,
-            context.sampleRate * seconds,
-            context.sampleRate
+const getInstrument =
+    name =>
+        instruments.find(
+            item =>
+                item.name === name
         );
 
 
-    const data =
-        buffer.getChannelData(
-            0
-        );
 
+/* =========================================================
+   PRICES
+========================================================= */
 
-    for (
-        let i = 0;
-        i < data.length;
-        i++
-    ) {
+const instrumentPrices = {
 
-        data[i] =
-            Math.random() * 2 - 1;
+    Guitar:0,
+    Ukulele:100,
+    Piano:250,
+    Flute:450,
+    Drums:700,
+    Clarinet:1000,
+    Trumpet:1350,
+    Violin:1750,
+    Saxophone:2200,
+    Cello:2700,
+    Xylophone:3250,
+    Trombone:3850,
+    Synthesizer:4500,
+    "French Horn":5200,
+    Oboe:6000,
+    "Digital Piano":6900,
+    Organ:7900,
+    "Drum Machine":9000
 
-    }
-
-
-    return buffer;
-
-}
+};
 
 
 
 /* =========================================================
-   INSTRUMENT SOUNDS
+   AVATAR PRESETS
 ========================================================= */
 
-function playGuitar(
-    frequency
-) {
+const avatarPresets = [
 
-    [
-        [1,.16],
-        [2,.07],
-        [3,.03],
-        [4,.014]
-    ]
-    .forEach(
-        ([harmonic,volume]) => {
+{
+    id:"hero",
+    name:"Hero",
+    badge:"H",
+    bodyScale:1,
+    headScale:1
+},
 
-            createVoice({
+{
+    id:"swift",
+    name:"Swift",
+    badge:"S",
+    bodyScale:.9,
+    headScale:.95
+},
 
-                frequency:
-                    frequency * harmonic,
+{
+    id:"power",
+    name:"Power",
+    badge:"P",
+    bodyScale:1.12,
+    headScale:1
+},
 
-                type:
-                    "triangle",
+{
+    id:"star",
+    name:"Star",
+    badge:"★",
+    bodyScale:.97,
+    headScale:1.06
+},
 
-                volume,
+{
+    id:"neo",
+    name:"Neo",
+    badge:"N",
+    bodyScale:1.03,
+    headScale:.95
+},
 
-                attack:
-                    .002,
-
-                duration:
-                    .32,
-
-                release:
-                    .85
-
-            });
-
-        }
-    );
-
+{
+    id:"legend",
+    name:"Legend",
+    badge:"L",
+    bodyScale:1.08,
+    headScale:1.03
 }
-
-
-function playPiano(
-    frequency
-) {
-
-    [
-        [1,.15],
-        [2,.06],
-        [3,.025],
-        [4,.012]
-    ]
-    .forEach(
-        ([harmonic,volume]) => {
-
-            createVoice({
-
-                frequency:
-                    frequency * harmonic,
-
-                type:
-                    "triangle",
-
-                volume,
-
-                attack:
-                    .002,
-
-                duration:
-                    .45,
-
-                release:
-                    1
-
-            });
-
-        }
-    );
-
-}
-
-
-function playString(
-    frequency,
-    cello = false
-) {
-
-    const context =
-        getAudioContext();
-
-
-    if (!context) return;
-
-
-    const filter =
-        context.createBiquadFilter();
-
-
-    filter.type =
-        "lowpass";
-
-
-    filter.frequency.value =
-        cello
-            ? 1900
-            : 3400;
-
-
-    filter.connect(
-        context.destination
-    );
-
-
-    const oscillator =
-        createVoice({
-
-            frequency,
-
-            type:
-                "sawtooth",
-
-            volume:
-                .08,
-
-            attack:
-                .12,
-
-            duration:
-                1.15,
-
-            release:
-                .45,
-
-            destination:
-                filter
-
-        });
-
-
-    if (!oscillator) return;
-
-
-    const vibrato =
-        context.createOscillator();
-
-
-    const amount =
-        context.createGain();
-
-
-    vibrato.frequency.value =
-        cello
-            ? 4.6
-            : 5.3;
-
-
-    amount.gain.value =
-        cello
-            ? 3
-            : 5;
-
-
-    vibrato.connect(
-        amount
-    );
-
-
-    amount.connect(
-        oscillator.frequency
-    );
-
-
-    vibrato.start();
-
-
-    vibrato.stop(
-        context.currentTime +
-        1.6
-    );
-
-}
-
-
-function playFlute(
-    frequency
-) {
-
-    createVoice({
-
-        frequency,
-
-        type:
-            "sine",
-
-        volume:
-            .12,
-
-        attack:
-            .08,
-
-        duration:
-            1,
-
-        release:
-            .3
-
-    });
-
-}
-
-
-function playClarinet(
-    frequency
-) {
-
-    [
-        [1,.12],
-        [3,.04],
-        [5,.015]
-    ]
-    .forEach(
-        ([harmonic,volume]) => {
-
-            createVoice({
-
-                frequency:
-                    frequency * harmonic,
-
-                type:
-                    "sine",
-
-                volume,
-
-                attack:
-                    .06,
-
-                duration:
-                    .9,
-
-                release:
-                    .3
-
-            });
-
-        }
-    );
-
-}
-
-
-function playOboe(
-    frequency
-) {
-
-    createVoice({
-
-        frequency,
-
-        type:
-            "sawtooth",
-
-        volume:
-            .065,
-
-        attack:
-            .08,
-
-        duration:
-            .9,
-
-        release:
-            .3
-
-    });
-
-}
-
-
-function playSaxophone(
-    frequency
-) {
-
-    createVoice({
-
-        frequency,
-
-        type:
-            "sawtooth",
-
-        volume:
-            .065,
-
-        attack:
-            .06,
-
-        duration:
-            1,
-
-        release:
-            .35
-
-    });
-
-}
-
-
-function playBrass(
-    frequency,
-    warm = false
-) {
-
-    [
-        [1,.08],
-        [2,.045],
-        [3,.025]
-    ]
-    .forEach(
-        ([harmonic,volume]) => {
-
-            createVoice({
-
-                frequency:
-                    frequency * harmonic,
-
-                type:
-                    "sawtooth",
-
-                volume:
-                    warm
-                        ? volume * .75
-                        : volume,
-
-                attack:
-                    warm
-                        ? .1
-                        : .035,
-
-                duration:
-                    1,
-
-                release:
-                    .3
-
-            });
-
-        }
-    );
-
-}
-
-
-function playTrombone(
-    frequency
-) {
-
-    const context =
-        getAudioContext();
-
-
-    if (!context) return;
-
-
-    const oscillator =
-        createVoice({
-
-            frequency,
-
-            type:
-                "sawtooth",
-
-            volume:
-                .075,
-
-            attack:
-                .04,
-
-            duration:
-                1,
-
-            release:
-                .3
-
-        });
-
-
-    if (!oscillator) return;
-
-
-    oscillator.frequency.setValueAtTime(
-
-        frequency * .96,
-
-        context.currentTime
-
-    );
-
-
-    oscillator.frequency.linearRampToValueAtTime(
-
-        frequency,
-
-        context.currentTime +
-        .15
-
-    );
-
-}
-
-
-function playXylophone(
-    frequency
-) {
-
-    [
-        [1,.16],
-        [3,.045],
-        [6,.013]
-    ]
-    .forEach(
-        ([harmonic,volume]) => {
-
-            createVoice({
-
-                frequency:
-                    frequency * harmonic,
-
-                type:
-                    "sine",
-
-                volume,
-
-                attack:
-                    .001,
-
-                duration:
-                    .1,
-
-                release:
-                    .4
-
-            });
-
-        }
-    );
-
-}
-
-
-function playSynth(
-    frequency
-) {
-
-    createVoice({
-
-        frequency,
-
-        type:
-            "sawtooth",
-
-        volume:
-            .075,
-
-        attack:
-            .03,
-
-        duration:
-            1,
-
-        release:
-            .5
-
-    });
-
-
-    createVoice({
-
-        frequency:
-            frequency / 2,
-
-        type:
-            "square",
-
-        volume:
-            .025,
-
-        attack:
-            .03,
-
-        duration:
-            1,
-
-        release:
-            .5
-
-    });
-
-}
-
-
-function playOrgan(
-    frequency
-) {
-
-    [
-        .5,
-        1,
-        2,
-        3
-    ]
-    .forEach(
-        harmonic => {
-
-            createVoice({
-
-                frequency:
-                    frequency * harmonic,
-
-                type:
-                    "sine",
-
-                volume:
-                    .07 /
-                    Math.max(
-                        1,
-                        harmonic
-                    ),
-
-                attack:
-                    .03,
-
-                duration:
-                    1.3,
-
-                release:
-                    .2
-
-            });
-
-        }
-    );
-
-}
-
-
-
-/* =========================================================
-   DRUMS
-========================================================= */
-
-function playKick() {
-
-    const context =
-        getAudioContext();
-
-
-    if (!context) return;
-
-
-    const oscillator =
-        context.createOscillator();
-
-
-    const gain =
-        context.createGain();
-
-
-    oscillator.frequency.setValueAtTime(
-        150,
-        context.currentTime
-    );
-
-
-    oscillator.frequency.exponentialRampToValueAtTime(
-        45,
-        context.currentTime + .28
-    );
-
-
-    gain.gain.setValueAtTime(
-        .65,
-        context.currentTime
-    );
-
-
-    gain.gain.exponentialRampToValueAtTime(
-        .001,
-        context.currentTime + .3
-    );
-
-
-    oscillator.connect(
-        gain
-    );
-
-
-    gain.connect(
-        context.destination
-    );
-
-
-    oscillator.start();
-
-
-    oscillator.stop(
-        context.currentTime + .31
-    );
-
-}
-
-
-function playNoise(
-    cutoff,
-    duration,
-    volume
-) {
-
-    const context =
-        getAudioContext();
-
-
-    if (!context) return;
-
-
-    const source =
-        context.createBufferSource();
-
-
-    const filter =
-        context.createBiquadFilter();
-
-
-    const gain =
-        context.createGain();
-
-
-    source.buffer =
-        createNoiseBuffer(
-            duration + .1
-        );
-
-
-    filter.type =
-        "highpass";
-
-
-    filter.frequency.value =
-        cutoff;
-
-
-    gain.gain.setValueAtTime(
-        volume,
-        context.currentTime
-    );
-
-
-    gain.gain.exponentialRampToValueAtTime(
-        .001,
-        context.currentTime + duration
-    );
-
-
-    source.connect(
-        filter
-    );
-
-
-    filter.connect(
-        gain
-    );
-
-
-    gain.connect(
-        context.destination
-    );
-
-
-    source.start();
-
-
-    source.stop(
-        context.currentTime + duration
-    );
-
-}
-
-
-function playSnare() {
-
-    playNoise(
-        1200,
-        .2,
-        .3
-    );
-
-}
-
-
-function playHiHat() {
-
-    playNoise(
-        6500,
-        .08,
-        .2
-    );
-
-}
-
-
-function playCymbal() {
-
-    playNoise(
-        4200,
-        .8,
-        .18
-    );
-
-}
-
-
-function playTom() {
-
-    createVoice({
-
-        frequency:
-            130,
-
-        type:
-            "sine",
-
-        volume:
-            .3,
-
-        attack:
-            .001,
-
-        duration:
-            .13,
-
-        release:
-            .25
-
-    });
-
-}
-
-
-function playClap() {
-
-    playNoise(
-        1000,
-        .13,
-        .25
-    );
-
-}
-
-
-
-/* =========================================================
-   MASTER INSTRUMENT SOUND
-========================================================= */
-
-function playInstrumentSound(
-    instrument
-) {
-
-    if (!instrument) return;
-
-
-    switch (
-        instrument.name
-    ) {
-
-        case "Guitar":
-
-            playGuitar(
-                instrument.frequency
-            );
-
-            break;
-
-
-        case "Ukulele":
-
-            playGuitar(
-                instrument.frequency
-            );
-
-            break;
-
-
-        case "Violin":
-
-            playString(
-                instrument.frequency
-            );
-
-            break;
-
-
-        case "Cello":
-
-            playString(
-                instrument.frequency,
-                true
-            );
-
-            break;
-
-
-        case "Piano":
-
-        case "Digital Piano":
-
-            playPiano(
-                instrument.frequency
-            );
-
-            break;
-
-
-        case "Organ":
-
-            playOrgan(
-                instrument.frequency
-            );
-
-            break;
-
-
-        case "Flute":
-
-            playFlute(
-                instrument.frequency
-            );
-
-            break;
-
-
-        case "Clarinet":
-
-            playClarinet(
-                instrument.frequency
-            );
-
-            break;
-
-
-        case "Oboe":
-
-            playOboe(
-                instrument.frequency
-            );
-
-            break;
-
-
-        case "Saxophone":
-
-            playSaxophone(
-                instrument.frequency
-            );
-
-            break;
-
-
-        case "Trumpet":
-
-            playBrass(
-                instrument.frequency
-            );
-
-            break;
-
-
-        case "French Horn":
-
-            playBrass(
-                instrument.frequency,
-                true
-            );
-
-            break;
-
-
-        case "Trombone":
-
-            playTrombone(
-                instrument.frequency
-            );
-
-            break;
-
-
-        case "Xylophone":
-
-            playXylophone(
-                instrument.frequency
-            );
-
-            break;
-
-
-        case "Synthesizer":
-
-            playSynth(
-                instrument.frequency
-            );
-
-            break;
-
-
-        case "Drums":
-
-            playKick();
-
-            setTimeout(
-                playHiHat,
-                160
-            );
-
-            setTimeout(
-                playSnare,
-                320
-            );
-
-            break;
-
-
-        case "Drum Machine":
-
-            playKick();
-
-            setTimeout(
-                playHiHat,
-                150
-            );
-
-            setTimeout(
-                playSnare,
-                300
-            );
-
-            break;
-
-    }
-
-}
-
-
-
-/* =========================================================
-   INSTRUMENT LIBRARY
-========================================================= */
-
-const instrumentGrid =
-    document.getElementById(
-        "instrumentGrid"
-    );
-
-
-const searchInput =
-    document.getElementById(
-        "searchInput"
-    );
-
-
-let currentCategory =
-    "all";
-
-
-let currentSearch =
-    "";
-
-
-function renderInstruments() {
-
-    const results =
-        instruments.filter(
-            instrument => {
-
-                const categoryMatch =
-
-                    currentCategory ===
-                    "all" ||
-
-                    instrument.category ===
-                    currentCategory;
-
-
-                const searchable = [
-
-                    instrument.name,
-                    instrument.family,
-                    instrument.origin,
-                    instrument.description,
-                    instrument.sound,
-                    instrument.styles,
-                    instrument.difficulty
-
-                ]
-                .join(" ")
-                .toLowerCase();
-
-
-                return (
-                    categoryMatch &&
-                    searchable.includes(
-                        currentSearch
-                    )
-                );
-
-            }
-        );
-
-
-    instrumentGrid.innerHTML =
-        "";
-
-
-    results.forEach(
-        instrument => {
-
-            const card =
-                document.createElement(
-                    "article"
-                );
-
-
-            card.className =
-                "instrument-card";
-
-
-            card.innerHTML = `
-
-                <div class="instrument-icon">
-                    ${instrument.icon}
-                </div>
-
-                <span class="category-label">
-                    ${instrument.family.toUpperCase()}
-                </span>
-
-                <h3>
-                    ${instrument.name}
-                </h3>
-
-                <p>
-                    ${instrument.description}
-                </p>
-
-                <div class="instrument-details">
-
-                    <p>
-                        <strong>Origin:</strong>
-                        ${instrument.origin}
-                    </p>
-
-                    <p>
-                        <strong>Styles:</strong>
-                        ${instrument.styles}
-                    </p>
-
-                    <p>
-                        <strong>Difficulty:</strong>
-                        ${instrument.difficulty}
-                    </p>
-
-                </div>
-
-                <button
-                    class="sound-btn"
-                    type="button"
-                >
-                    ▶ Play Sound
-                </button>
-
-                <button
-                    class="info-btn"
-                    type="button"
-                >
-                    Learn More →
-                </button>
-
-            `;
-
-
-            card
-                .querySelector(
-                    ".sound-btn"
-                )
-                .addEventListener(
-                    "click",
-                    () => {
-
-                        playInstrumentSound(
-                            instrument
-                        );
-
-                    }
-                );
-
-
-            card
-                .querySelector(
-                    ".info-btn"
-                )
-                .addEventListener(
-                    "click",
-                    () => {
-
-                        openInstrumentModal(
-                            instrument
-                        );
-
-                    }
-                );
-
-
-            instrumentGrid.appendChild(
-                card
-            );
-
-        }
-    );
-
-
-    document.getElementById(
-        "noInstrumentResults"
-    ).hidden =
-        results.length > 0;
-
-
-    document.getElementById(
-        "searchStatus"
-    ).textContent =
-
-        currentSearch
-
-        ? `${results.length} instrument${
-            results.length === 1
-                ? ""
-                : "s"
-          } found`
-
-        : "";
-
-}
-
-
-document
-    .querySelectorAll(
-        ".tab-btn"
-    )
-    .forEach(
-        button => {
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    currentCategory =
-                        button.dataset.category;
-
-
-                    document
-                        .querySelectorAll(
-                            ".tab-btn"
-                        )
-                        .forEach(
-                            tab => {
-
-                                tab.classList.remove(
-                                    "active"
-                                );
-
-                            }
-                        );
-
-
-                    button.classList.add(
-                        "active"
-                    );
-
-
-                    renderInstruments();
-
-                }
-            );
-
-        }
-    );
-
-
-searchInput.addEventListener(
-    "input",
-    () => {
-
-        currentSearch =
-            searchInput.value
-                .trim()
-                .toLowerCase();
-
-
-        renderInstruments();
-
-    }
-);
-
-
-
-/* =========================================================
-   MODAL
-========================================================= */
-
-const instrumentModal =
-    document.getElementById(
-        "instrumentModal"
-    );
-
-
-function openInstrumentModal(
-    instrument
-) {
-
-    document.getElementById(
-        "modalIcon"
-    ).textContent =
-        instrument.icon;
-
-
-    document.getElementById(
-        "modalFamily"
-    ).textContent =
-        instrument.family;
-
-
-    document.getElementById(
-        "modalTitle"
-    ).textContent =
-        instrument.name;
-
-
-    document.getElementById(
-        "modalDescription"
-    ).textContent =
-        instrument.description;
-
-
-    document.getElementById(
-        "modalOrigin"
-    ).textContent =
-        instrument.origin;
-
-
-    document.getElementById(
-        "modalSound"
-    ).textContent =
-        instrument.sound;
-
-
-    document.getElementById(
-        "modalStyles"
-    ).textContent =
-        instrument.styles;
-
-
-    document.getElementById(
-        "modalDifficulty"
-    ).textContent =
-        instrument.difficulty;
-
-
-    instrumentModal.classList.add(
-        "modal-active"
-    );
-
-}
-
-
-function closeInstrumentModal() {
-
-    instrumentModal.classList.remove(
-        "modal-active"
-    );
-
-}
-
-
-document.getElementById(
-    "closeModal"
-).addEventListener(
-    "click",
-    closeInstrumentModal
-);
-
-
-instrumentModal.addEventListener(
-    "click",
-    event => {
-
-        if (
-            event.target ===
-            instrumentModal
-        ) {
-
-            closeInstrumentModal();
-
-        }
-
-    }
-);
-
-
-
-/* =========================================================
-   FEATURED INSTRUMENT
-========================================================= */
-
-function showFeaturedInstrument() {
-
-    const instrument =
-        randomItem(
-            instruments
-        );
-
-
-    document.getElementById(
-        "featuredInstrumentIcon"
-    ).textContent =
-        instrument.icon;
-
-
-    document.getElementById(
-        "featuredInstrumentFamily"
-    ).textContent =
-        instrument.family.toUpperCase();
-
-
-    document.getElementById(
-        "featuredInstrumentName"
-    ).textContent =
-        instrument.name;
-
-
-    document.getElementById(
-        "featuredInstrumentText"
-    ).textContent =
-        instrument.description;
-
-
-    document.getElementById(
-        "featuredInstrumentOrigin"
-    ).textContent =
-        instrument.origin;
-
-
-    document.getElementById(
-        "featuredInstrumentSound"
-    ).textContent =
-        instrument.sound;
-
-
-    document.getElementById(
-        "featuredInstrumentStyles"
-    ).textContent =
-        instrument.styles;
-
-}
-
-
-document.getElementById(
-    "newFeaturedInstrument"
-).addEventListener(
-    "click",
-    showFeaturedInstrument
-);
-
-
-
-/* =========================================================
-   PIANO
-========================================================= */
-
-document
-    .querySelectorAll(
-        ".piano-key"
-    )
-    .forEach(
-        key => {
-
-            key.addEventListener(
-                "click",
-                () => {
-
-                    playPiano(
-                        Number(
-                            key.dataset.note
-                        )
-                    );
-
-                }
-            );
-
-        }
-    );
-
-
-
-/* =========================================================
-   DRUM PAD
-========================================================= */
-
-document
-    .querySelectorAll(
-        ".drum-pad-button"
-    )
-    .forEach(
-        button => {
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    const sound =
-                        button.dataset.drum;
-
-
-                    if (sound === "kick") {
-                        playKick();
-                    }
-
-                    if (sound === "snare") {
-                        playSnare();
-                    }
-
-                    if (sound === "hihat") {
-                        playHiHat();
-                    }
-
-                    if (sound === "tom") {
-                        playTom();
-                    }
-
-                    if (sound === "clap") {
-                        playClap();
-                    }
-
-                    if (sound === "cymbal") {
-                        playCymbal();
-                    }
-
-                }
-            );
-
-        }
-    );
-
-
-
-/* =========================================================
-   GUESS THE INSTRUMENT
-========================================================= */
-
-let currentGuess =
-    null;
-
-
-function createGuessQuestion() {
-
-    currentGuess =
-        randomItem(
-            instruments
-        );
-
-
-    document.getElementById(
-        "instrumentClue"
-    ).textContent =
-
-        `I belong to the ${currentGuess.family} family and I am often used in ${currentGuess.styles}.`;
-
-
-    const wrongAnswers =
-        instruments
-            .filter(
-                instrument =>
-                    instrument.name !==
-                    currentGuess.name
-            )
-            .sort(
-                () =>
-                    Math.random() - .5
-            )
-            .slice(
-                0,
-                3
-            );
-
-
-    const answers = [
-
-        currentGuess,
-
-        ...wrongAnswers
-
-    ]
-    .sort(
-        () =>
-            Math.random() - .5
-    );
-
-
-    const container =
-        document.getElementById(
-            "guessOptions"
-        );
-
-
-    container.innerHTML =
-        answers.map(
-            instrument => `
-
-                <button
-                    data-guess="${instrument.name}"
-                    type="button"
-                >
-                    ${instrument.icon}
-                    ${instrument.name}
-                </button>
-
-            `
-        ).join("");
-
-
-    let answered =
-        false;
-
-
-    container
-        .querySelectorAll(
-            "[data-guess]"
-        )
-        .forEach(
-            button => {
-
-                button.addEventListener(
-                    "click",
-                    () => {
-
-                        if (answered) return;
-
-
-                        answered =
-                            true;
-
-
-                        container
-                            .querySelectorAll(
-                                "button"
-                            )
-                            .forEach(
-                                option => {
-
-                                    option.disabled =
-                                        true;
-
-                                }
-                            );
-
-
-                        document.getElementById(
-                            "guessResult"
-                        ).textContent =
-
-                            button.dataset.guess ===
-                            currentGuess.name
-
-                            ? "🎉 Correct!"
-
-                            : `❌ It was ${currentGuess.name}.`;
-
-                    }
-                );
-
-            }
-        );
-
-}
-
-
-document.getElementById(
-    "newGuessQuestion"
-).addEventListener(
-    "click",
-    createGuessQuestion
-);
-
-
-
-/* =========================================================
-   TRUE / FALSE
-========================================================= */
-
-const trueFalseQuestions = [
-
-    [
-        "The saxophone is a woodwind instrument.",
-        true
-    ],
-
-    [
-        "The trumpet is a string instrument.",
-        false
-    ],
-
-    [
-        "The trombone commonly uses a slide.",
-        true
-    ],
-
-    [
-        "The oboe uses a double reed.",
-        true
-    ],
-
-    [
-        "Tempo describes how loud music is.",
-        false
-    ],
-
-    [
-        "A ukulele commonly has four strings.",
-        true
-    ]
 
 ];
 
 
-let currentTrueFalse =
-    null;
+
+/* =========================================================
+   PROFILE
+========================================================= */
+
+function freshProfile() {
+
+    return {
+
+        playerName:"",
+
+        avatar:{
+
+            preset:"hero",
+
+            skin:"#dca57b",
+
+            hair:"#201915",
+
+            outfit:"#19345b"
+
+        },
+
+        level:1,
+
+        xp:0,
+
+        totalXpEarned:0,
+
+        spendableXp:0,
+
+        highestLevel:1
+
+    };
+
+}
 
 
-let trueFalseAnswered =
-    false;
+let profile =
+    freshProfile();
 
 
-function nextTrueFalse() {
+try {
 
-    currentTrueFalse =
-        randomItem(
-            trueFalseQuestions
+    const saved =
+        JSON.parse(
+            localStorage.getItem(
+                "musicverseProfile"
+            )
         );
 
 
-    trueFalseAnswered =
-        false;
+    if (saved) {
 
+        profile = {
 
-    document.getElementById(
-        "trueFalseQuestion"
-    ).textContent =
-        currentTrueFalse[0];
+            ...profile,
 
+            ...saved,
 
-    document.getElementById(
-        "trueFalseResult"
-    ).textContent =
-        "";
+            avatar:{
 
-}
+                ...profile.avatar,
 
+                ...(
+                    typeof saved.avatar ===
+                    "object"
 
-function answerTrueFalse(
-    answer
-) {
+                    ? saved.avatar
 
-    if (
-        !currentTrueFalse ||
-        trueFalseAnswered
-    ) {
+                    : {}
+                )
 
-        return;
+            }
+
+        };
+
     }
 
+}
+catch(error) {
 
-    trueFalseAnswered =
-        true;
-
-
-    document.getElementById(
-        "trueFalseResult"
-    ).textContent =
-
-        answer ===
-        currentTrueFalse[1]
-
-        ? "🎉 Correct!"
-
-        : `❌ The answer is ${
-            currentTrueFalse[1]
-                ? "True"
-                : "False"
-          }.`;
+    console.warn(
+        "Profile load failed.",
+        error
+    );
 
 }
 
 
-document.getElementById(
-    "trueButton"
-).addEventListener(
-    "click",
-    () =>
-        answerTrueFalse(
-            true
+if (
+    typeof profile.spendableXp !==
+    "number"
+) {
+
+    profile.spendableXp =
+        profile.totalXpEarned || 0;
+
+}
+
+
+function saveProfile() {
+
+    localStorage.setItem(
+
+        "musicverseProfile",
+
+        JSON.stringify(
+            profile
         )
-);
 
+    );
 
-document.getElementById(
-    "falseButton"
-).addEventListener(
-    "click",
-    () =>
-        answerTrueFalse(
-            false
-        )
-);
-
-
-document.getElementById(
-    "nextTrueFalse"
-).addEventListener(
-    "click",
-    nextTrueFalse
-);
+}
 
 
 
@@ -2313,164 +430,34 @@ document.getElementById(
    BATTLE DATA
 ========================================================= */
 
-const battleBaseStats = {
+const emptyUpgrades =
+    () => ({
 
-    Guitar:
-        [68,78,72,58],
+        power:0,
+        melody:0,
+        rhythm:0,
+        defense:0
 
-    Violin:
-        [62,92,65,55],
-
-    Cello:
-        [76,85,58,72],
-
-    Ukulele:
-        [45,72,70,48],
-
-    Piano:
-        [74,90,82,72],
-
-    Organ:
-        [88,82,58,86],
-
-    Flute:
-        [50,88,62,52],
-
-    Clarinet:
-        [58,84,68,60],
-
-    Oboe:
-        [60,88,58,64],
-
-    Saxophone:
-        [74,84,82,62],
-
-    Trumpet:
-        [90,76,74,68],
-
-    Trombone:
-        [86,72,75,76],
-
-    "French Horn":
-        [82,84,62,82],
-
-    Drums:
-        [94,38,98,78],
-
-    Xylophone:
-        [58,82,86,50],
-
-    Synthesizer:
-        [82,86,88,65],
-
-    "Digital Piano":
-        [70,86,78,68],
-
-    "Drum Machine":
-        [84,46,96,70]
-
-};
-
-
-const specialAttacks = {
-
-    Guitar:
-        ["🔥 Power Riff","power",28],
-
-    Violin:
-        ["🎻 Perfect Pitch","melody",32],
-
-    Cello:
-        ["🌊 Deep Resonance","defense",30],
-
-    Ukulele:
-        ["🌴 Happy Strum","rhythm",26],
-
-    Piano:
-        ["🎹 88-Key Combo","melody",30],
-
-    Organ:
-        ["⛪ Cathedral Blast","power",31],
-
-    Flute:
-        ["💨 Wind Melody","melody",29],
-
-    Clarinet:
-        ["🎶 Reed Rush","melody",28],
-
-    Oboe:
-        ["🌀 Double Reed Strike","melody",31],
-
-    Saxophone:
-        ["🎷 Jazz Solo","rhythm",31],
-
-    Trumpet:
-        ["🎺 Brass Blast","power",33],
-
-    Trombone:
-        ["💥 Slide Smash","power",31],
-
-    "French Horn":
-        ["📯 Royal Call","defense",31],
-
-    Drums:
-        ["🥁 Rhythm Rush","rhythm",34],
-
-    Xylophone:
-        ["✨ Mallet Storm","rhythm",29],
-
-    Synthesizer:
-        ["⚡ Bass Drop","power",32],
-
-    "Digital Piano":
-        ["🎹 Digital Cascade","melody",29],
-
-    "Drum Machine":
-        ["🤖 Beat Overdrive","rhythm",33]
-
-};
+    });
 
 
 function freshBattleData() {
 
     return {
 
-        instrument:
-            null,
+        instrument:"Guitar",
 
-        level:
-            1,
+        ownedInstruments:[
+            "Guitar"
+        ],
 
-        xp:
-            0,
+        wins:0,
 
-        wins:
-            0,
+        losses:0,
 
-        losses:
-            0,
+        instrumentXP:{},
 
-        highestLevel:
-            1,
-
-        upgradePoints:
-            0,
-
-        upgrades: {
-
-            power:
-                0,
-
-            melody:
-                0,
-
-            rhythm:
-                0,
-
-            defense:
-                0
-
-        }
+        instrumentUpgrades:{}
 
     };
 
@@ -2499,12 +486,12 @@ try {
 
             ...saved,
 
-            upgrades: {
+            instrumentXP:{
+                ...(saved.instrumentXP || {})
+            },
 
-                ...battleData.upgrades,
-
-                ...saved.upgrades
-
+            instrumentUpgrades:{
+                ...(saved.instrumentUpgrades || {})
             }
 
         };
@@ -2512,74 +499,1900 @@ try {
     }
 
 }
-catch (error) {}
+catch(error) {}
+
+
+if (
+    !Array.isArray(
+        battleData.ownedInstruments
+    )
+) {
+
+    battleData.ownedInstruments =
+        ["Guitar"];
+
+}
+
+
+if (
+    !battleData.ownedInstruments.includes(
+        "Guitar"
+    )
+) {
+
+    battleData.ownedInstruments.unshift(
+        "Guitar"
+    );
+
+}
+
+
+if (
+    !battleData.ownedInstruments.includes(
+        battleData.instrument
+    )
+) {
+
+    battleData.instrument =
+        "Guitar";
+
+}
+
+
+instruments.forEach(
+    instrument => {
+
+        if (
+            typeof battleData.instrumentXP[
+                instrument.name
+            ] !==
+            "number"
+        ) {
+
+            battleData.instrumentXP[
+                instrument.name
+            ] = 0;
+
+        }
+
+
+        if (
+            !battleData.instrumentUpgrades[
+                instrument.name
+            ]
+        ) {
+
+            battleData.instrumentUpgrades[
+                instrument.name
+            ] =
+                emptyUpgrades();
+
+        }
+
+    }
+);
 
 
 function saveBattleData() {
 
-    try {
+    localStorage.setItem(
 
-        localStorage.setItem(
+        "musicverseBattle",
 
-            "musicverseBattle",
+        JSON.stringify(
+            battleData
+        )
 
-            JSON.stringify(
-                battleData
-            )
-
-        );
-
-    }
-    catch (error) {}
+    );
 
 }
 
 
 
 /* =========================================================
-   BATTLE STATS
+   TROPHIES
 ========================================================= */
 
-function getPlayerBattleStats() {
+const TROPHY_TIERS = [
 
-    if (!battleData.instrument) {
-        return null;
+{
+    xp:10000,
+    name:"Bronze",
+    title:"Bronze Master",
+    icon:"🥉"
+},
+
+{
+    xp:20000,
+    name:"Silver",
+    title:"Silver Master",
+    icon:"🥈"
+},
+
+{
+    xp:30000,
+    name:"Gold",
+    title:"Gold Master",
+    icon:"🥇"
+},
+
+{
+    xp:40000,
+    name:"Diamond",
+    title:"Diamond Master",
+    icon:"💎"
+},
+
+{
+    xp:50000,
+    name:"Grand Master",
+    title:"Grand Master",
+    icon:"👑🏆"
+}
+
+];
+
+
+
+/* =========================================================
+   BASE STATS
+========================================================= */
+
+const baseStats = {
+
+    Guitar:[68,78,72,58],
+
+    Ukulele:[45,72,70,48],
+
+    Piano:[74,90,82,72],
+
+    Flute:[50,88,62,52],
+
+    Drums:[94,38,98,78],
+
+    Clarinet:[58,84,68,60],
+
+    Trumpet:[90,76,74,68],
+
+    Violin:[62,92,65,55],
+
+    Saxophone:[74,84,82,62],
+
+    Cello:[76,85,58,72],
+
+    Xylophone:[58,82,86,50],
+
+    Trombone:[86,72,75,76],
+
+    Synthesizer:[82,86,88,65],
+
+    "French Horn":[82,84,62,82],
+
+    Oboe:[60,88,58,64],
+
+    "Digital Piano":[70,86,78,68],
+
+    Organ:[88,82,58,86],
+
+    "Drum Machine":[84,46,96,70]
+
+};
+
+
+
+/* =========================================================
+   SPECIAL MOVES
+========================================================= */
+
+const specialMoves = {
+
+Guitar:{
+    name:"Power Chord",
+    icon:"⚡🎸",
+    description:"A crushing chord powered by raw strength.",
+    chance:.32,
+    stat:"POWER",
+    effect:s => s.power*.75 + randomNumber(18,30)
+},
+
+Ukulele:{
+    name:"Island Groove",
+    icon:"🌴🎸",
+    description:"A joyful rhythm combo.",
+    chance:.38,
+    stat:"RHYTHM",
+    effect:s => s.rhythm*.78 + randomNumber(12,25)
+},
+
+Piano:{
+    name:"Grand Crescendo",
+    icon:"🌟🎹",
+    description:"All stats combine into one grand finale.",
+    chance:.30,
+    stat:"POWER",
+    effect:s =>
+        (
+            s.power +
+            s.melody +
+            s.rhythm +
+            s.defense
+        )*.20 +
+        randomNumber(15,25)
+},
+
+Flute:{
+    name:"Whirlwind Melody",
+    icon:"🌪️🪈",
+    description:"A swirling wave of rapid notes.",
+    chance:.36,
+    stat:"MELODY",
+    effect:s =>
+        s.melody*.72 +
+        s.rhythm*.22 +
+        randomNumber(12,22)
+},
+
+Drums:{
+    name:"Thunder Beat",
+    icon:"⚡🥁",
+    description:"An earth-shaking rhythm attack.",
+    chance:.31,
+    stat:"RHYTHM",
+    effect:s =>
+        s.rhythm*.92 +
+        randomNumber(18,30)
+},
+
+Clarinet:{
+    name:"Reed Rush",
+    icon:"💨🎶",
+    description:"A rapid melody and rhythm combination.",
+    chance:.35,
+    stat:"MELODY",
+    effect:s =>
+        s.melody*.48 +
+        s.rhythm*.42 +
+        randomNumber(12,24)
+},
+
+Trumpet:{
+    name:"Brass Burst",
+    icon:"💥🎺",
+    description:"A devastating blast of brass power.",
+    chance:.30,
+    stat:"POWER",
+    effect:s =>
+        s.power*.9 +
+        randomNumber(20,32)
+},
+
+Violin:{
+    name:"Virtuoso Solo",
+    icon:"✨🎻",
+    description:"A brilliant solo powered by Melody.",
+    chance:.34,
+    stat:"MELODY",
+    effect:s =>
+        s.melody*.85 +
+        randomNumber(15,28)
+},
+
+Saxophone:{
+    name:"Jazz Improvisation",
+    icon:"🔥🎷",
+    description:"An unpredictable jazz attack.",
+    chance:.36,
+    stat:"POWER",
+    effect:s =>
+        randomItem(
+            [
+                s.power,
+                s.melody,
+                s.rhythm,
+                s.defense
+            ]
+        )*.8 +
+        randomNumber(15,35)
+},
+
+Cello:{
+    name:"Deep Resonance",
+    icon:"🌊🎻",
+    description:"Deep tones combine Melody and Defense.",
+    chance:.33,
+    stat:"DEFENSE",
+    effect:s =>
+        s.melody*.42 +
+        s.defense*.46 +
+        randomNumber(12,22)
+},
+
+Xylophone:{
+    name:"Crystal Cascade",
+    icon:"💎🎼",
+    description:"A sparkling Melody and Rhythm attack.",
+    chance:.37,
+    stat:"RHYTHM",
+    effect:s =>
+        s.melody*.45 +
+        s.rhythm*.45 +
+        randomNumber(13,24)
+},
+
+Trombone:{
+    name:"Slide Strike",
+    icon:"⚔️🎺",
+    description:"A powerful sliding brass attack.",
+    chance:.34,
+    stat:"POWER",
+    effect:s =>
+        s.power*.5 +
+        s.rhythm*.4 +
+        randomNumber(14,24)
+},
+
+Synthesizer:{
+    name:"Digital Overdrive",
+    icon:"⚡🎛️",
+    description:"Supercharges a random combat stat.",
+    chance:.35,
+    stat:"POWER",
+    effect:s =>
+        randomItem(
+            [
+                s.power,
+                s.melody,
+                s.rhythm,
+                s.defense
+            ]
+        )*.95 +
+        randomNumber(15,28)
+},
+
+"French Horn":{
+    name:"Royal Fanfare",
+    icon:"👑📯",
+    description:"A majestic Melody and Defense attack.",
+    chance:.32,
+    stat:"DEFENSE",
+    effect:s =>
+        s.melody*.42 +
+        s.defense*.52 +
+        randomNumber(12,22)
+},
+
+Oboe:{
+    name:"Piercing Note",
+    icon:"🎯🪈",
+    description:"A focused note that cuts through defense.",
+    chance:.31,
+    stat:"MELODY",
+    effect:(s,e) =>
+        s.melody*.55 +
+        e.defense*.3 +
+        randomNumber(15,25)
+},
+
+"Digital Piano":{
+    name:"Electric Arpeggio",
+    icon:"⚡🎹",
+    description:"Rapid electronic notes flood the arena.",
+    chance:.36,
+    stat:"MELODY",
+    effect:s =>
+        s.melody*.55 +
+        s.rhythm*.35 +
+        randomNumber(12,24)
+},
+
+Organ:{
+    name:"Cathedral Blast",
+    icon:"⛪🎹",
+    description:"Massive sustained tones shake the arena.",
+    chance:.29,
+    stat:"DEFENSE",
+    effect:s =>
+        s.power*.45 +
+        s.defense*.5 +
+        randomNumber(15,25)
+},
+
+"Drum Machine":{
+    name:"Beat Drop",
+    icon:"💣🎛️",
+    description:"A devastating electronic rhythm attack.",
+    chance:.32,
+    stat:"RHYTHM",
+    effect:s =>
+        s.rhythm*.62 +
+        s.power*.38 +
+        randomNumber(18,30)
+}
+
+};
+
+
+
+/* =========================================================
+   AUDIO
+========================================================= */
+
+let audioContext;
+
+
+function audio() {
+
+    if (!audioContext) {
+
+        const AudioContext =
+            window.AudioContext ||
+            window.webkitAudioContext;
+
+
+        if (!AudioContext) return null;
+
+
+        audioContext =
+            new AudioContext();
+
     }
 
 
-    const base =
-        battleBaseStats[
+    if (
+        audioContext.state ===
+        "suspended"
+    ) {
+
+        audioContext.resume();
+
+    }
+
+
+    return audioContext;
+
+}
+
+
+function tone(
+    frequency,
+    duration=.25,
+    type="triangle",
+    volume=.08
+) {
+
+    const ctx =
+        audio();
+
+
+    if (!ctx) return;
+
+
+    const oscillator =
+        ctx.createOscillator();
+
+
+    const gain =
+        ctx.createGain();
+
+
+    const now =
+        ctx.currentTime;
+
+
+    oscillator.frequency.value =
+        frequency;
+
+
+    oscillator.type =
+        type;
+
+
+    gain.gain.setValueAtTime(
+        .001,
+        now
+    );
+
+
+    gain.gain.exponentialRampToValueAtTime(
+        volume,
+        now+.02
+    );
+
+
+    gain.gain.exponentialRampToValueAtTime(
+        .001,
+        now+duration
+    );
+
+
+    oscillator.connect(
+        gain
+    );
+
+
+    gain.connect(
+        ctx.destination
+    );
+
+
+    oscillator.start();
+
+
+    oscillator.stop(
+        now+duration+.05
+    );
+
+}
+
+
+function playInstrumentSound(
+    instrument
+) {
+
+    if (
+        instrument.drum
+    ) {
+
+        tone(
+            90,
+            .14,
+            "sine",
+            .12
+        );
+
+
+        setTimeout(
+            () =>
+                tone(
+                    210,
+                    .12,
+                    "square",
+                    .08
+                ),
+            120
+        );
+
+
+        return;
+
+    }
+
+
+    tone(
+        instrument.frequency || 440,
+        .5,
+        "triangle",
+        .1
+    );
+
+}
+
+
+
+/* =========================================================
+   THREE HELPERS
+========================================================= */
+
+function material(
+    color,
+    metalness=.05,
+    roughness=.65
+) {
+
+    return new THREE.MeshStandardMaterial({
+
+        color:new THREE.Color(color),
+
+        metalness,
+
+        roughness
+
+    });
+
+}
+
+
+function mesh(
+    geometry,
+    color
+) {
+
+    const object =
+        new THREE.Mesh(
+            geometry,
+            material(color)
+        );
+
+
+    object.castShadow =
+        true;
+
+
+    object.receiveShadow =
+        true;
+
+
+    return object;
+
+}
+
+
+
+/* =========================================================
+   INSTRUMENT 3D MODELS
+========================================================= */
+
+function createInstrument3D(name) {
+
+    const group =
+        new THREE.Group();
+
+
+    const gold =
+        "#d3a85d";
+
+
+    const wood =
+        "#9f542b";
+
+
+    const dark =
+        "#2b1c14";
+
+
+    if (
+        [
+            "Guitar",
+            "Ukulele"
+        ].includes(name)
+    ) {
+
+        const body =
+            mesh(
+                new THREE.BoxGeometry(
+                    name === "Ukulele"
+                    ? .38
+                    : .48,
+                    name === "Ukulele"
+                    ? .55
+                    : .7,
+                    .18
+                ),
+                wood
+            );
+
+
+        body.position.y =
+            -.05;
+
+
+        const neck =
+            mesh(
+                new THREE.BoxGeometry(
+                    .09,
+                    .65,
+                    .08
+                ),
+                dark
+            );
+
+
+        neck.position.y =
+            .55;
+
+
+        const head =
+            mesh(
+                new THREE.BoxGeometry(
+                    .16,
+                    .16,
+                    .09
+                ),
+                dark
+            );
+
+
+        head.position.y =
+            .92;
+
+
+        group.add(
+            body,
+            neck,
+            head
+        );
+
+    }
+
+    else if (
+        [
+            "Violin",
+            "Cello"
+        ].includes(name)
+    ) {
+
+        const body =
+            mesh(
+                new THREE.BoxGeometry(
+                    name === "Cello"
+                    ? .48
+                    : .33,
+                    name === "Cello"
+                    ? .7
+                    : .5,
+                    .16
+                ),
+                "#8e4b2c"
+            );
+
+
+        const neck =
+            mesh(
+                new THREE.BoxGeometry(
+                    .07,
+                    .62,
+                    .07
+                ),
+                dark
+            );
+
+
+        neck.position.y =
+            .52;
+
+
+        group.add(
+            body,
+            neck
+        );
+
+    }
+
+    else if (
+        [
+            "Trumpet",
+            "Trombone",
+            "French Horn",
+            "Saxophone",
+            "Flute",
+            "Clarinet",
+            "Oboe"
+        ].includes(name)
+    ) {
+
+        const tube =
+            mesh(
+                new THREE.BoxGeometry(
+                    .75,
+                    .08,
+                    .08
+                ),
+                gold
+            );
+
+
+        const bell =
+            mesh(
+                new THREE.BoxGeometry(
+                    .2,
+                    .23,
+                    .2
+                ),
+                gold
+            );
+
+
+        bell.position.x =
+            .44;
+
+
+        group.add(
+            tube,
+            bell
+        );
+
+    }
+
+    else if (
+        [
+            "Piano",
+            "Digital Piano",
+            "Organ",
+            "Synthesizer"
+        ].includes(name)
+    ) {
+
+        const keyboard =
+            mesh(
+                new THREE.BoxGeometry(
+                    .8,
+                    .2,
+                    .36
+                ),
+                "#20242c"
+            );
+
+
+        const keys =
+            mesh(
+                new THREE.BoxGeometry(
+                    .68,
+                    .04,
+                    .26
+                ),
+                "#efefea"
+            );
+
+
+        keys.position.y =
+            .12;
+
+
+        group.add(
+            keyboard,
+            keys
+        );
+
+    }
+
+    else if (
+        [
+            "Drums",
+            "Drum Machine"
+        ].includes(name)
+    ) {
+
+        const drum =
+            mesh(
+                new THREE.BoxGeometry(
+                    .52,
+                    .44,
+                    .4
+                ),
+                "#822b37"
+            );
+
+
+        group.add(
+            drum
+        );
+
+    }
+
+    else {
+
+        const bars =
+            mesh(
+                new THREE.BoxGeometry(
+                    .75,
+                    .16,
+                    .28
+                ),
+                "#705e9a"
+            );
+
+
+        group.add(
+            bars
+        );
+
+    }
+
+
+    group.scale.setScalar(
+        .9
+    );
+
+
+    return group;
+
+}
+
+
+
+/* =========================================================
+   BLOCKY ROBLOX-INSPIRED AVATAR
+========================================================= */
+
+function createAvatar3D(
+    config,
+    instrumentName
+) {
+
+    const preset =
+        avatarPresets.find(
+            item =>
+                item.id ===
+                config.preset
+        ) ||
+        avatarPresets[0];
+
+
+    const root =
+        new THREE.Group();
+
+
+    root.userData = {
+
+        state:"idle",
+
+        phase:
+            Math.random() *
+            Math.PI*2,
+
+        baseY:0,
+
+        baseRotationY:0
+
+    };
+
+
+    /* TORSO */
+
+    const torso =
+        mesh(
+            new THREE.BoxGeometry(
+                .9*preset.bodyScale,
+                1.1,
+                .48*preset.bodyScale
+            ),
+            config.outfit
+        );
+
+
+    torso.position.y =
+        1.55;
+
+
+    /* WAIST */
+
+    const waist =
+        mesh(
+            new THREE.BoxGeometry(
+                .7,
+                .38,
+                .4
+            ),
+            "#252b38"
+        );
+
+
+    waist.position.y =
+        .82;
+
+
+    /* BLOCKY HEAD */
+
+    const head =
+        mesh(
+            new THREE.BoxGeometry(
+                .68*preset.headScale,
+                .68*preset.headScale,
+                .68*preset.headScale
+            ),
+            config.skin
+        );
+
+
+    head.position.y =
+        2.48;
+
+
+    /* HAIR */
+
+    const hair =
+        mesh(
+            new THREE.BoxGeometry(
+                .72*preset.headScale,
+                .22,
+                .72*preset.headScale
+            ),
+            config.hair
+        );
+
+
+    hair.position.y =
+        2.84;
+
+
+    /* EYES */
+
+    const eyeMaterial =
+        material(
+            "#101010"
+        );
+
+
+    const leftEye =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                .07,
+                .085,
+                .035
+            ),
+            eyeMaterial
+        );
+
+
+    leftEye.position.set(
+        -.14,
+        2.5,
+        .355
+    );
+
+
+    const rightEye =
+        leftEye.clone();
+
+
+    rightEye.position.x =
+        .14;
+
+
+    /* SMILE */
+
+    const smile =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                .2,
+                .035,
+                .035
+            ),
+            material(
+                "#43211d"
+            )
+        );
+
+
+    smile.position.set(
+        0,
+        2.34,
+        .355
+    );
+
+
+    /* ARMS */
+
+    const leftArm =
+        mesh(
+            new THREE.BoxGeometry(
+                .28,
+                .92,
+                .28
+            ),
+            config.outfit
+        );
+
+
+    const rightArm =
+        mesh(
+            new THREE.BoxGeometry(
+                .28,
+                .92,
+                .28
+            ),
+            config.outfit
+        );
+
+
+    leftArm.position.set(
+        -.64,
+        1.52,
+        0
+    );
+
+
+    rightArm.position.set(
+        .64,
+        1.52,
+        0
+    );
+
+
+    /* HANDS */
+
+    const leftHand =
+        mesh(
+            new THREE.BoxGeometry(
+                .27,
+                .27,
+                .27
+            ),
+            config.skin
+        );
+
+
+    const rightHand =
+        mesh(
+            new THREE.BoxGeometry(
+                .27,
+                .27,
+                .27
+            ),
+            config.skin
+        );
+
+
+    leftHand.position.y =
+        -.58;
+
+
+    rightHand.position.y =
+        -.58;
+
+
+    leftArm.add(
+        leftHand
+    );
+
+
+    rightArm.add(
+        rightHand
+    );
+
+
+    /* LEGS */
+
+    const leftLeg =
+        mesh(
+            new THREE.BoxGeometry(
+                .32,
+                1,
+                .34
+            ),
+            "#252b38"
+        );
+
+
+    const rightLeg =
+        mesh(
+            new THREE.BoxGeometry(
+                .32,
+                1,
+                .34
+            ),
+            "#252b38"
+        );
+
+
+    leftLeg.position.set(
+        -.22,
+        .16,
+        0
+    );
+
+
+    rightLeg.position.set(
+        .22,
+        .16,
+        0
+    );
+
+
+    /* SHOES */
+
+    const leftShoe =
+        mesh(
+            new THREE.BoxGeometry(
+                .34,
+                .18,
+                .46
+            ),
+            "#141820"
+        );
+
+
+    const rightShoe =
+        mesh(
+            new THREE.BoxGeometry(
+                .34,
+                .18,
+                .46
+            ),
+            "#141820"
+        );
+
+
+    leftShoe.position.set(
+        0,
+        -.53,
+        .05
+    );
+
+
+    rightShoe.position.set(
+        0,
+        -.53,
+        .05
+    );
+
+
+    leftLeg.add(
+        leftShoe
+    );
+
+
+    rightLeg.add(
+        rightShoe
+    );
+
+
+    root.add(
+        torso,
+        waist,
+        head,
+        hair,
+        leftEye,
+        rightEye,
+        smile,
+        leftArm,
+        rightArm,
+        leftLeg,
+        rightLeg
+    );
+
+
+    root.userData.torso =
+        torso;
+
+
+    root.userData.head =
+        head;
+
+
+    root.userData.leftArm =
+        leftArm;
+
+
+    root.userData.rightArm =
+        rightArm;
+
+
+    root.userData.leftLeg =
+        leftLeg;
+
+
+    root.userData.rightLeg =
+        rightLeg;
+
+
+    const instrument =
+        createInstrument3D(
+            instrumentName
+        );
+
+
+    instrument.position.set(
+        0,
+        1.28,
+        .48
+    );
+
+
+    instrument.rotation.z =
+        -.18;
+
+
+    root.add(
+        instrument
+    );
+
+
+    root.userData.instrument =
+        instrument;
+
+
+    return root;
+
+}
+
+
+
+/* =========================================================
+   AVATAR ANIMATION LOOP
+========================================================= */
+
+function resetAvatarPose(
+    avatar
+) {
+
+    if (!avatar) return;
+
+
+    const {
+        leftArm,
+        rightArm,
+        leftLeg,
+        rightLeg,
+        head,
+        torso,
+        instrument
+    } = avatar.userData;
+
+
+    leftArm.rotation.set(
+        0,
+        0,
+        0
+    );
+
+
+    rightArm.rotation.set(
+        0,
+        0,
+        0
+    );
+
+
+    leftLeg.rotation.set(
+        0,
+        0,
+        0
+    );
+
+
+    rightLeg.rotation.set(
+        0,
+        0,
+        0
+    );
+
+
+    head.rotation.set(
+        0,
+        0,
+        0
+    );
+
+
+    torso.rotation.set(
+        0,
+        0,
+        0
+    );
+
+
+    instrument.rotation.z =
+        -.18;
+
+}
+
+
+
+function animateAvatar(
+    avatar,
+    time
+) {
+
+    if (!avatar) return;
+
+
+    const state =
+        avatar.userData.state;
+
+
+    const t =
+        time*.001 +
+        avatar.userData.phase;
+
+
+    const {
+        leftArm,
+        rightArm,
+        leftLeg,
+        rightLeg,
+        torso,
+        head,
+        instrument
+    } = avatar.userData;
+
+
+    if (
+        state === "idle"
+    ) {
+
+        avatar.position.y =
+
+            avatar.userData.baseY +
+
+            Math.abs(
+                Math.sin(
+                    t*2.2
+                )
+            )*.045;
+
+
+        torso.rotation.z =
+            Math.sin(
+                t*1.6
+            )*.018;
+
+
+        head.rotation.y =
+            Math.sin(
+                t*1.15
+            )*.08;
+
+
+        leftArm.rotation.x =
+            Math.sin(
+                t*2
+            )*.07;
+
+
+        rightArm.rotation.x =
+            -Math.sin(
+                t*2
+            )*.07;
+
+    }
+
+
+    if (
+        state === "attack"
+    ) {
+
+        leftArm.rotation.x =
+            Math.sin(
+                t*14
+            )*.8;
+
+
+        rightArm.rotation.x =
+            -Math.sin(
+                t*14
+            )*.8;
+
+
+        leftLeg.rotation.x =
+            -Math.sin(
+                t*14
+            )*.6;
+
+
+        rightLeg.rotation.x =
+            Math.sin(
+                t*14
+            )*.6;
+
+
+        torso.rotation.z =
+            Math.sin(
+                t*14
+            )*.05;
+
+    }
+
+
+    if (
+        state === "perform"
+    ) {
+
+        leftArm.rotation.z =
+
+            -.62 +
+
+            Math.sin(
+                t*14
+            )*.22;
+
+
+        rightArm.rotation.z =
+
+            .62 -
+
+            Math.sin(
+                t*14
+            )*.22;
+
+
+        leftArm.rotation.x =
+            -.35;
+
+
+        rightArm.rotation.x =
+            -.35;
+
+
+        head.rotation.z =
+            Math.sin(
+                t*5
+            )*.08;
+
+
+        torso.rotation.z =
+            Math.sin(
+                t*5
+            )*.045;
+
+
+        instrument.rotation.z =
+
+            -.18 +
+
+            Math.sin(
+                t*11
+            )*.13;
+
+    }
+
+
+    if (
+        state === "hit"
+    ) {
+
+        torso.rotation.z =
+            Math.sin(
+                t*26
+            )*.14;
+
+
+        head.rotation.z =
+            Math.sin(
+                t*28
+            )*.18;
+
+
+        leftArm.rotation.z =
+            -.45;
+
+
+        rightArm.rotation.z =
+            .45;
+
+    }
+
+
+    if (
+        state === "victory"
+    ) {
+
+        leftArm.rotation.z =
+            -2.25;
+
+
+        rightArm.rotation.z =
+            2.25;
+
+
+        avatar.position.y =
+
+            avatar.userData.baseY +
+
+            Math.abs(
+                Math.sin(
+                    t*7
+                )
+            )*.16;
+
+    }
+
+}
+
+
+
+/* =========================================================
+   BATTLE SCENE
+========================================================= */
+
+const battleContainer =
+    $("#battle3D");
+
+
+let battleScene;
+
+let battleRenderer;
+
+let battleCamera;
+
+let playerAvatar3D;
+
+let cpuAvatar3D;
+
+let battleParticles =
+    [];
+
+
+function createBattleScene() {
+
+    battleScene =
+        new THREE.Scene();
+
+
+    battleScene.background =
+        null;
+
+
+    battleCamera =
+        new THREE.PerspectiveCamera(
+            43,
+            battleContainer.clientWidth /
+            battleContainer.clientHeight,
+            .1,
+            100
+        );
+
+
+    battleCamera.position.set(
+        0,
+        3.05,
+        8.3
+    );
+
+
+    battleCamera.lookAt(
+        0,
+        1.2,
+        0
+    );
+
+
+    battleRenderer =
+        new THREE.WebGLRenderer({
+
+            antialias:true,
+
+            alpha:true
+
+        });
+
+
+    battleRenderer.setPixelRatio(
+        Math.min(
+            window.devicePixelRatio,
+            2
+        )
+    );
+
+
+    battleRenderer.setSize(
+        battleContainer.clientWidth,
+        battleContainer.clientHeight
+    );
+
+
+    battleRenderer.shadowMap.enabled =
+        true;
+
+
+    battleContainer.appendChild(
+        battleRenderer.domElement
+    );
+
+
+    const hemi =
+        new THREE.HemisphereLight(
+            "#d8eeff",
+            "#223016",
+            2.5
+        );
+
+
+    battleScene.add(
+        hemi
+    );
+
+
+    const sunlight =
+        new THREE.DirectionalLight(
+            "#fff0c6",
+            3.4
+        );
+
+
+    sunlight.position.set(
+        4,
+        7,
+        5
+    );
+
+
+    sunlight.castShadow =
+        true;
+
+
+    battleScene.add(
+        sunlight
+    );
+
+
+    /* BLOCKY GROUND */
+
+    const floor =
+        mesh(
+            new THREE.BoxGeometry(
+                11,
+                .28,
+                6
+            ),
+            "#5d8848"
+        );
+
+
+    floor.position.y =
+        -.71;
+
+
+    floor.receiveShadow =
+        true;
+
+
+    battleScene.add(
+        floor
+    );
+
+
+    /* STAGE */
+
+    const stage =
+        mesh(
+            new THREE.BoxGeometry(
+                7.5,
+                .28,
+                3.6
+            ),
+            "#3d5268"
+        );
+
+
+    stage.position.y =
+        -.49;
+
+
+    battleScene.add(
+        stage
+    );
+
+
+    /* BLOCKS AROUND ARENA */
+
+    for (
+        let i=-5;
+        i<=5;
+        i++
+    ) {
+
+        if (
+            Math.abs(i) < 3
+        ) continue;
+
+
+        const cube =
+            mesh(
+                new THREE.BoxGeometry(
+                    .7,
+                    .7,
+                    .7
+                ),
+                i%2===0
+                ? "#698f55"
+                : "#7b9862"
+            );
+
+
+        cube.position.set(
+            i,
+            -.22,
+            -2
+        );
+
+
+        battleScene.add(
+            cube
+        );
+
+    }
+
+
+    rebuildPlayerAvatar();
+
+    rebuildCPUAvatar(null);
+
+
+    battleLoop();
+
+}
+
+
+
+function removeObject(
+    object
+) {
+
+    if (!object) return;
+
+
+    battleScene.remove(
+        object
+    );
+
+}
+
+
+
+function rebuildPlayerAvatar() {
+
+    if (!battleScene) return;
+
+
+    removeObject(
+        playerAvatar3D
+    );
+
+
+    playerAvatar3D =
+        createAvatar3D(
+
+            profile.avatar,
+
             battleData.instrument
-        ];
+
+        );
 
 
-    const levelBonus =
-        (
-            battleData.level - 1
-        ) * 2;
+    playerAvatar3D.position.set(
+        -2,
+        -.42,
+        0
+    );
 
+
+    playerAvatar3D.rotation.y =
+        .25;
+
+
+    playerAvatar3D.userData.baseY =
+        -.42;
+
+
+    playerAvatar3D.userData.baseRotationY =
+        .25;
+
+
+    battleScene.add(
+        playerAvatar3D
+    );
+
+}
+
+
+
+function randomCPUAvatarConfig() {
 
     return {
 
-        power:
-            base[0] +
-            levelBonus +
-            battleData.upgrades.power * 3,
+        preset:
+            randomItem(
+                avatarPresets
+            ).id,
 
-        melody:
-            base[1] +
-            levelBonus +
-            battleData.upgrades.melody * 3,
+        skin:
+            randomItem([
+                "#f2c7a5",
+                "#dca57b",
+                "#b97850",
+                "#895638",
+                "#5d3828"
+            ]),
 
-        rhythm:
-            base[2] +
-            levelBonus +
-            battleData.upgrades.rhythm * 3,
+        hair:
+            randomItem([
+                "#201915",
+                "#5b3526",
+                "#d0a05a",
+                "#8b2635",
+                "#503d74"
+            ]),
 
-        defense:
-            base[3] +
-            levelBonus +
-            battleData.upgrades.defense * 3
+        outfit:
+            randomItem([
+                "#19345b",
+                "#7a2534",
+                "#264f45",
+                "#654483",
+                "#4c4f58",
+                "#c59a51"
+            ])
 
     };
 
@@ -2587,62 +2400,190 @@ function getPlayerBattleStats() {
 
 
 
-/* =========================================================
-   BATTLE CHOICES
-========================================================= */
+function rebuildCPUAvatar(
+    cpu
+) {
 
-function renderBattleChoices() {
+    if (!battleScene) return;
 
-    const grid =
-        document.getElementById(
-            "battleInstrumentGrid"
+
+    removeObject(
+        cpuAvatar3D
+    );
+
+
+    const instrumentName =
+        cpu
+        ? cpu.instrument.name
+        : "Saxophone";
+
+
+    cpuAvatar3D =
+        createAvatar3D(
+
+            cpu
+            ? cpu.avatar
+            : randomCPUAvatarConfig(),
+
+            instrumentName
+
         );
 
 
-    grid.innerHTML =
-        instruments.map(
-            instrument => `
-
-                <button
-                    class="battle-instrument-option ${
-                        battleData.instrument ===
-                        instrument.name
-                            ? "active"
-                            : ""
-                    }"
-                    data-battle-choice="${instrument.name}"
-                    type="button"
-                >
-
-                    <span class="battle-option-icon">
-                        ${instrument.icon}
-                    </span>
-
-                    ${instrument.name}
-
-                </button>
-
-            `
-        ).join("");
+    cpuAvatar3D.position.set(
+        2,
+        -.42,
+        0
+    );
 
 
-    grid
-        .querySelectorAll(
-            "[data-battle-choice]"
-        )
-        .forEach(
-            button => {
+    cpuAvatar3D.rotation.y =
+        -.25;
 
-                button.addEventListener(
-                    "click",
-                    () => {
 
-                        chooseBattleInstrument(
-                            button.dataset.battleChoice
-                        );
+    cpuAvatar3D.userData.baseY =
+        -.42;
 
-                    }
-                );
+
+    cpuAvatar3D.userData.baseRotationY =
+        -.25;
+
+
+    battleScene.add(
+        cpuAvatar3D
+    );
+
+
+    cpuAvatar3D.visible =
+        Boolean(cpu);
+
+}
+
+
+
+/* =========================================================
+   PARTICLES
+========================================================= */
+
+function createParticles(
+    position,
+    color,
+    amount=24
+) {
+
+    for (
+        let i=0;
+        i<amount;
+        i++
+    ) {
+
+        const particle =
+            mesh(
+                new THREE.BoxGeometry(
+                    .07,
+                    .07,
+                    .07
+                ),
+                color
+            );
+
+
+        particle.position.copy(
+            position
+        );
+
+
+        particle.userData.velocity =
+            new THREE.Vector3(
+
+                (
+                    Math.random()-.5
+                )*.12,
+
+                Math.random()*.1+.03,
+
+                (
+                    Math.random()-.5
+                )*.12
+
+            );
+
+
+        particle.userData.life =
+            1;
+
+
+        battleScene.add(
+            particle
+        );
+
+
+        battleParticles.push(
+            particle
+        );
+
+    }
+
+}
+
+
+
+function updateParticles() {
+
+    battleParticles.forEach(
+        particle => {
+
+            particle.position.add(
+                particle.userData.velocity
+            );
+
+
+            particle.userData.velocity.y -=
+                .002;
+
+
+            particle.rotation.x +=
+                .1;
+
+
+            particle.rotation.y +=
+                .12;
+
+
+            particle.userData.life -=
+                .025;
+
+
+            particle.scale.setScalar(
+                Math.max(
+                    .01,
+                    particle.userData.life
+                )
+            );
+
+        }
+    );
+
+
+    battleParticles =
+        battleParticles.filter(
+            particle => {
+
+                if (
+                    particle.userData.life <= 0
+                ) {
+
+                    battleScene.remove(
+                        particle
+                    );
+
+
+                    return false;
+
+                }
+
+
+                return true;
 
             }
         );
@@ -2650,95 +2591,1876 @@ function renderBattleChoices() {
 }
 
 
-function chooseBattleInstrument(
-    name
+
+/* =========================================================
+   CAMERA SHAKE
+========================================================= */
+
+let cameraShake =
+    0;
+
+
+function triggerCameraShake(
+    amount=.12
+) {
+
+    cameraShake =
+        amount;
+
+}
+
+
+
+function battleLoop(
+    time=0
+) {
+
+    requestAnimationFrame(
+        battleLoop
+    );
+
+
+    animateAvatar(
+        playerAvatar3D,
+        time
+    );
+
+
+    animateAvatar(
+        cpuAvatar3D,
+        time
+    );
+
+
+    updateParticles();
+
+
+    if (
+        cameraShake > .001
+    ) {
+
+        battleCamera.position.x +=
+            (
+                Math.random()-.5
+            )*cameraShake;
+
+
+        battleCamera.position.y +=
+            (
+                Math.random()-.5
+            )*cameraShake;
+
+
+        cameraShake *=
+            .82;
+
+    }
+
+
+    battleRenderer.render(
+        battleScene,
+        battleCamera
+    );
+
+}
+
+
+
+/* =========================================================
+   ROBLOX-INSPIRED ATTACK
+========================================================= */
+
+async function avatarAttack(
+    attacker,
+    defender
 ) {
 
     if (
-        battleData.instrument &&
-        battleData.instrument !== name
+        !attacker ||
+        !defender
+    ) return;
+
+
+    resetAvatarPose(
+        attacker
+    );
+
+
+    attacker.userData.state =
+        "attack";
+
+
+    const startX =
+        attacker.position.x;
+
+
+    const startY =
+        attacker.userData.baseY;
+
+
+    const direction =
+        startX < 0
+        ? 1
+        : -1;
+
+
+    /* RUN */
+
+    for (
+        let i=0;
+        i<10;
+        i++
     ) {
 
-        const hasProgress =
+        attacker.position.x +=
+            direction*.095;
 
-            battleData.level > 1 ||
-            battleData.xp > 0 ||
-            battleData.wins > 0 ||
-            battleData.losses > 0 ||
-            Object.values(
-                battleData.upgrades
-            ).some(
-                value =>
-                    value > 0
+
+        attacker.position.y =
+
+            startY +
+
+            Math.abs(
+                Math.sin(
+                    i*.9
+                )
+            )*.08;
+
+
+        await delay(
+            20
+        );
+
+    }
+
+
+    /* JUMP */
+
+    for (
+        let i=0;
+        i<5;
+        i++
+    ) {
+
+        attacker.position.y +=
+            .09;
+
+
+        attacker.rotation.z +=
+            direction*.025;
+
+
+        await delay(
+            20
+        );
+
+    }
+
+
+    /* IMPACT */
+
+    createParticles(
+
+        defender.position
+        .clone()
+        .add(
+            new THREE.Vector3(
+                0,
+                1.3,
+                .2
+            )
+        ),
+
+        "#f2cb70",
+
+        25
+
+    );
+
+
+    triggerCameraShake(
+        .15
+    );
+
+
+    await avatarHit(
+        defender
+    );
+
+
+    /* LAND */
+
+    for (
+        let i=0;
+        i<5;
+        i++
+    ) {
+
+        attacker.position.y -=
+            .09;
+
+
+        attacker.rotation.z -=
+            direction*.025;
+
+
+        await delay(
+            20
+        );
+
+    }
+
+
+    /* RETURN */
+
+    for (
+        let i=0;
+        i<10;
+        i++
+    ) {
+
+        attacker.position.x -=
+            direction*.095;
+
+
+        await delay(
+            18
+        );
+
+    }
+
+
+    attacker.position.x =
+        startX;
+
+
+    attacker.position.y =
+        startY;
+
+
+    attacker.rotation.z =
+        0;
+
+
+    attacker.userData.state =
+        "idle";
+
+
+    resetAvatarPose(
+        attacker
+    );
+
+}
+
+
+
+/* =========================================================
+   HIT REACTION
+========================================================= */
+
+async function avatarHit(
+    avatar
+) {
+
+    if (!avatar) return;
+
+
+    resetAvatarPose(
+        avatar
+    );
+
+
+    avatar.userData.state =
+        "hit";
+
+
+    const startX =
+        avatar.position.x;
+
+
+    const startY =
+        avatar.userData.baseY;
+
+
+    const knock =
+        startX > 0
+        ? .20
+        : -.20;
+
+
+    for (
+        let i=0;
+        i<5;
+        i++
+    ) {
+
+        avatar.position.x +=
+            knock;
+
+
+        avatar.position.y +=
+            .04;
+
+
+        avatar.rotation.z +=
+            knock*.2;
+
+
+        await delay(
+            24
+        );
+
+    }
+
+
+    for (
+        let i=0;
+        i<5;
+        i++
+    ) {
+
+        avatar.position.x -=
+            knock;
+
+
+        avatar.position.y -=
+            .04;
+
+
+        avatar.rotation.z -=
+            knock*.2;
+
+
+        await delay(
+            24
+        );
+
+    }
+
+
+    avatar.position.x =
+        startX;
+
+
+    avatar.position.y =
+        startY;
+
+
+    avatar.rotation.z =
+        0;
+
+
+    avatar.userData.state =
+        "idle";
+
+
+    resetAvatarPose(
+        avatar
+    );
+
+}
+
+
+
+/* =========================================================
+   VICTORY EMOTE
+========================================================= */
+
+async function avatarVictory(
+    avatar
+) {
+
+    if (!avatar) return;
+
+
+    resetAvatarPose(
+        avatar
+    );
+
+
+    avatar.userData.state =
+        "victory";
+
+
+    const baseY =
+        avatar.userData.baseY;
+
+
+    const baseRotation =
+        avatar.userData.baseRotationY;
+
+
+    /* DOUBLE JUMP */
+
+    for (
+        let jump=0;
+        jump<2;
+        jump++
+    ) {
+
+        for (
+            let i=0;
+            i<7;
+            i++
+        ) {
+
+            avatar.position.y +=
+                .09;
+
+
+            await delay(
+                24
             );
 
-
-        if (hasProgress) {
-
-            const confirmed =
-                confirm(
-
-                    "Changing your instrument resets your battle progress. Continue?"
-
-                );
+        }
 
 
-            if (!confirmed) {
-                return;
-            }
+        for (
+            let i=0;
+            i<7;
+            i++
+        ) {
+
+            avatar.position.y -=
+                .09;
+
+
+            await delay(
+                24
+            );
 
         }
 
     }
 
 
-    if (
-        battleData.instrument !== name
+    /* SPIN */
+
+    for (
+        let i=0;
+        i<22;
+        i++
     ) {
 
-        battleData =
-            freshBattleData();
+        avatar.rotation.y +=
+            Math.PI/11;
 
 
-        battleData.instrument =
-            name;
+        await delay(
+            20
+        );
 
     }
 
 
-    currentCPU =
-        null;
+    createParticles(
+
+        avatar.position
+        .clone()
+        .add(
+            new THREE.Vector3(
+                0,
+                1.5,
+                .1
+            )
+        ),
+
+        "#ffe07a",
+
+        35
+
+    );
 
 
-    saveBattleData();
-
-    renderBattleChoices();
-
-    renderBattlePlayer();
-
-    clearCPU();
+    avatar.position.y =
+        baseY;
 
 
-    document.getElementById(
-        "battleStatus"
-    ).textContent =
+    avatar.rotation.y =
+        baseRotation;
 
-        `${name} entered the arena!`;
+
+    avatar.userData.state =
+        "idle";
+
+
+    resetAvatarPose(
+        avatar
+    );
 
 }
 
 
 
 /* =========================================================
-   BATTLE PLAYER
+   SPECIAL MOVE
 ========================================================= */
 
-function renderBattlePlayer() {
+async function avatarSpecial(
+    attacker,
+    defender,
+    special,
+    side
+) {
 
-    if (!battleData.instrument) {
-        return;
+    if (
+        !attacker ||
+        !defender
+    ) return;
+
+
+    resetAvatarPose(
+        attacker
+    );
+
+
+    attacker.userData.state =
+        "perform";
+
+
+    const originalCamera =
+        battleCamera.position.clone();
+
+
+    const originalLook = {
+        x:0,
+        y:1.2,
+        z:0
+    };
+
+
+    const targetX =
+        side === "player"
+        ? -1.6
+        : 1.6;
+
+
+    /* CAMERA SNAP ZOOM */
+
+    for (
+        let i=0;
+        i<10;
+        i++
+    ) {
+
+        battleCamera.position.x +=
+
+            (
+                targetX -
+                battleCamera.position.x
+            )*.18;
+
+
+        battleCamera.position.z -=
+            .1;
+
+
+        battleCamera.lookAt(
+            attacker.position.x,
+            1.4,
+            0
+        );
+
+
+        await delay(
+            16
+        );
+
     }
 
+
+    showSpecialBanner(
+        side,
+        special
+    );
+
+
+    /* CHARGE */
+
+    const startY =
+        attacker.userData.baseY;
+
+
+    for (
+        let i=0;
+        i<6;
+        i++
+    ) {
+
+        attacker.position.y +=
+            .07;
+
+
+        attacker.rotation.y +=
+
+            side === "player"
+            ? .12
+            : -.12;
+
+
+        await delay(
+            22
+        );
+
+    }
+
+
+    const colour =
+
+        special.stat === "POWER"
+        ? "#ff9c4c"
+
+        : special.stat === "MELODY"
+        ? "#a987ff"
+
+        : special.stat === "RHYTHM"
+        ? "#4fe4d4"
+
+        : "#69a8ff";
+
+
+    createParticles(
+
+        attacker.position
+        .clone()
+        .add(
+            new THREE.Vector3(
+                0,
+                1.4,
+                .3
+            )
+        ),
+
+        colour,
+
+        55
+
+    );
+
+
+    /* FAST SPIN */
+
+    for (
+        let i=0;
+        i<16;
+        i++
+    ) {
+
+        attacker.rotation.y +=
+
+            side === "player"
+            ? .35
+            : -.35;
+
+
+        await delay(
+            18
+        );
+
+    }
+
+
+    /* DASH */
+
+    const direction =
+        attacker.position.x < 0
+        ? 1
+        : -1;
+
+
+    const startX =
+        attacker.position.x;
+
+
+    for (
+        let i=0;
+        i<8;
+        i++
+    ) {
+
+        attacker.position.x +=
+            direction*.13;
+
+
+        await delay(
+            16
+        );
+
+    }
+
+
+    createParticles(
+
+        defender.position
+        .clone()
+        .add(
+            new THREE.Vector3(
+                0,
+                1.3,
+                .2
+            )
+        ),
+
+        colour,
+
+        55
+
+    );
+
+
+    triggerCameraShake(
+        .25
+    );
+
+
+    await avatarHit(
+        defender
+    );
+
+
+    /* RETURN */
+
+    for (
+        let i=0;
+        i<8;
+        i++
+    ) {
+
+        attacker.position.x -=
+            direction*.13;
+
+
+        await delay(
+            16
+        );
+
+    }
+
+
+    attacker.position.x =
+        startX;
+
+
+    attacker.position.y =
+        startY;
+
+
+    attacker.rotation.y =
+        attacker.userData.baseRotationY;
+
+
+    attacker.userData.state =
+        "idle";
+
+
+    resetAvatarPose(
+        attacker
+    );
+
+
+    battleCamera.position.copy(
+        originalCamera
+    );
+
+
+    battleCamera.lookAt(
+        originalLook.x,
+        originalLook.y,
+        originalLook.z
+    );
+
+}
+
+
+
+/* =========================================================
+   SPECIAL BANNER
+========================================================= */
+
+function showSpecialBanner(
+    side,
+    special
+) {
+
+    const banner =
+        $("#specialMoveBanner");
+
+
+    $("#specialMoveIcon")
+        .textContent =
+        special.icon;
+
+
+    $("#specialMoveOwner")
+        .textContent =
+        side === "player"
+        ? "PLAYER SPECIAL"
+        : "CPU SPECIAL";
+
+
+    $("#specialMoveTitle")
+        .textContent =
+        special.name.toUpperCase();
+
+
+    $("#specialMoveBonus")
+        .textContent =
+        `+${special.bonus} ${special.stat}`;
+
+
+    banner.classList.remove(
+        "show"
+    );
+
+
+    void banner.offsetWidth;
+
+
+    banner.classList.add(
+        "show"
+    );
+
+
+    setTimeout(
+        () =>
+            banner.classList.remove(
+                "show"
+            ),
+        1500
+    );
+
+}
+
+
+
+/* =========================================================
+   SETUP PREVIEW
+========================================================= */
+
+let setupScene;
+
+let setupRenderer;
+
+let setupCamera;
+
+let setupAvatar;
+
+
+let selectedPreset =
+    profile.avatar.preset ||
+    "hero";
+
+
+function currentSetupAvatar() {
+
+    return {
+
+        preset:
+            selectedPreset,
+
+        skin:
+            $("#skinSelect").value,
+
+        hair:
+            $("#hairSelect").value,
+
+        outfit:
+            $("#outfitSelect").value
+
+    };
+
+}
+
+
+
+function createSetupPreview() {
+
+    const container =
+        $("#setupAvatarPreview");
+
+
+    setupScene =
+        new THREE.Scene();
+
+
+    setupCamera =
+        new THREE.PerspectiveCamera(
+            42,
+            container.clientWidth /
+            container.clientHeight,
+            .1,
+            100
+        );
+
+
+    setupCamera.position.set(
+        0,
+        1.7,
+        5
+    );
+
+
+    setupCamera.lookAt(
+        0,
+        1.2,
+        0
+    );
+
+
+    setupRenderer =
+        new THREE.WebGLRenderer({
+
+            antialias:true,
+
+            alpha:true
+
+        });
+
+
+    setupRenderer.setSize(
+        container.clientWidth,
+        container.clientHeight
+    );
+
+
+    setupRenderer.setPixelRatio(
+        Math.min(
+            window.devicePixelRatio,
+            2
+        )
+    );
+
+
+    container.appendChild(
+        setupRenderer.domElement
+    );
+
+
+    setupScene.add(
+        new THREE.HemisphereLight(
+            "#ffffff",
+            "#35431f",
+            2.4
+        )
+    );
+
+
+    const light =
+        new THREE.DirectionalLight(
+            "#fff0c5",
+            3
+        );
+
+
+    light.position.set(
+        3,
+        5,
+        5
+    );
+
+
+    setupScene.add(
+        light
+    );
+
+
+    const floor =
+        mesh(
+            new THREE.BoxGeometry(
+                6,
+                .2,
+                4
+            ),
+            "#5e8849"
+        );
+
+
+    floor.position.y =
+        -.72;
+
+
+    setupScene.add(
+        floor
+    );
+
+
+    updateSetupPreview();
+
+
+    function animate(time) {
+
+        requestAnimationFrame(
+            animate
+        );
+
+
+        if (
+            setupAvatar
+        ) {
+
+            setupAvatar.rotation.y =
+                Math.sin(
+                    time*.0006
+                )*.28;
+
+
+            animateAvatar(
+                setupAvatar,
+                time
+            );
+
+        }
+
+
+        setupRenderer.render(
+            setupScene,
+            setupCamera
+        );
+
+    }
+
+
+    animate();
+
+}
+
+
+
+function updateSetupPreview() {
+
+    if (!setupScene) return;
+
+
+    if (
+        setupAvatar
+    ) {
+
+        setupScene.remove(
+            setupAvatar
+        );
+
+    }
+
+
+    setupAvatar =
+        createAvatar3D(
+
+            currentSetupAvatar(),
+
+            "Guitar"
+
+        );
+
+
+    setupAvatar.position.y =
+        -.42;
+
+
+    setupAvatar.userData.baseY =
+        -.42;
+
+
+    setupScene.add(
+        setupAvatar
+    );
+
+}
+
+
+
+/* =========================================================
+   SETUP UI
+========================================================= */
+
+function renderPresetButtons() {
+
+    const grid =
+        $("#avatarPresetGrid");
+
+
+    grid.innerHTML =
+        "";
+
+
+    avatarPresets.forEach(
+        preset => {
+
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+
+            button.type =
+                "button";
+
+
+            button.className =
+
+                `avatar-preset ${
+                    preset.id ===
+                    selectedPreset
+                    ? "selected"
+                    : ""
+                }`;
+
+
+            button.innerHTML = `
+
+                <span>
+                    ${preset.badge}
+                </span>
+
+                ${preset.name}
+
+            `;
+
+
+            button.onclick =
+                () => {
+
+                    selectedPreset =
+                        preset.id;
+
+
+                    renderPresetButtons();
+
+                    updateSetupPreview();
+
+                };
+
+
+            grid.appendChild(
+                button
+            );
+
+        }
+    );
+
+}
+
+
+
+function initialiseSetup() {
+
+    $("#skinSelect").value =
+        profile.avatar.skin;
+
+
+    $("#hairSelect").value =
+        profile.avatar.hair;
+
+
+    $("#outfitSelect").value =
+        profile.avatar.outfit;
+
+
+    renderPresetButtons();
+
+
+    [
+        "#skinSelect",
+        "#hairSelect",
+        "#outfitSelect"
+    ].forEach(
+        selector => {
+
+            $(selector)
+            .addEventListener(
+                "change",
+                updateSetupPreview
+            );
+
+        }
+    );
+
+
+    createSetupPreview();
+
+
+    if (
+        !profile.playerName
+    ) {
+
+        $("#playerSetup")
+        .classList.add(
+            "show"
+        );
+
+    }
+
+}
+
+
+
+$("#startMusicVerse").onclick =
+    () => {
+
+        const name =
+            $("#playerNameInput")
+            .value
+            .trim();
+
+
+        if (
+            name.length < 2
+        ) {
+
+            $("#playerNameError")
+            .textContent =
+                "Please enter at least 2 characters.";
+
+
+            return;
+
+        }
+
+
+        profile.playerName =
+            name;
+
+
+        profile.avatar =
+            currentSetupAvatar();
+
+
+        saveProfile();
+
+
+        $("#playerSetup")
+        .classList.remove(
+            "show"
+        );
+
+
+        rebuildPlayerAvatar();
+
+        updateDisplays();
+
+        renderLeaderboard();
+
+    };
+
+
+
+/* =========================================================
+   EXP
+========================================================= */
+
+function addXP(amount) {
+
+    if (
+        amount > 0
+    ) {
+
+        profile.totalXpEarned +=
+            amount;
+
+
+        profile.spendableXp +=
+            amount;
+
+    }
+
+
+    profile.xp +=
+        amount;
+
+
+    while (
+        profile.xp >= 100
+    ) {
+
+        profile.xp -=
+            100;
+
+
+        profile.level++;
+
+
+        profile.highestLevel =
+            Math.max(
+
+                profile.highestLevel,
+
+                profile.level
+
+            );
+
+
+        tone(
+            523.25,
+            .2
+        );
+
+
+        setTimeout(
+            () =>
+                tone(
+                    659.25,
+                    .2
+                ),
+            100
+        );
+
+    }
+
+
+    while (
+        profile.xp < 0 &&
+        profile.level > 1
+    ) {
+
+        profile.level--;
+
+
+        profile.xp +=
+            100;
+
+    }
+
+
+    if (
+        profile.level === 1 &&
+        profile.xp < 0
+    ) {
+
+        profile.xp =
+            0;
+
+    }
+
+
+    saveProfile();
+
+    updateDisplays();
+
+    renderLeaderboard();
+
+}
+
+
+
+/* =========================================================
+   OWNERSHIP
+========================================================= */
+
+function ownsInstrument(name) {
+
+    return battleData.ownedInstruments.includes(
+        name
+    );
+
+}
+
+
+
+function showCannotBuy(
+    instrument,
+    price
+) {
+
+    const missing =
+        Math.max(
+            0,
+            price-profile.spendableXp
+        );
+
+
+    $("#purchasePopupTitle")
+        .textContent =
+        `You Cannot Buy ${instrument.name}`;
+
+
+    $("#purchasePopupInstrument")
+        .textContent =
+        instrument.icon;
+
+
+    $("#purchaseCurrentXP")
+        .textContent =
+        profile.spendableXp
+        .toLocaleString();
+
+
+    $("#purchaseRequiredXP")
+        .textContent =
+        price.toLocaleString();
+
+
+    $("#purchaseXPNeeded")
+        .textContent =
+        `You need ${missing.toLocaleString()} more EXP.`;
+
+
+    $("#purchasePopup")
+        .classList.add(
+            "show"
+        );
+
+}
+
+
+
+function closePurchasePopup() {
+
+    $("#purchasePopup")
+        .classList.remove(
+            "show"
+        );
+
+}
+
+
+$("#purchasePopupClose").onclick =
+    closePurchasePopup;
+
+
+$("#purchasePopupOkay").onclick =
+    closePurchasePopup;
+
+
+
+function buyInstrument(name) {
+
+    if (
+        ownsInstrument(name)
+    ) {
+
+        equipInstrument(name);
+
+        return;
+
+    }
+
+
+    const instrument =
+        getInstrument(name);
+
+
+    const price =
+        instrumentPrices[name];
+
+
+    if (
+        profile.spendableXp <
+        price
+    ) {
+
+        showCannotBuy(
+            instrument,
+            price
+        );
+
+
+        return;
+
+    }
+
+
+    if (
+        !confirm(
+            `Buy ${name} for ${price.toLocaleString()} EXP?`
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    profile.spendableXp -=
+        price;
+
+
+    battleData.ownedInstruments.push(
+        name
+    );
+
+
+    battleData.instrument =
+        name;
+
+
+    saveProfile();
+
+    saveBattleData();
+
+
+    playInstrumentSound(
+        instrument
+    );
+
+
+    clearCPU();
+
+    refreshBattle();
+
+}
+
+
+
+function equipInstrument(name) {
+
+    battleData.instrument =
+        name;
+
+
+    saveBattleData();
+
+
+    playInstrumentSound(
+        getInstrument(name)
+    );
+
+
+    clearCPU();
+
+    refreshBattle();
+
+}
+
+
+
+/* =========================================================
+   BATTLE SHOP
+========================================================= */
+
+function renderBattleShop() {
+
+    const grid =
+        $("#battleInstrumentGrid");
+
+
+    grid.innerHTML =
+        "";
+
+
+    [...instruments]
+
+    .sort(
+        (a,b) =>
+            instrumentPrices[a.name] -
+            instrumentPrices[b.name]
+    )
+
+    .forEach(
+        instrument => {
+
+            const owned =
+                ownsInstrument(
+                    instrument.name
+                );
+
+
+            const active =
+                instrument.name ===
+                battleData.instrument;
+
+
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+
+            button.className =
+
+                `battle-instrument ${
+                    active
+                    ? "active"
+                    : ""
+                }`;
+
+
+            button.innerHTML = `
+
+                <span class="instrument-big">
+
+                    ${instrument.icon}
+
+                </span>
+
+                <strong>
+                    ${instrument.name}
+                </strong>
+
+                ${
+                    owned
+
+                    ? `
+
+                        <span class="owned-tag">
+
+                            ${
+                                active
+                                ? "EQUIPPED ✓"
+                                : "OWNED ✓"
+                            }
+
+                        </span>
+
+                    `
+
+                    : `
+
+                        <span class="price-tag">
+
+                            ${instrumentPrices[
+                                instrument.name
+                            ].toLocaleString()}
+
+                            EXP
+
+                        </span>
+
+                    `
+                }
+
+            `;
+
+
+            button.onclick =
+                () => {
+
+                    if (
+                        owned
+                    ) {
+
+                        equipInstrument(
+                            instrument.name
+                        );
+
+                    }
+                    else {
+
+                        buyInstrument(
+                            instrument.name
+                        );
+
+                    }
+
+                };
+
+
+            grid.appendChild(
+                button
+            );
+
+        }
+    );
+
+
+    $("#ownedInstrumentCount")
+        .textContent =
+        battleData.ownedInstruments.length;
+
+}
+
+
+
+/* =========================================================
+   UPGRADES
+========================================================= */
+
+function currentUpgrades() {
+
+    return battleData.instrumentUpgrades[
+        battleData.instrument
+    ];
+
+}
+
+
+
+function upgradeCost(stat) {
+
+    return 100 +
+        currentUpgrades()[stat]*75;
+
+}
+
+
+
+function buyUpgrade(stat) {
+
+    const cost =
+        upgradeCost(stat);
+
+
+    if (
+        profile.spendableXp <
+        cost
+    ) {
+
+        setBattleStatus(
+
+            `🔒 You need ${(cost-profile.spendableXp).toLocaleString()} more EXP.`
+
+        );
+
+
+        return;
+
+    }
+
+
+    if (
+        !confirm(
+            `Spend ${cost.toLocaleString()} EXP to upgrade ${stat}?`
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    profile.spendableXp -=
+        cost;
+
+
+    currentUpgrades()[stat]++;
+
+
+    saveProfile();
+
+    saveBattleData();
+
+    renderPlayerStats();
+
+    renderUpgrades();
+
+    updateDisplays();
+
+}
+
+
+
+$$(".upgrade-button")
+.forEach(
+    button => {
+
+        button.onclick =
+            () =>
+                buyUpgrade(
+                    button.dataset.upgrade
+                );
+
+    }
+);
+
+
+
+function renderUpgrades() {
+
+    const labels = {
+
+        power:["⚡","Power"],
+        melody:["🎵","Melody"],
+        rhythm:["🥁","Rhythm"],
+        defense:["🛡","Defense"]
+
+    };
+
+
+    $$(".upgrade-button")
+    .forEach(
+        button => {
+
+            const stat =
+                button.dataset.upgrade;
+
+
+            const level =
+                currentUpgrades()[stat];
+
+
+            const cost =
+                upgradeCost(stat);
+
+
+            button.innerHTML = `
+
+                <span>
+
+                    ${labels[stat][0]}
+                    ${labels[stat][1]}
+
+                </span>
+
+                <strong>
+                    +3
+                </strong>
+
+                <small>
+                    Upgrade Lv ${level}
+                </small>
+
+                <small>
+                    ${cost.toLocaleString()} EXP
+                </small>
+
+            `;
+
+        }
+    );
+
+}
+
+
+
+/* =========================================================
+   PLAYER STATS
+========================================================= */
+
+function playerStats() {
+
+    const base =
+        baseStats[
+            battleData.instrument
+        ];
+
+
+    const levelBonus =
+        (
+            profile.level-1
+        )*2;
+
+
+    const upgrades =
+        currentUpgrades();
+
+
+    return {
+
+        power:
+            base[0] +
+            levelBonus +
+            upgrades.power*3,
+
+        melody:
+            base[1] +
+            levelBonus +
+            upgrades.melody*3,
+
+        rhythm:
+            base[2] +
+            levelBonus +
+            upgrades.rhythm*3,
+
+        defense:
+            base[3] +
+            levelBonus +
+            upgrades.defense*3
+
+    };
+
+}
+
+
+
+function renderPlayerStats() {
 
     const instrument =
         getInstrument(
@@ -2747,76 +4469,138 @@ function renderBattlePlayer() {
 
 
     const stats =
-        getPlayerBattleStats();
+        playerStats();
 
 
-    document.getElementById(
-        "playerBattleIcon"
-    ).textContent =
-        instrument.icon;
+    const special =
+        specialMoves[
+            instrument.name
+        ];
 
 
-    document.getElementById(
-        "playerBattleName"
-    ).textContent =
+    $("#playerBattleName")
+        .textContent =
         instrument.name;
 
 
-    document.getElementById(
-        "playerBattleLevel"
-    ).textContent =
-        battleData.level;
+    $("#playerBattleLevel")
+        .textContent =
+        `LV ${profile.level}`;
 
 
-    document.getElementById(
-        "playerPower"
-    ).textContent =
+    $("#playerPower")
+        .textContent =
         stats.power;
 
 
-    document.getElementById(
-        "playerMelody"
-    ).textContent =
+    $("#playerMelody")
+        .textContent =
         stats.melody;
 
 
-    document.getElementById(
-        "playerRhythm"
-    ).textContent =
+    $("#playerRhythm")
+        .textContent =
         stats.rhythm;
 
 
-    document.getElementById(
-        "playerDefense"
-    ).textContent =
+    $("#playerDefense")
+        .textContent =
         stats.defense;
 
 
-    document.getElementById(
-        "playerXPText"
-    ).textContent =
-        `${battleData.xp} / 100`;
+    $("#playerSpecialMove")
+        .textContent =
+        `${special.icon} ${special.name}`;
 
 
-    document.getElementById(
-        "playerXPBar"
-    ).style.width =
-        `${Math.min(
-            100,
-            Math.max(
-                0,
-                battleData.xp
-            )
-        )}%`;
+    $("#playerSpecialDescription")
+        .textContent =
+
+        `${special.description} • ${Math.round(special.chance*100)}% activation chance`;
 
 
-    document.getElementById(
-        "upgradePoints"
-    ).textContent =
-        battleData.upgradePoints;
+    $("#upgradeInstrumentName")
+        .textContent =
+        instrument.name;
+
+}
 
 
-    renderBattleRecord();
+
+/* =========================================================
+   DIFFICULTY
+========================================================= */
+
+function difficulty() {
+
+    const owned =
+        battleData.ownedInstruments.length;
+
+
+    if (
+        owned <= 5
+    ) {
+
+        return {
+
+            name:"Beginner",
+            icon:"🟢",
+            cpu:.84,
+            min:-2,
+            max:0,
+            player:1.12
+
+        };
+
+    }
+
+
+    if (
+        owned <= 10
+    ) {
+
+        return {
+
+            name:"Intermediate",
+            icon:"🟡",
+            cpu:.94,
+            min:-1,
+            max:1,
+            player:1.06
+
+        };
+
+    }
+
+
+    if (
+        owned <= 14
+    ) {
+
+        return {
+
+            name:"Advanced",
+            icon:"🟠",
+            cpu:1.03,
+            min:0,
+            max:2,
+            player:1.02
+
+        };
+
+    }
+
+
+    return {
+
+        name:"Master",
+        icon:"🔴",
+        cpu:1.10,
+        min:1,
+        max:3,
+        player:1
+
+    };
 
 }
 
@@ -2830,18 +4614,10 @@ let currentCPU =
     null;
 
 
-function createCPU() {
+function findOpponent() {
 
-    if (!battleData.instrument) {
-
-        document.getElementById(
-            "battleStatus"
-        ).textContent =
-            "Choose an instrument first.";
-
-        return;
-
-    }
+    const config =
+        difficulty();
 
 
     const instrument =
@@ -2861,25 +4637,26 @@ function createCPU() {
 
             1,
 
-            battleData.level +
+            profile.level +
+
             randomNumber(
-                -1,
-                1
+                config.min,
+                config.max
             )
 
         );
 
 
     const base =
-        battleBaseStats[
+        baseStats[
             instrument.name
         ];
 
 
-    const bonus =
+    const levelBonus =
         (
-            level - 1
-        ) * 2;
+            level-1
+        )*2;
 
 
     currentCPU = {
@@ -2888,90 +4665,140 @@ function createCPU() {
 
         level,
 
-        stats: {
+        avatar:
+            randomCPUAvatarConfig(),
+
+        stats:{
 
             power:
-                base[0] + bonus,
+                Math.round(
+                    (
+                        base[0]+
+                        levelBonus
+                    )*
+                    config.cpu
+                ),
 
             melody:
-                base[1] + bonus,
+                Math.round(
+                    (
+                        base[1]+
+                        levelBonus
+                    )*
+                    config.cpu
+                ),
 
             rhythm:
-                base[2] + bonus,
+                Math.round(
+                    (
+                        base[2]+
+                        levelBonus
+                    )*
+                    config.cpu
+                ),
 
             defense:
-                base[3] + bonus
+                Math.round(
+                    (
+                        base[3]+
+                        levelBonus
+                    )*
+                    config.cpu
+                )
 
         }
 
     };
 
 
+    rebuildCPUAvatar(
+        currentCPU
+    );
+
+
     renderCPU();
 
+
+    $("#battleButton")
+        .disabled =
+        false;
+
+
+    setBattleStatus(
+
+        `${instrument.icon} ${instrument.name} challenges you!`
+
+    );
+
 }
+
 
 
 function renderCPU() {
 
-    if (!currentCPU) return;
+    if (
+        !currentCPU
+    ) {
+
+        $("#cpuBattleName")
+            .textContent =
+            "Waiting...";
 
 
-    document.getElementById(
-        "cpuBattleIcon"
-    ).textContent =
-        currentCPU.instrument.icon;
+        $("#cpuBattleLevel")
+            .textContent =
+            "LV ?";
 
 
-    document.getElementById(
-        "cpuBattleName"
-    ).textContent =
+        [
+            "#cpuPower",
+            "#cpuMelody",
+            "#cpuRhythm",
+            "#cpuDefense"
+        ].forEach(
+            selector =>
+                $(selector)
+                .textContent =
+                "?"
+        );
+
+
+        return;
+
+    }
+
+
+    $("#cpuBattleName")
+        .textContent =
         currentCPU.instrument.name;
 
 
-    document.getElementById(
-        "cpuBattleLevel"
-    ).textContent =
-        currentCPU.level;
+    $("#cpuBattleLevel")
+        .textContent =
+        `LV ${currentCPU.level}`;
 
 
-    document.getElementById(
-        "cpuPower"
-    ).textContent =
+    $("#cpuPower")
+        .textContent =
         currentCPU.stats.power;
 
 
-    document.getElementById(
-        "cpuMelody"
-    ).textContent =
+    $("#cpuMelody")
+        .textContent =
         currentCPU.stats.melody;
 
 
-    document.getElementById(
-        "cpuRhythm"
-    ).textContent =
+    $("#cpuRhythm")
+        .textContent =
         currentCPU.stats.rhythm;
 
 
-    document.getElementById(
-        "cpuDefense"
-    ).textContent =
+    $("#cpuDefense")
+        .textContent =
         currentCPU.stats.defense;
 
-
-    document.getElementById(
-        "battleButton"
-    ).disabled =
-        false;
-
-
-    document.getElementById(
-        "battleStatus"
-    ).textContent =
-
-        `Level ${currentCPU.level} ${currentCPU.instrument.name} challenges you!`;
-
 }
+
 
 
 function clearCPU() {
@@ -2980,108 +4807,53 @@ function clearCPU() {
         null;
 
 
-    document.getElementById(
-        "cpuBattleIcon"
-    ).textContent =
-        "❓";
+    renderCPU();
 
 
-    document.getElementById(
-        "cpuBattleName"
-    ).textContent =
-        "Waiting...";
+    if (
+        cpuAvatar3D
+    ) {
+
+        cpuAvatar3D.visible =
+            false;
+
+    }
 
 
-    document.getElementById(
-        "cpuBattleLevel"
-    ).textContent =
-        "?";
-
-
-    [
-        "cpuPower",
-        "cpuMelody",
-        "cpuRhythm",
-        "cpuDefense"
-    ]
-    .forEach(
-        id => {
-
-            document.getElementById(
-                id
-            ).textContent =
-                "?";
-
-        }
-    );
-
-
-    document.getElementById(
-        "battleButton"
-    ).disabled =
+    $("#battleButton")
+        .disabled =
         true;
 
 }
 
 
-document.getElementById(
-    "findOpponentButton"
-).addEventListener(
-    "click",
-    createCPU
-);
+$("#findOpponentButton").onclick =
+    findOpponent;
 
 
 
 /* =========================================================
-   BATTLE LOG
+   BATTLE CALCULATION
 ========================================================= */
 
-function addBattleLog(
-    message
+function score(
+    stats,
+    player=false
 ) {
 
-    const div =
-        document.createElement(
-            "div"
-        );
+    const config =
+        difficulty();
 
-
-    div.className =
-        "battle-log-entry";
-
-
-    div.textContent =
-        message;
-
-
-    document.getElementById(
-        "battleLog"
-    ).appendChild(
-        div
-    );
-
-}
-
-
-
-/* =========================================================
-   BATTLE FORMULA
-========================================================= */
-
-function calculateBattleScore(
-    stats
-) {
 
     const base =
 
-        stats.power * 1.05 +
+        stats.power*1.05 +
 
-        stats.melody * .9 +
+        stats.melody*.9 +
 
-        stats.rhythm * .95 +
+        stats.rhythm*.95 +
 
-        stats.defense * .75;
+        stats.defense*.75;
 
 
     return (
@@ -3090,7 +4862,13 @@ function calculateBattleScore(
 
         (
             .88 +
-            Math.random() * .24
+            Math.random()*.24
+        ) *
+
+        (
+            player
+            ? config.player
+            : 1
         )
 
     );
@@ -3098,51 +4876,53 @@ function calculateBattleScore(
 }
 
 
-function activateSpecial(
-    instrument,
-    stats
+
+function trySpecial(
+    instrumentName,
+    stats,
+    enemyStats
 ) {
 
+    const move =
+        specialMoves[
+            instrumentName
+        ];
+
+
     if (
-        Math.random() >
-        .35
+        Math.random() >=
+        move.chance
     ) {
 
         return {
 
-            bonus:
-                0,
-
-            message:
-                ""
+            activated:false
 
         };
 
     }
 
 
-    const special =
-        specialAttacks[
-            instrument.name
-        ];
-
-
-    const bonus =
-
-        special[2] +
-
-        stats[
-            special[1]
-        ] * .2;
-
-
     return {
 
-        bonus,
+        activated:true,
 
-        message:
+        name:
+            move.name,
 
-            `${instrument.icon} ${instrument.name} used ${special[0]}!`
+        icon:
+            move.icon,
+
+        stat:
+            move.stat,
+
+        bonus:
+            Math.round(
+                move.effect(
+                    stats,
+                    enemyStats
+                )
+            )
 
     };
 
@@ -3150,34 +4930,62 @@ function activateSpecial(
 
 
 
+function setBattleStatus(html) {
+
+    $("#battleStatus")
+        .innerHTML =
+        html;
+
+}
+
+
+
+function addBattleLog(text) {
+
+    const row =
+        document.createElement(
+            "div"
+        );
+
+
+    row.textContent =
+        text;
+
+
+    $("#battleLog")
+        .appendChild(
+            row
+        );
+
+
+    $("#battleLog")
+        .scrollTop =
+        $("#battleLog")
+        .scrollHeight;
+
+}
+
+
+
 /* =========================================================
-   RUN BATTLE
+   BATTLE
 ========================================================= */
 
-document.getElementById(
-    "battleButton"
-).addEventListener(
-    "click",
+$("#battleButton").onclick =
     async () => {
 
         if (
-            !battleData.instrument ||
             !currentCPU
-        ) {
-
-            return;
-        }
+        ) return;
 
 
-        document.getElementById(
-            "battleButton"
-        ).disabled =
+        $("#battleButton")
+            .disabled =
             true;
 
 
-        document.getElementById(
-            "battleLog"
-        ).innerHTML =
+        $("#battleLog")
+            .innerHTML =
             "";
 
 
@@ -3187,8 +4995,15 @@ document.getElementById(
             );
 
 
-        const playerStats =
-            getPlayerBattleStats();
+        const pStats =
+            playerStats();
+
+
+        addBattleLog(
+
+            `${playerInstrument.icon} ${playerInstrument.name} enters the arena!`
+
+        );
 
 
         playInstrumentSound(
@@ -3196,95 +5011,84 @@ document.getElementById(
         );
 
 
-        addBattleLog(
-
-            `${playerInstrument.icon} ${playerInstrument.name} begins the performance!`
-
-        );
-
-
         await delay(
-            500
-        );
-
-
-        playInstrumentSound(
-            currentCPU.instrument
-        );
-
-
-        addBattleLog(
-
-            `${currentCPU.instrument.icon} CPU ${currentCPU.instrument.name} responds!`
-
-        );
-
-
-        await delay(
-            500
-        );
-
-
-        const rounds = [
-
-            ["power","⚡ POWER SOLO"],
-
-            ["melody","🎵 MELODY DUEL"],
-
-            ["rhythm","🥁 RHYTHM CLASH"],
-
-            ["defense","🛡 ENDURANCE ROUND"]
-
-        ];
-
-
-        const round =
-            randomItem(
-                rounds
-            );
-
-
-        addBattleLog(
-            round[1]
+            300
         );
 
 
         let playerScore =
-
-            calculateBattleScore(
-                playerStats
-            ) +
-
-            playerStats[
-                round[0]
-            ] * .7;
-
-
-        let cpuScore =
-
-            calculateBattleScore(
-                currentCPU.stats
-            ) +
-
-            currentCPU.stats[
-                round[0]
-            ] * .7;
-
-
-        const playerSpecial =
-            activateSpecial(
-
-                playerInstrument,
-
-                playerStats
-
+            score(
+                pStats,
+                true
             );
 
 
-        const cpuSpecial =
-            activateSpecial(
+        let cpuScore =
+            score(
+                currentCPU.stats
+            );
 
-                currentCPU.instrument,
+
+        const category =
+            randomItem([
+                "power",
+                "melody",
+                "rhythm",
+                "defense"
+            ]);
+
+
+        playerScore +=
+            pStats[category]*.72;
+
+
+        cpuScore +=
+            currentCPU.stats[category]*.65;
+
+
+        addBattleLog(
+
+            `🎯 ${category.toUpperCase()} challenge!`
+
+        );
+
+
+        await delay(
+            300
+        );
+
+
+        await avatarAttack(
+
+            playerAvatar3D,
+
+            cpuAvatar3D
+
+        );
+
+
+        await delay(
+            200
+        );
+
+
+        await avatarAttack(
+
+            cpuAvatar3D,
+
+            playerAvatar3D
+
+        );
+
+
+        /* PLAYER SPECIAL */
+
+        const playerSpecial =
+            trySpecial(
+
+                battleData.instrument,
+
+                pStats,
 
                 currentCPU.stats
 
@@ -3292,7 +5096,7 @@ document.getElementById(
 
 
         if (
-            playerSpecial.bonus
+            playerSpecial.activated
         ) {
 
             playerScore +=
@@ -3300,14 +5104,48 @@ document.getElementById(
 
 
             addBattleLog(
-                playerSpecial.message
+
+                `${playerSpecial.icon} ${playerSpecial.name}! +${playerSpecial.bonus}`
+
+            );
+
+
+            playInstrumentSound(
+                playerInstrument
+            );
+
+
+            await avatarSpecial(
+
+                playerAvatar3D,
+
+                cpuAvatar3D,
+
+                playerSpecial,
+
+                "player"
+
             );
 
         }
 
 
+        /* CPU SPECIAL */
+
+        const cpuSpecial =
+            trySpecial(
+
+                currentCPU.instrument.name,
+
+                currentCPU.stats,
+
+                pStats
+
+            );
+
+
         if (
-            cpuSpecial.bonus
+            cpuSpecial.activated
         ) {
 
             cpuScore +=
@@ -3315,15 +5153,30 @@ document.getElementById(
 
 
             addBattleLog(
-                `CPU ${cpuSpecial.message}`
+
+                `CPU ${cpuSpecial.icon} ${cpuSpecial.name}! +${cpuSpecial.bonus}`
+
+            );
+
+
+            playInstrumentSound(
+                currentCPU.instrument
+            );
+
+
+            await avatarSpecial(
+
+                cpuAvatar3D,
+
+                playerAvatar3D,
+
+                cpuSpecial,
+
+                "cpu"
+
             );
 
         }
-
-
-        await delay(
-            450
-        );
 
 
         addBattleLog(
@@ -3333,501 +5186,710 @@ document.getElementById(
         );
 
 
-        await delay(
-            500
-        );
-
-
         if (
             playerScore >=
             cpuScore
         ) {
 
-            battleWin();
-
-        }
-        else {
-
-            battleLoss();
-
-        }
-
-    }
-);
+            const reward =
+                randomNumber(
+                    20,
+                    35
+                );
 
 
-
-/* =========================================================
-   BATTLE WIN / LOSS
-========================================================= */
-
-function battleWin() {
-
-    const gained =
-        randomNumber(
-            20,
-            35
-        );
+            battleData.wins++;
 
 
-    battleData.wins++;
+            setBattleStatus(
 
-
-    battleData.xp +=
-        gained;
-
-
-    document.getElementById(
-        "battleStatus"
-    ).innerHTML =
-
-        `🏆 <strong>YOU WIN!</strong> +${gained} EXP`;
-
-
-    addBattleLog(
-
-        `You gained ${gained} EXP.`
-
-    );
-
-
-    checkLevelUp();
-
-    finishBattle();
-
-}
-
-
-function battleLoss() {
-
-    const lost =
-        randomNumber(
-            12,
-            25
-        );
-
-
-    battleData.losses++;
-
-
-    battleData.xp -=
-        lost;
-
-
-    document.getElementById(
-        "battleStatus"
-    ).innerHTML =
-
-        `💀 <strong>YOU LOST!</strong> -${lost} EXP`;
-
-
-    addBattleLog(
-
-        `You lost ${lost} EXP.`
-
-    );
-
-
-    checkLevelDown();
-
-    finishBattle();
-
-}
-
-
-function checkLevelUp() {
-
-    while (
-        battleData.xp >=
-        100
-    ) {
-
-        battleData.xp -=
-            100;
-
-
-        battleData.level++;
-
-
-        battleData.upgradePoints++;
-
-
-        battleData.highestLevel =
-            Math.max(
-
-                battleData.highestLevel,
-
-                battleData.level
+                `🏆 <strong>YOU WIN!</strong><br>+${reward} EXP`
 
             );
 
 
-        addBattleLog(
-
-            `🌟 LEVEL UP! Level ${battleData.level}.`
-
-        );
+            addXP(
+                reward
+            );
 
 
-        addBattleLog(
-
-            "🔧 You earned 1 Upgrade Point."
-
-        );
+            addMasteryXP(
+                reward
+            );
 
 
-        playPiano(
-            523.25
-        );
-
-
-        setTimeout(
-            () =>
-                playPiano(
-                    659.25
-                ),
-            130
-        );
-
-
-        setTimeout(
-            () =>
-                playPiano(
-                    783.99
-                ),
-            260
-        );
-
-    }
-
-}
-
-
-function checkLevelDown() {
-
-    while (
-        battleData.xp < 0 &&
-        battleData.level > 1
-    ) {
-
-        battleData.level--;
-
-
-        battleData.xp +=
-            100;
-
-
-        addBattleLog(
-
-            `⬇️ LEVEL DOWN! Level ${battleData.level}.`
-
-        );
-
-
-        if (
-            battleData.upgradePoints > 0
-        ) {
-
-            battleData.upgradePoints--;
+            await avatarVictory(
+                playerAvatar3D
+            );
 
         }
         else {
 
-            const upgradedStats =
-                Object.keys(
-                    battleData.upgrades
-                )
-                .filter(
-                    stat =>
-                        battleData.upgrades[
-                            stat
-                        ] > 0
+            const loss =
+                randomNumber(
+                    12,
+                    25
                 );
 
 
-            if (
-                upgradedStats.length
-            ) {
-
-                const stat =
-                    randomItem(
-                        upgradedStats
-                    );
+            battleData.losses++;
 
 
-                battleData.upgrades[
-                    stat
-                ]--;
+            setBattleStatus(
+
+                `💀 <strong>YOU LOST!</strong><br>-${loss} Level EXP`
+
+            );
 
 
-                addBattleLog(
-
-                    `💔 ${stat.toUpperCase()} lost one upgrade.`
-
-                );
-
-            }
-
-        }
-
-    }
+            addXP(
+                -loss
+            );
 
 
-    if (
-        battleData.level === 1 &&
-        battleData.xp < 0
-    ) {
-
-        battleData.xp =
-            0;
-
-    }
-
-}
-
-
-function finishBattle() {
-
-    saveBattleData();
-
-    renderBattlePlayer();
-
-    renderBattleRecord();
-
-
-    setTimeout(
-        clearCPU,
-        1200
-    );
-
-}
-
-
-
-/* =========================================================
-   BATTLE UPGRADES
-========================================================= */
-
-document
-    .querySelectorAll(
-        ".upgrade-button"
-    )
-    .forEach(
-        button => {
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    if (
-                        !battleData.instrument
-                    ) {
-
-                        return;
-                    }
-
-
-                    if (
-                        battleData.upgradePoints <=
-                        0
-                    ) {
-
-                        document.getElementById(
-                            "battleStatus"
-                        ).textContent =
-
-                            "You need an Upgrade Point.";
-
-                        return;
-
-                    }
-
-
-                    const stat =
-                        button.dataset.upgrade;
-
-
-                    battleData.upgrades[
-                        stat
-                    ]++;
-
-
-                    battleData.upgradePoints--;
-
-
-                    saveBattleData();
-
-                    renderBattlePlayer();
-
-
-                    document.getElementById(
-                        "battleStatus"
-                    ).textContent =
-
-                        `🔧 ${stat.toUpperCase()} increased by +3!`;
-
-                }
+            await avatarVictory(
+                cpuAvatar3D
             );
 
         }
-    );
+
+
+        saveBattleData();
+
+        renderRecord();
+
+
+        setTimeout(
+            clearCPU,
+            900
+        );
+
+    };
 
 
 
 /* =========================================================
-   BATTLE RECORD
+   RECORD
 ========================================================= */
 
-function renderBattleRecord() {
+function renderRecord() {
 
     const total =
-
         battleData.wins +
-
         battleData.losses;
 
 
     const rate =
-
-        total === 0
-
-        ? 0
-
-        : Math.round(
-
+        total
+        ? Math.round(
             battleData.wins /
-
             total *
+            100
+        )
+        : 0;
+
+
+    $("#battleWins")
+        .textContent =
+        battleData.wins;
+
+
+    $("#battleLosses")
+        .textContent =
+        battleData.losses;
+
+
+    $("#battleWinRate")
+        .textContent =
+        `${rate}%`;
+
+
+    $("#battleHighestLevel")
+        .textContent =
+        profile.highestLevel;
+
+}
+
+
+
+/* =========================================================
+   MASTERY
+========================================================= */
+
+function trophyTier(name) {
+
+    const xp =
+        battleData.instrumentXP[
+            name
+        ] || 0;
+
+
+    let result =
+        null;
+
+
+    TROPHY_TIERS.forEach(
+        tier => {
+
+            if (
+                xp >= tier.xp
+            ) {
+
+                result =
+                    tier;
+
+            }
+
+        }
+    );
+
+
+    return result;
+
+}
+
+
+
+function nextTrophy(name) {
+
+    const xp =
+        battleData.instrumentXP[
+            name
+        ] || 0;
+
+
+    return (
+
+        TROPHY_TIERS.find(
+            tier =>
+                xp < tier.xp
+        ) ||
+
+        null
+
+    );
+
+}
+
+
+
+function addMasteryXP(amount) {
+
+    if (
+        amount <= 0
+    ) return;
+
+
+    const name =
+        battleData.instrument;
+
+
+    battleData.instrumentXP[
+        name
+    ] +=
+        amount;
+
+
+    saveBattleData();
+
+    renderMastery();
+
+    renderTrophyCabinet();
+
+}
+
+
+
+function renderMastery() {
+
+    const name =
+        battleData.instrument;
+
+
+    const instrument =
+        getInstrument(
+            name
+        );
+
+
+    const xp =
+        battleData.instrumentXP[
+            name
+        ] || 0;
+
+
+    const current =
+        trophyTier(
+            name
+        );
+
+
+    const next =
+        nextTrophy(
+            name
+        );
+
+
+    if (!next) {
+
+        $("#instrumentMastery")
+            .innerHTML = `
+
+                <div class="mastery-header">
+
+                    <div>
+
+                        <small>
+                            INSTRUMENT MASTERY
+                        </small>
+
+                        <strong>
+                            ${instrument.icon}
+                            ${instrument.name}
+                        </strong>
+
+                    </div>
+
+                    <div class="mastery-rank">
+                        👑🏆 GRAND MASTER
+                    </div>
+
+                </div>
+
+
+                <div class="mastery-info">
+
+                    <span>
+
+                        ${xp.toLocaleString()}
+                        Mastery EXP
+
+                    </span>
+
+                    <span>
+                        MAX
+                    </span>
+
+                </div>
+
+
+                <div class="progress-bar">
+
+                    <div
+                        class="progress-fill"
+                        style="width:100%"
+                    ></div>
+
+                </div>
+
+            `;
+
+
+        return;
+
+    }
+
+
+    const previous =
+        current
+        ? current.xp
+        : 0;
+
+
+    const percentage =
+        Math.min(
+
+            100,
+
+            (
+                xp-previous
+            ) /
+
+            (
+                next.xp-previous
+            ) *
 
             100
 
         );
 
 
-    document.getElementById(
-        "battleWins"
-    ).textContent =
-        battleData.wins;
+    $("#instrumentMastery")
+        .innerHTML = `
+
+            <div class="mastery-header">
+
+                <div>
+
+                    <small>
+                        INSTRUMENT MASTERY
+                    </small>
+
+                    <strong>
+
+                        ${instrument.icon}
+                        ${instrument.name}
+
+                    </strong>
+
+                </div>
+
+                <div class="mastery-rank">
+
+                    ${
+                        current
+
+                        ? `${current.icon} ${current.title}`
+
+                        : "Unranked"
+                    }
+
+                </div>
+
+            </div>
 
 
-    document.getElementById(
-        "battleLosses"
-    ).textContent =
-        battleData.losses;
+            <div class="mastery-info">
+
+                <span>
+
+                    ${xp.toLocaleString()}
+                    Mastery EXP
+
+                </span>
+
+                <span>
+
+                    ${next.icon}
+
+                    ${(
+                        next.xp-xp
+                    ).toLocaleString()}
+
+                    to ${next.name}
+
+                </span>
+
+            </div>
 
 
-    document.getElementById(
-        "battleWinRate"
-    ).textContent =
-        `${rate}%`;
+            <div class="progress-bar">
 
+                <div
+                    class="progress-fill"
+                    style="width:${percentage}%"
+                ></div>
 
-    document.getElementById(
-        "battleHighestLevel"
-    ).textContent =
-        battleData.highestLevel;
+            </div>
+
+        `;
 
 }
 
 
 
 /* =========================================================
-   CHANGE BATTLE INSTRUMENT
+   TROPHY CABINET
 ========================================================= */
 
-document.getElementById(
-    "changeBattleInstrument"
-).addEventListener(
-    "click",
-    () => {
+function renderTrophyCabinet() {
 
-        const confirmed =
-            confirm(
+    const total =
+        instruments.reduce(
+            (sum,instrument) => {
 
-                "Changing your instrument resets Battle Level, EXP and upgrades. Continue?"
-
-            );
+                const xp =
+                    battleData.instrumentXP[
+                        instrument.name
+                    ] || 0;
 
 
-        if (!confirmed) {
-            return;
-        }
+                return sum +
+
+                    TROPHY_TIERS.filter(
+                        tier =>
+                            xp >= tier.xp
+                    ).length;
+
+            },
+            0
+        );
 
 
-        battleData =
-            freshBattleData();
+    const grandMasters =
+        instruments.filter(
+            instrument =>
+                (
+                    battleData.instrumentXP[
+                        instrument.name
+                    ] || 0
+                ) >= 50000
+        ).length;
 
 
-        saveBattleData();
+    $("#trophyCabinet")
+        .innerHTML = `
 
-        renderBattleChoices();
+            <div class="trophy-summary">
 
-        renderBattleRecord();
+                <p class="eyebrow">
+                    MASTERY COLLECTION
+                </p>
 
-        clearCPU();
+                <h3>
+                    🏆 Trophy Cabinet
+                </h3>
 
+                <p class="muted">
 
-        document.getElementById(
-            "playerBattleIcon"
-        ).textContent =
-            "🎵";
+                    ${total}/90 trophies
 
+                    • ${grandMasters}/18 Grand Masters
 
-        document.getElementById(
-            "playerBattleName"
-        ).textContent =
-            "Choose Instrument";
+                </p>
 
-
-        document.getElementById(
-            "playerBattleLevel"
-        ).textContent =
-            "1";
+            </div>
 
 
-        [
-            "playerPower",
-            "playerMelody",
-            "playerRhythm",
-            "playerDefense"
-        ]
-        .forEach(
-            id => {
+            <div class="trophy-grid">
 
-                document.getElementById(
-                    id
-                ).textContent =
-                    "0";
+                ${
+                    instruments.map(
+                        instrument => {
+
+                            const xp =
+                                battleData.instrumentXP[
+                                    instrument.name
+                                ] || 0;
+
+
+                            return `
+
+                                <article
+                                    class="
+                                        trophy-card
+
+                                        ${
+                                            xp >= 50000
+                                            ? "grand"
+                                            : ""
+                                        }
+                                    "
+                                >
+
+                                    <div class="instrument-symbol">
+                                        ${instrument.icon}
+                                    </div>
+
+                                    <strong>
+                                        ${instrument.name}
+                                    </strong>
+
+                                    <div class="trophy-row">
+
+                                        ${
+                                            TROPHY_TIERS.map(
+                                                tier => `
+
+                                                    <div
+                                                        class="
+                                                            trophy-slot
+
+                                                            ${
+                                                                xp >= tier.xp
+                                                                ? ""
+                                                                : "locked"
+                                                            }
+                                                        "
+                                                    >
+
+                                                        ${
+                                                            xp >= tier.xp
+                                                            ? tier.icon
+                                                            : "🔒"
+                                                        }
+
+                                                    </div>
+
+                                                `
+                                            ).join("")
+                                        }
+
+                                    </div>
+
+                                    <small>
+
+                                        ${xp.toLocaleString()}
+                                        Mastery EXP
+
+                                    </small>
+
+                                </article>
+
+                            `;
+
+                        }
+                    ).join("")
+                }
+
+            </div>
+
+        `;
+
+}
+
+
+
+/* =========================================================
+   LIBRARY
+========================================================= */
+
+let selectedCategory =
+    "all";
+
+
+let librarySearch =
+    "";
+
+
+function renderLibrary() {
+
+    const results =
+        instruments.filter(
+            instrument => {
+
+                const categoryMatch =
+
+                    selectedCategory ===
+                    "all" ||
+
+                    instrument.category ===
+                    selectedCategory;
+
+
+                const searchMatch =
+
+                    instrument.name
+                    .toLowerCase()
+                    .includes(
+                        librarySearch
+                    );
+
+
+                return (
+                    categoryMatch &&
+                    searchMatch
+                );
 
             }
         );
 
 
-        document.getElementById(
-            "playerXPText"
-        ).textContent =
-            "0 / 100";
+    $("#instrumentGrid")
+        .innerHTML =
+
+        results.map(
+            instrument => `
+
+                <article class="instrument-card">
+
+                    <div class="instrument-card-icon">
+
+                        ${instrument.icon}
+
+                    </div>
+
+                    <small>
+
+                        ${instrument.family.toUpperCase()}
+
+                    </small>
+
+                    <h3>
+                        ${instrument.name}
+                    </h3>
+
+                    <p>
+                        ${instrument.description}
+                    </p>
+
+                    <button
+                        data-sound="${instrument.name}"
+                    >
+                        ▶ Play Sound
+                    </button>
+
+                </article>
+
+            `
+        ).join("");
 
 
-        document.getElementById(
-            "playerXPBar"
-        ).style.width =
-            "0%";
+    $$("[data-sound]")
+    .forEach(
+        button => {
+
+            button.onclick =
+                () =>
+                    playInstrumentSound(
+                        getInstrument(
+                            button.dataset.sound
+                        )
+                    );
+
+        }
+    );
+
+}
 
 
-        document.getElementById(
-            "upgradePoints"
-        ).textContent =
-            "0";
+
+$$(".tab-button")
+.forEach(
+    button => {
+
+        button.onclick =
+            () => {
+
+                selectedCategory =
+                    button.dataset.category;
 
 
-        document.getElementById(
-            "battleStatus"
-        ).textContent =
-            "Choose an instrument.";
+                $$(".tab-button")
+                .forEach(
+                    tab =>
+                        tab.classList.remove(
+                            "active"
+                        )
+                );
+
+
+                button.classList.add(
+                    "active"
+                );
+
+
+                renderLibrary();
+
+            };
 
     }
 );
+
+
+$("#searchInput")
+    .oninput =
+    event => {
+
+        librarySearch =
+            event.target.value
+            .trim()
+            .toLowerCase();
+
+
+        renderLibrary();
+
+    };
 
 
 
@@ -3835,562 +5897,243 @@ document.getElementById(
    MUSICCRAFT
 ========================================================= */
 
-const mcCanvas =
-    document.getElementById(
-        "musiccraftCanvas"
-    );
+const canvas =
+    $("#musiccraftCanvas");
 
 
-const mcContext =
-    mcCanvas.getContext(
+const ctx =
+    canvas.getContext(
         "2d"
     );
 
 
-mcContext.imageSmoothingEnabled =
-    false;
-
-
-const MC_TILE_SIZE =
+const TILE =
     40;
 
 
-const MC_WORLD_SIZE =
+const WORLD =
     140;
 
 
-const MC_COLUMNS =
-    Math.ceil(
-        mcCanvas.width /
-        MC_TILE_SIZE
-    );
-
-
-const MC_ROWS =
-    Math.ceil(
-        mcCanvas.height /
-        MC_TILE_SIZE
-    );
-
-
-
-/* =========================================================
-   MUSICCRAFT BLOCKS
-========================================================= */
-
-const mcBlocks = {
-
-    air: {
-
-        name:
-            "Empty",
-
-        icon:
-            "",
-
-        color:
-            "#171a1f",
-
-        solid:
-            false,
-
-        mineable:
-            false,
-
-        xp:
-            0
-
-    },
-
-
-    grass: {
-
-        name:
-            "Grass",
-
-        icon:
-            "🌱",
-
-        color:
-            "#557d3b",
-
-        solid:
-            false,
-
-        mineable:
-            true,
-
-        xp:
-            1
-
-    },
-
-
-    dirt: {
-
-        name:
-            "Dirt",
-
-        icon:
-            "🟫",
-
-        color:
-            "#735038",
-
-        solid:
-            true,
-
-        mineable:
-            true,
-
-        xp:
-            1
-
-    },
-
-
-    stone: {
-
-        name:
-            "Stone",
-
-        icon:
-            "🪨",
-
-        color:
-            "#727981",
-
-        solid:
-            true,
-
-        mineable:
-            true,
-
-        xp:
-            2
-
-    },
-
-
-    coal: {
-
-        name:
-            "Coal",
-
-        icon:
-            "⬛",
-
-        color:
-            "#303238",
-
-        solid:
-            true,
-
-        mineable:
-            true,
-
-        xp:
-            4
-
-    },
-
-
-    iron: {
-
-        name:
-            "Iron",
-
-        icon:
-            "🔩",
-
-        color:
-            "#9b8f82",
-
-        solid:
-            true,
-
-        mineable:
-            true,
-
-        xp:
-            6
-
-    },
-
-
-    gold: {
-
-        name:
-            "Gold",
-
-        icon:
-            "🟨",
-
-        color:
-            "#caa84c",
-
-        solid:
-            true,
-
-        mineable:
-            true,
-
-        xp:
-            10
-
-    },
-
-
-    diamond: {
-
-        name:
-            "Diamond",
-
-        icon:
-            "💎",
-
-        color:
-            "#57c8d1",
-
-        solid:
-            true,
-
-        mineable:
-            true,
-
-        xp:
-            18
-
-    },
-
-
-    music: {
-
-        name:
-            "Music Crystal",
-
-        icon:
-            "🎵",
-
-        color:
-            "#9165af",
-
-        solid:
-            true,
-
-        mineable:
-            true,
-
-        xp:
-            25
-
-    },
-
-
-    water: {
-
-        name:
-            "Water",
-
-        icon:
-            "💧",
-
-        color:
-            "#286b9d",
-
-        solid:
-            true,
-
-        mineable:
-            false,
-
-        xp:
-            0
-
-    },
-
-
-    lava: {
-
-        name:
-            "Lava",
-
-        icon:
-            "🌋",
-
-        color:
-            "#b94c28",
-
-        solid:
-            true,
-
-        mineable:
-            false,
-
-        xp:
-            0
-
-    }
+const blockData = {
+
+air:{
+    icon:"",
+    color:"#171a1f",
+    mineable:false,
+    solid:false,
+    xp:0
+},
+
+grass:{
+    icon:"🌱",
+    color:"#557d3b",
+    mineable:true,
+    solid:false,
+    xp:1
+},
+
+dirt:{
+    icon:"🟫",
+    color:"#76513a",
+    mineable:true,
+    solid:true,
+    xp:1
+},
+
+stone:{
+    icon:"🪨",
+    color:"#717983",
+    mineable:true,
+    solid:true,
+    xp:2
+},
+
+coal:{
+    icon:"⬛",
+    color:"#30343a",
+    mineable:true,
+    solid:true,
+    xp:4
+},
+
+iron:{
+    icon:"🔩",
+    color:"#918579",
+    mineable:true,
+    solid:true,
+    xp:6
+},
+
+gold:{
+    icon:"🟨",
+    color:"#c8a34c",
+    mineable:true,
+    solid:true,
+    xp:10
+},
+
+diamond:{
+    icon:"💎",
+    color:"#55bfca",
+    mineable:true,
+    solid:true,
+    xp:18
+},
+
+music:{
+    icon:"🎵",
+    color:"#875ca6",
+    mineable:true,
+    solid:true,
+    xp:25
+},
+
+water:{
+    icon:"💧",
+    color:"#28699b",
+    mineable:false,
+    solid:true,
+    xp:0
+},
+
+lava:{
+    icon:"🌋",
+    color:"#b94c2c",
+    mineable:false,
+    solid:true,
+    xp:0
+}
 
 };
 
 
+const blockNames = {
 
-/* =========================================================
-   DEPTHS
-========================================================= */
+    dirt:"Dirt",
+    stone:"Stone",
+    coal:"Coal",
+    iron:"Iron",
+    gold:"Gold",
+    diamond:"Diamond",
+    music:"Music Crystal"
 
-let mcDepth =
-    0;
+};
 
 
-const mcDepthNames = [
+const depths = [
 
     "🌱 Surface",
-
     "⛏️ Underground",
-
     "🪨 Deep Caves",
-
     "💎 Crystal Depths",
-
     "🌋 Ancient Depths",
-
     "🎵 Music Core"
 
 ];
 
 
-const mcDepthDescriptions = [
+const missions = [
 
-    "Begin your mining journey with Dirt and Stone.",
+{
+    dirt:6,
+    stone:8
+},
 
-    "Coal starts appearing underground.",
+{
+    stone:12,
+    coal:5
+},
 
-    "Iron and small amounts of Gold can now be discovered.",
+{
+    coal:8,
+    iron:5
+},
 
-    "Diamonds and rare Music Crystals begin appearing.",
+{
+    iron:8,
+    gold:4,
+    diamond:1
+},
 
-    "Dangerous lava surrounds valuable rare ores.",
+{
+    gold:8,
+    diamond:4,
+    music:2
+},
 
-    "The deepest layer of MusicCraft, rich in Music Crystals."
-
-];
-
-
-const mcMissions = [
-
-    {
-
-        name:
-            "Getting Started",
-
-        requirements: {
-
-            dirt:
-                6,
-
-            stone:
-                8
-
-        }
-
-    },
-
-
-    {
-
-        name:
-            "Into the Underground",
-
-        requirements: {
-
-            stone:
-                12,
-
-            coal:
-                5
-
-        }
-
-    },
-
-
-    {
-
-        name:
-            "Iron Explorer",
-
-        requirements: {
-
-            coal:
-                8,
-
-            iron:
-                5
-
-        }
-
-    },
-
-
-    {
-
-        name:
-            "Treasure Hunter",
-
-        requirements: {
-
-            iron:
-                8,
-
-            gold:
-                4,
-
-            diamond:
-                1
-
-        }
-
-    },
-
-
-    {
-
-        name:
-            "Ancient Miner",
-
-        requirements: {
-
-            gold:
-                8,
-
-            diamond:
-                4,
-
-            music:
-                2
-
-        }
-
-    },
-
-
-    {
-
-        name:
-            "Master of the Music Core",
-
-        requirements: {
-
-            diamond:
-                10,
-
-            music:
-                8
-
-        }
-
-    }
+{
+    diamond:10,
+    music:8
+}
 
 ];
 
 
+let mcDepth =
+    0;
 
-/* =========================================================
-   MUSICCRAFT STATE
-========================================================= */
 
-let mcWorld =
+let world =
     [];
 
 
-let mcPlayer = {
-
-    x:
-        Math.floor(
-            MC_WORLD_SIZE / 2
-        ),
-
-    y:
-        Math.floor(
-            MC_WORLD_SIZE / 2
-        ),
-
-    health:
-        10,
-
-    xp:
-        0
-
-};
-
-
-let mcCamera = {
-
-    x:
-        0,
-
-    y:
-        0
-
-};
-
-
-let mcSelectedBlock =
+let selectedBlock =
     "dirt";
 
 
-let mcInventory = {
+const inventory = {
 
-    dirt:
-        0,
+    dirt:0,
+    stone:0,
+    coal:0,
+    iron:0,
+    gold:0,
+    diamond:0,
+    music:0
 
-    stone:
-        0,
+};
 
-    coal:
-        0,
 
-    iron:
-        0,
+const mcPlayer = {
 
-    gold:
-        0,
+    x:
+        Math.floor(
+            WORLD/2
+        ),
 
-    diamond:
-        0,
+    y:
+        Math.floor(
+            WORLD/2
+        ),
 
-    music:
-        0
+    health:10
+
+};
+
+
+let camera = {
+
+    x:0,
+    y:0
 
 };
 
 
 
-/* =========================================================
-   BLOCK DISTRIBUTION BY DEPTH
-========================================================= */
+function randomBlock() {
 
-function getBlockForDepth(
-    random
-) {
+    const r =
+        Math.random();
+
 
     if (
         mcDepth === 0
     ) {
 
-        if (random < .05) {
-            return "water";
-        }
-
-        if (random < .26) {
-            return "dirt";
-        }
-
-        if (random < .44) {
-            return "stone";
-        }
+        if (r<.05) return "water";
+        if (r<.30) return "dirt";
+        if (r<.48) return "stone";
 
         return "grass";
 
@@ -4401,13 +6144,8 @@ function getBlockForDepth(
         mcDepth === 1
     ) {
 
-        if (random < .10) {
-            return "coal";
-        }
-
-        if (random < .48) {
-            return "stone";
-        }
+        if (r<.12) return "coal";
+        if (r<.55) return "stone";
 
         return "dirt";
 
@@ -4418,17 +6156,9 @@ function getBlockForDepth(
         mcDepth === 2
     ) {
 
-        if (random < .11) {
-            return "coal";
-        }
-
-        if (random < .20) {
-            return "iron";
-        }
-
-        if (random < .225) {
-            return "gold";
-        }
+        if (r<.12) return "coal";
+        if (r<.22) return "iron";
+        if (r<.25) return "gold";
 
         return "stone";
 
@@ -4439,21 +6169,10 @@ function getBlockForDepth(
         mcDepth === 3
     ) {
 
-        if (random < .09) {
-            return "iron";
-        }
-
-        if (random < .17) {
-            return "gold";
-        }
-
-        if (random < .215) {
-            return "diamond";
-        }
-
-        if (random < .235) {
-            return "music";
-        }
+        if (r<.10) return "iron";
+        if (r<.18) return "gold";
+        if (r<.23) return "diamond";
+        if (r<.26) return "music";
 
         return "stone";
 
@@ -4464,43 +6183,20 @@ function getBlockForDepth(
         mcDepth === 4
     ) {
 
-        if (random < .07) {
-            return "lava";
-        }
-
-        if (random < .15) {
-            return "gold";
-        }
-
-        if (random < .215) {
-            return "diamond";
-        }
-
-        if (random < .26) {
-            return "music";
-        }
+        if (r<.07) return "lava";
+        if (r<.15) return "gold";
+        if (r<.22) return "diamond";
+        if (r<.28) return "music";
 
         return "stone";
 
     }
 
 
-    if (random < .07) {
-        return "lava";
-    }
-
-    if (random < .17) {
-        return "diamond";
-    }
-
-    if (random < .30) {
-        return "music";
-    }
-
-    if (random < .39) {
-        return "gold";
-    }
-
+    if (r<.08) return "lava";
+    if (r<.20) return "diamond";
+    if (r<.34) return "music";
+    if (r<.42) return "gold";
 
     return "stone";
 
@@ -4508,979 +6204,286 @@ function getBlockForDepth(
 
 
 
-/* =========================================================
-   WORLD GENERATION
-========================================================= */
+function generateWorld() {
 
-function generateMusicCraftWorld() {
-
-    mcWorld =
-        [];
-
-
-    for (
-        let y = 0;
-        y < MC_WORLD_SIZE;
-        y++
-    ) {
-
-        const row =
-            [];
-
-
-        for (
-            let x = 0;
-            x < MC_WORLD_SIZE;
-            x++
-        ) {
-
-            row.push(
-
-                getBlockForDepth(
-                    Math.random()
+    world =
+        Array.from(
+            {
+                length:WORLD
+            },
+            () =>
+                Array.from(
+                    {
+                        length:WORLD
+                    },
+                    randomBlock
                 )
-
-            );
-
-        }
-
-
-        mcWorld.push(
-            row
         );
 
-    }
-
-
-    /*
-       SAFE OPEN SPAWN AREA
-    */
 
     for (
-        let y =
-            mcPlayer.y - 2;
-
-        y <=
-            mcPlayer.y + 2;
-
+        let y=mcPlayer.y-2;
+        y<=mcPlayer.y+2;
         y++
     ) {
 
         for (
-            let x =
-                mcPlayer.x - 2;
-
-            x <=
-                mcPlayer.x + 2;
-
+            let x=mcPlayer.x-2;
+            x<=mcPlayer.x+2;
             x++
         ) {
 
-            if (
-                mcWorld[y] &&
-                mcWorld[y][x] !== undefined
-            ) {
-
-                mcWorld[y][x] =
-                    "air";
-
-            }
+            world[y][x] =
+                "air";
 
         }
 
     }
 
 
-    /*
-       GUARANTEE SOME MINEABLE MATERIAL
-       AROUND SPAWN SO THE GAME CANNOT GET STUCK.
-    */
+    drawWorld();
 
-    const nearbyResources =
-        mcDepth === 0
+    renderInventory();
 
-        ? [
-            "dirt",
-            "stone",
-            "stone",
-            "dirt"
-          ]
-
-        : mcDepth === 1
-
-        ? [
-            "stone",
-            "coal",
-            "stone",
-            "coal"
-          ]
-
-        : mcDepth === 2
-
-        ? [
-            "stone",
-            "coal",
-            "iron",
-            "stone"
-          ]
-
-        : mcDepth === 3
-
-        ? [
-            "iron",
-            "gold",
-            "stone",
-            "diamond"
-          ]
-
-        : mcDepth === 4
-
-        ? [
-            "gold",
-            "diamond",
-            "stone",
-            "music"
-          ]
-
-        : [
-            "diamond",
-            "music",
-            "gold",
-            "music"
-          ];
-
-
-    const positions = [
-
-        [3,0],
-        [-3,0],
-        [0,3],
-        [0,-3]
-
-    ];
-
-
-    positions.forEach(
-        (offset,index) => {
-
-            const x =
-                mcPlayer.x +
-                offset[0];
-
-
-            const y =
-                mcPlayer.y +
-                offset[1];
-
-
-            mcWorld[y][x] =
-                nearbyResources[index];
-
-        }
-    );
-
-
-    addMusicCraftLog(
-
-        `⛏️ Entered ${mcDepthNames[mcDepth]}.`
-
-    );
-
-
-    updateMiningMission();
-
-    renderMusicCraftInventory();
-
-    drawMusicCraft();
+    renderMission();
 
 }
 
 
 
-/* =========================================================
-   DRAW MUSICCRAFT TILE
-========================================================= */
+function drawWorld() {
 
-function drawMusicCraftTile(
-    screenX,
-    screenY,
-    blockName,
-    worldX,
-    worldY
-) {
-
-    const block =
-        mcBlocks[
-            blockName
-        ];
-
-
-    if (!block) {
-        return;
-    }
-
-
-    /*
-       EMPTY / CAVE FLOOR
-    */
-
-    if (
-        blockName ===
-        "air"
-    ) {
-
-        mcContext.fillStyle =
-
-            mcDepth === 0
-
-            ? "#344b2b"
-
-            : "#171a1f";
-
-
-        mcContext.fillRect(
-
-            screenX,
-            screenY,
-
-            MC_TILE_SIZE,
-            MC_TILE_SIZE
-
-        );
-
-
-        const seed =
-
-            (
-                worldX * 19 +
-                worldY * 29
-            ) % 17;
-
-
-        mcContext.fillStyle =
-            "rgba(255,255,255,.025)";
-
-
-        mcContext.fillRect(
-
-            screenX +
-            6 +
-            seed,
-
-            screenY +
-            12,
-
-            3,
-            3
-
-        );
-
-
-        mcContext.strokeStyle =
-            "rgba(0,0,0,.12)";
-
-
-        mcContext.strokeRect(
-
-            screenX,
-            screenY,
-
-            MC_TILE_SIZE,
-            MC_TILE_SIZE
-
-        );
-
-
-        return;
-
-    }
-
-
-    /*
-       BLOCK BASE
-    */
-
-    mcContext.fillStyle =
-        block.color;
-
-
-    mcContext.fillRect(
-
-        screenX,
-        screenY,
-
-        MC_TILE_SIZE,
-        MC_TILE_SIZE
-
-    );
-
-
-    const seed =
-
-        (
-            worldX * 17 +
-            worldY * 31
-        ) % 13;
-
-
-    mcContext.fillStyle =
-        "rgba(255,255,255,.06)";
-
-
-    mcContext.fillRect(
-
-        screenX +
-        5 +
-        seed,
-
-        screenY +
-        8,
-
-        4,
-        4
-
-    );
-
-
-    mcContext.fillStyle =
-        "rgba(0,0,0,.1)";
-
-
-    mcContext.fillRect(
-
-        screenX +
-        20,
-
-        screenY +
-        25,
-
-        5,
-        4
-
-    );
-
-
-    mcContext.strokeStyle =
-        "rgba(0,0,0,.18)";
-
-
-    mcContext.strokeRect(
-
-        screenX,
-        screenY,
-
-        MC_TILE_SIZE,
-        MC_TILE_SIZE
-
-    );
-
-
-    /*
-       MUSIC CRYSTAL
-    */
-
-    if (
-        blockName ===
-        "music"
-    ) {
-
-        mcContext.fillStyle =
-            "#f8e9ff";
-
-
-        mcContext.font =
-            "22px serif";
-
-
-        mcContext.textAlign =
-            "center";
-
-
-        mcContext.textBaseline =
-            "middle";
-
-
-        mcContext.fillText(
-
-            "♪",
-
-            screenX +
-            MC_TILE_SIZE / 2,
-
-            screenY +
-            MC_TILE_SIZE / 2
-
-        );
-
-    }
-
-
-    /*
-       DIAMOND
-    */
-
-    if (
-        blockName ===
-        "diamond"
-    ) {
-
-        mcContext.fillStyle =
-            "#c7ffff";
-
-
-        mcContext.fillRect(
-
-            screenX + 12,
-            screenY + 10,
-
-            6,
-            6
-
-        );
-
-
-        mcContext.fillRect(
-
-            screenX + 25,
-            screenY + 24,
-
-            5,
-            5
-
-        );
-
-    }
-
-
-    /*
-       GOLD
-    */
-
-    if (
-        blockName ===
-        "gold"
-    ) {
-
-        mcContext.fillStyle =
-            "#ffe49a";
-
-
-        mcContext.fillRect(
-
-            screenX + 10,
-            screenY + 10,
-
-            6,
-            5
-
-        );
-
-
-        mcContext.fillRect(
-
-            screenX + 26,
-            screenY + 25,
-
-            5,
-            5
-
-        );
-
-    }
-
-
-    /*
-       COAL
-    */
-
-    if (
-        blockName ===
-        "coal"
-    ) {
-
-        mcContext.fillStyle =
-            "#101116";
-
-
-        mcContext.fillRect(
-
-            screenX + 10,
-            screenY + 9,
-
-            7,
-            6
-
-        );
-
-
-        mcContext.fillRect(
-
-            screenX + 24,
-            screenY + 26,
-
-            6,
-            5
-
-        );
-
-    }
-
-
-    /*
-       IRON
-    */
-
-    if (
-        blockName ===
-        "iron"
-    ) {
-
-        mcContext.fillStyle =
-            "#d0bda9";
-
-
-        mcContext.fillRect(
-
-            screenX + 8,
-            screenY + 12,
-
-            7,
-            5
-
-        );
-
-
-        mcContext.fillRect(
-
-            screenX + 26,
-            screenY + 24,
-
-            6,
-            5
-
-        );
-
-    }
-
-
-    /*
-       LAVA
-    */
-
-    if (
-        blockName ===
-        "lava"
-    ) {
-
-        mcContext.fillStyle =
-            "#f47c33";
-
-
-        mcContext.fillRect(
-
-            screenX + 5,
-            screenY + 9,
-
-            30,
-            5
-
-        );
-
-
-        mcContext.fillStyle =
-            "#ffd166";
-
-
-        mcContext.fillRect(
-
-            screenX + 12,
-            screenY + 25,
-
-            17,
-            4
-
-        );
-
-    }
-
-}
-
-
-
-/* =========================================================
-   DRAW PLAYER
-========================================================= */
-
-function drawMusicCraftPlayer(
-    x,
-    y
-) {
-
-    mcContext.fillStyle =
-        "rgba(0,0,0,.28)";
-
-
-    mcContext.fillRect(
-
-        x + 7,
-        y + 31,
-
-        27,
-        5
-
-    );
-
-
-    /*
-       BODY
-    */
-
-    mcContext.fillStyle =
-        "#c39a55";
-
-
-    mcContext.fillRect(
-
-        x + 10,
-        y + 15,
-
-        20,
-        19
-
-    );
-
-
-    /*
-       HEAD
-    */
-
-    mcContext.fillStyle =
-        "#e8c9a1";
-
-
-    mcContext.fillRect(
-
-        x + 11,
-        y + 4,
-
-        18,
-        16
-
-    );
-
-
-    /*
-       HAIR
-    */
-
-    mcContext.fillStyle =
-        "#3e2d22";
-
-
-    mcContext.fillRect(
-
-        x + 11,
-        y + 4,
-
-        18,
-        5
-
-    );
-
-
-    /*
-       EYES
-    */
-
-    mcContext.fillStyle =
-        "#111820";
-
-
-    mcContext.fillRect(
-
-        x + 15,
-        y + 11,
-
-        2,
-        2
-
-    );
-
-
-    mcContext.fillRect(
-
-        x + 24,
-        y + 11,
-
-        2,
-        2
-
-    );
-
-
-    /*
-       PICKAXE
-    */
-
-    mcContext.fillStyle =
-        "#b8bec6";
-
-
-    mcContext.fillRect(
-
-        x + 29,
-        y + 16,
-
-        8,
-        3
-
-    );
-
-
-    mcContext.fillStyle =
-        "#7b5230";
-
-
-    mcContext.fillRect(
-
-        x + 32,
-        y + 18,
-
-        3,
-        11
-
-    );
-
-}
-
-
-
-/* =========================================================
-   DRAW WORLD
-========================================================= */
-
-function drawMusicCraft() {
-
-    mcContext.clearRect(
-
+    ctx.clearRect(
         0,
         0,
-
-        mcCanvas.width,
-        mcCanvas.height
-
+        canvas.width,
+        canvas.height
     );
 
 
-    mcCamera.x =
+    const cols =
+        Math.ceil(
+            canvas.width/TILE
+        );
 
+
+    const rows =
+        Math.ceil(
+            canvas.height/TILE
+        );
+
+
+    camera.x =
         mcPlayer.x -
-
         Math.floor(
-            MC_COLUMNS / 2
+            cols/2
         );
 
 
-    mcCamera.y =
-
+    camera.y =
         mcPlayer.y -
-
         Math.floor(
-            MC_ROWS / 2
+            rows/2
         );
 
 
     for (
-        let viewY = 0;
-        viewY <= MC_ROWS;
-        viewY++
+        let sy=0;
+        sy<=rows;
+        sy++
     ) {
 
         for (
-            let viewX = 0;
-            viewX <= MC_COLUMNS;
-            viewX++
+            let sx=0;
+            sx<=cols;
+            sx++
         ) {
 
-            const worldX =
-
-                mcCamera.x +
-                viewX;
+            const wx =
+                camera.x+sx;
 
 
-            const worldY =
-
-                mcCamera.y +
-                viewY;
+            const wy =
+                camera.y+sy;
 
 
             if (
-                worldX < 0 ||
-                worldY < 0 ||
-                worldX >= MC_WORLD_SIZE ||
-                worldY >= MC_WORLD_SIZE
+                wx<0 ||
+                wy<0 ||
+                wx>=WORLD ||
+                wy>=WORLD
+            ) continue;
+
+
+            const name =
+                world[wy][wx];
+
+
+            const block =
+                blockData[name];
+
+
+            ctx.fillStyle =
+                block.color;
+
+
+            ctx.fillRect(
+                sx*TILE,
+                sy*TILE,
+                TILE,
+                TILE
+            );
+
+
+            ctx.strokeStyle =
+                "rgba(0,0,0,.15)";
+
+
+            ctx.strokeRect(
+                sx*TILE,
+                sy*TILE,
+                TILE,
+                TILE
+            );
+
+
+            if (
+                [
+                    "gold",
+                    "diamond",
+                    "music",
+                    "water",
+                    "lava"
+                ].includes(name)
             ) {
 
-                continue;
+                ctx.font =
+                    "18px serif";
+
+
+                ctx.textAlign =
+                    "center";
+
+
+                ctx.fillText(
+
+                    block.icon,
+
+                    sx*TILE+20,
+
+                    sy*TILE+26
+
+                );
 
             }
-
-
-            const blockName =
-                mcWorld[
-                    worldY
-                ][
-                    worldX
-                ];
-
-
-            drawMusicCraftTile(
-
-                viewX * MC_TILE_SIZE,
-
-                viewY * MC_TILE_SIZE,
-
-                blockName,
-
-                worldX,
-
-                worldY
-
-            );
 
         }
 
     }
 
 
-    const playerScreenX =
-
+    const px =
         (
-            mcPlayer.x -
-            mcCamera.x
-        ) * MC_TILE_SIZE;
+            mcPlayer.x-camera.x
+        )*TILE;
 
 
-    const playerScreenY =
-
+    const py =
         (
-            mcPlayer.y -
-            mcCamera.y
-        ) * MC_TILE_SIZE;
+            mcPlayer.y-camera.y
+        )*TILE;
 
 
-    drawMusicCraftPlayer(
+    /* BLOCKY PLAYER */
 
-        playerScreenX,
-        playerScreenY
+    ctx.fillStyle =
+        profile.avatar.outfit;
 
+
+    ctx.fillRect(
+        px+10,
+        py+13,
+        20,
+        22
     );
 
 
-    updateMusicCraftHUD();
+    ctx.fillStyle =
+        profile.avatar.skin;
+
+
+    ctx.fillRect(
+        px+12,
+        py+4,
+        16,
+        14
+    );
+
+
+    ctx.fillStyle =
+        profile.avatar.hair;
+
+
+    ctx.fillRect(
+        px+12,
+        py+3,
+        16,
+        4
+    );
+
+
+    $("#mcHealth")
+        .textContent =
+        mcPlayer.health;
 
 }
 
 
 
-/* =========================================================
-   MOVEMENT
-========================================================= */
-
-function moveMusicCraftPlayer(
+function moveMC(
     dx,
     dy
 ) {
 
-    const nextX =
-        mcPlayer.x + dx;
+    const x =
+        mcPlayer.x+dx;
 
 
-    const nextY =
-        mcPlayer.y + dy;
+    const y =
+        mcPlayer.y+dy;
 
 
     if (
-        nextX < 0 ||
-        nextY < 0 ||
-        nextX >= MC_WORLD_SIZE ||
-        nextY >= MC_WORLD_SIZE
-    ) {
-
-        addMusicCraftLog(
-
-            "🗺️ You reached the edge of the region."
-
-        );
-
-
-        return;
-
-    }
-
-
-    const blockName =
-        mcWorld[
-            nextY
-        ][
-            nextX
-        ];
+        x<0 ||
+        y<0 ||
+        x>=WORLD ||
+        y>=WORLD
+    ) return;
 
 
     const block =
-        mcBlocks[
-            blockName
-        ];
+        world[y][x];
 
 
     if (
-        block.solid
+        blockData[block].solid
     ) {
 
         if (
-            blockName ===
+            block ===
             "lava"
         ) {
 
             mcPlayer.health =
                 Math.max(
                     1,
-                    mcPlayer.health - 1
+                    mcPlayer.health-1
                 );
 
-
-            addMusicCraftLog(
-
-                "🔥 Lava burned you! -1 Health."
-
-            );
-
-
-            updateMusicCraftHUD();
-
-        }
-        else if (
-            blockName ===
-            "water"
-        ) {
-
-            addMusicCraftLog(
-
-                "💧 Deep water blocks your path."
-
-            );
-
-        }
-        else {
-
-            addMusicCraftLog(
-
-                `⛏️ Mine the ${block.name} first.`
-
-            );
-
         }
 
+
+        drawWorld();
 
         return;
 
@@ -5488,291 +6491,64 @@ function moveMusicCraftPlayer(
 
 
     mcPlayer.x =
-        nextX;
+        x;
 
 
     mcPlayer.y =
-        nextY;
+        y;
 
 
-    drawMusicCraft();
+    drawWorld();
 
 }
 
 
 
-/* =========================================================
-   KEYBOARD CONTROLS
-========================================================= */
-
-mcCanvas.addEventListener(
-    "keydown",
-    event => {
-
-        const key =
-            event.key.toLowerCase();
-
-
-        const movementKeys = [
-
-            "w",
-            "a",
-            "s",
-            "d",
-            "arrowup",
-            "arrowdown",
-            "arrowleft",
-            "arrowright"
-
-        ];
-
-
-        if (
-            movementKeys.includes(
-                key
-            )
-        ) {
-
-            event.preventDefault();
-
-        }
-
-
-        if (
-            key === "w" ||
-            key === "arrowup"
-        ) {
-
-            moveMusicCraftPlayer(
-                0,
-                -1
-            );
-
-        }
-
-
-        if (
-            key === "s" ||
-            key === "arrowdown"
-        ) {
-
-            moveMusicCraftPlayer(
-                0,
-                1
-            );
-
-        }
-
-
-        if (
-            key === "a" ||
-            key === "arrowleft"
-        ) {
-
-            moveMusicCraftPlayer(
-                -1,
-                0
-            );
-
-        }
-
-
-        if (
-            key === "d" ||
-            key === "arrowright"
-        ) {
-
-            moveMusicCraftPlayer(
-                1,
-                0
-            );
-
-        }
-
-
-        const inventoryKeys = {
-
-            "1":
-                "dirt",
-
-            "2":
-                "stone",
-
-            "3":
-                "coal",
-
-            "4":
-                "iron",
-
-            "5":
-                "gold",
-
-            "6":
-                "diamond",
-
-            "7":
-                "music"
-
-        };
-
-
-        if (
-            inventoryKeys[
-                key
-            ]
-        ) {
-
-            selectMusicCraftBlock(
-
-                inventoryKeys[
-                    key
-                ]
-
-            );
-
-        }
-
-    }
-);
-
-
-
-/* =========================================================
-   MOBILE MOVEMENT
-========================================================= */
-
-document
-    .querySelectorAll(
-        "[data-mc-move]"
-    )
-    .forEach(
-        button => {
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    const direction =
-                        button.dataset.mcMove;
-
-
-                    if (
-                        direction ===
-                        "up"
-                    ) {
-
-                        moveMusicCraftPlayer(
-                            0,
-                            -1
-                        );
-
-                    }
-
-
-                    if (
-                        direction ===
-                        "down"
-                    ) {
-
-                        moveMusicCraftPlayer(
-                            0,
-                            1
-                        );
-
-                    }
-
-
-                    if (
-                        direction ===
-                        "left"
-                    ) {
-
-                        moveMusicCraftPlayer(
-                            -1,
-                            0
-                        );
-
-                    }
-
-
-                    if (
-                        direction ===
-                        "right"
-                    ) {
-
-                        moveMusicCraftPlayer(
-                            1,
-                            0
-                        );
-
-                    }
-
-                }
-            );
-
-        }
-    );
-
-
-
-/* =========================================================
-   CANVAS CLICK → WORLD TILE
-========================================================= */
-
-function getMusicCraftTile(
-    event
-) {
+function canvasTile(event) {
 
     const rect =
-        mcCanvas.getBoundingClientRect();
+        canvas.getBoundingClientRect();
 
 
-    const scaleX =
-        mcCanvas.width /
-        rect.width;
-
-
-    const scaleY =
-        mcCanvas.height /
-        rect.height;
-
-
-    const mouseX =
+    const x =
 
         (
-            event.clientX -
+            event.clientX-
             rect.left
-        ) * scaleX;
-
-
-    const mouseY =
+        ) *
 
         (
-            event.clientY -
+            canvas.width/
+            rect.width
+        );
+
+
+    const y =
+
+        (
+            event.clientY-
             rect.top
-        ) * scaleY;
+        ) *
+
+        (
+            canvas.height/
+            rect.height
+        );
 
 
     return {
 
         x:
-
-            mcCamera.x +
-
             Math.floor(
-                mouseX /
-                MC_TILE_SIZE
-            ),
-
+                x/TILE
+            ) +
+            camera.x,
 
         y:
-
-            mcCamera.y +
-
             Math.floor(
-                mouseY /
-                MC_TILE_SIZE
-            )
+                y/TILE
+            ) +
+            camera.y
 
     };
 
@@ -5780,855 +6556,444 @@ function getMusicCraftTile(
 
 
 
-/* =========================================================
-   MINING
-========================================================= */
-
-mcCanvas.addEventListener(
-    "click",
-    event => {
-
-        mcCanvas.focus();
-
-
-        const tile =
-            getMusicCraftTile(
-                event
-            );
-
-
-        mineMusicCraftBlock(
-
-            tile.x,
-
-            tile.y
-
-        );
-
-    }
-);
-
-
-function mineMusicCraftBlock(
+function mineBlock(
     x,
     y
 ) {
 
-    /*
-       WORLD BOUNDS
-    */
+    if (
+        !world[y] ||
+        !world[y][x]
+    ) return;
+
 
     if (
-        x < 0 ||
-        y < 0 ||
-        x >= MC_WORLD_SIZE ||
-        y >= MC_WORLD_SIZE
-    ) {
-
-        return;
-
-    }
-
-
-    /*
-       CAN'T MINE YOUR OWN TILE
-    */
-
-    if (
-        x === mcPlayer.x &&
-        y === mcPlayer.y
-    ) {
-
-        addMusicCraftLog(
-
-            "❌ You cannot mine the block you are standing on."
-
-        );
-
-
-        return;
-
-    }
-
-
-    /*
-       MINING RANGE
-
-       Up to 2 tiles horizontally and vertically.
-       Diagonals work too.
-    */
-
-    const distanceX =
         Math.abs(
-            x -
-            mcPlayer.x
-        );
+            x-mcPlayer.x
+        ) > 2 ||
 
-
-    const distanceY =
         Math.abs(
-            y -
-            mcPlayer.y
-        );
+            y-mcPlayer.y
+        ) > 2
+    ) return;
+
+
+    const name =
+        world[y][x];
+
+
+    const data =
+        blockData[name];
 
 
     if (
-        distanceX > 2 ||
-        distanceY > 2
-    ) {
-
-        addMusicCraftLog(
-
-            "⛏️ Move closer to mine that block."
-
-        );
+        !data.mineable
+    ) return;
 
 
-        return;
+    const resource =
+        name === "grass"
+        ? "dirt"
+        : name;
 
-    }
-
-
-    const blockName =
-        mcWorld[
-            y
-        ][
-            x
-        ];
-
-
-    const block =
-        mcBlocks[
-            blockName
-        ];
-
-
-    /*
-       EMPTY TILE
-    */
 
     if (
-        blockName ===
-        "air"
+        resource in inventory
     ) {
 
-        addMusicCraftLog(
-
-            "There is nothing there to mine."
-
-        );
-
-
-        return;
-
-    }
-
-
-    /*
-       UNMINEABLE
-    */
-
-    if (
-        !block.mineable
-    ) {
-
-        if (
-            blockName ===
-            "water"
-        ) {
-
-            addMusicCraftLog(
-
-                "💧 Water cannot be mined."
-
-            );
-
-        }
-        else if (
-            blockName ===
-            "lava"
-        ) {
-
-            addMusicCraftLog(
-
-                "🔥 Lava is too hot to mine!"
-
-            );
-
-        }
-        else {
-
-            addMusicCraftLog(
-
-                `❌ ${block.name} cannot be mined.`
-
-            );
-
-        }
-
-
-        return;
-
-    }
-
-
-    /*
-       ADD RESOURCE
-    */
-
-    if (
-        blockName ===
-        "grass"
-    ) {
-
-        mcInventory.dirt++;
-
-    }
-    else if (
-
-        Object.prototype.hasOwnProperty.call(
-
-            mcInventory,
-
-            blockName
-
-        )
-
-    ) {
-
-        mcInventory[
-            blockName
+        inventory[
+            resource
         ]++;
 
     }
 
 
-    /*
-       EXP
-    */
-
-    mcPlayer.xp +=
-        block.xp;
-
-
-    /*
-       IMPORTANT FIX:
-
-       ACTUALLY REMOVE BLOCK.
-    */
-
-    mcWorld[
-        y
-    ][
-        x
-    ] =
+    world[y][x] =
         "air";
 
 
-    addMusicCraftLog(
+    addXP(
+        data.xp
+    );
 
-        `${block.icon} Mined ${block.name}! +${block.xp} EXP`
+
+    addMasteryXP(
+        data.xp
+    );
+
+
+    addMCLog(
+
+        `${data.icon} ${blockNames[resource] || resource} +${data.xp} EXP`
 
     );
 
 
-    /*
-       MINING SOUND
-    */
+    renderInventory();
 
-    if (
-        blockName ===
-        "stone" ||
-        blockName ===
-        "coal" ||
-        blockName ===
-        "iron"
-    ) {
+    renderMission();
 
-        playXylophone(
-            260
-        );
-
-    }
-
-
-    if (
-        blockName ===
-        "gold"
-    ) {
-
-        playXylophone(
-            523.25
-        );
-
-    }
-
-
-    if (
-        blockName ===
-        "diamond"
-    ) {
-
-        playPiano(
-            783.99
-        );
-
-
-        setTimeout(
-            () =>
-                playPiano(
-                    1046.5
-                ),
-            120
-        );
-
-    }
-
-
-    if (
-        blockName ===
-        "music"
-    ) {
-
-        playPiano(
-
-            randomItem(
-                [
-                    261.63,
-                    293.66,
-                    329.63,
-                    349.23,
-                    392,
-                    440,
-                    493.88,
-                    523.25
-                ]
-            )
-
-        );
-
-
-        addMusicCraftLog(
-
-            "🎵 You discovered a rare Music Crystal!"
-
-        );
-
-    }
-
-
-    renderMusicCraftInventory();
-
-    updateMiningMission();
-
-    updateMusicCraftHUD();
-
-    drawMusicCraft();
+    drawWorld();
 
 }
 
 
 
-/* =========================================================
-   PLACE BLOCKS
-========================================================= */
-
-mcCanvas.addEventListener(
-    "contextmenu",
-    event => {
-
-        event.preventDefault();
-
-
-        mcCanvas.focus();
-
-
-        const tile =
-            getMusicCraftTile(
-                event
-            );
-
-
-        placeMusicCraftBlock(
-
-            tile.x,
-
-            tile.y
-
-        );
-
-    }
-);
-
-
-function placeMusicCraftBlock(
+function placeBlock(
     x,
     y
 ) {
 
     if (
-        x < 0 ||
-        y < 0 ||
-        x >= MC_WORLD_SIZE ||
-        y >= MC_WORLD_SIZE
-    ) {
-
-        return;
-
-    }
-
-
-    /*
-       RANGE
-    */
-
-    const distanceX =
-        Math.abs(
-            x -
-            mcPlayer.x
-        );
-
-
-    const distanceY =
-        Math.abs(
-            y -
-            mcPlayer.y
-        );
-
-
-    if (
-        distanceX > 2 ||
-        distanceY > 2
-    ) {
-
-        addMusicCraftLog(
-
-            "🧱 That location is too far away."
-
-        );
-
-
-        return;
-
-    }
-
-
-    if (
-        x === mcPlayer.x &&
-        y === mcPlayer.y
-    ) {
-
-        addMusicCraftLog(
-
-            "❌ You cannot place a block on yourself."
-
-        );
-
-
-        return;
-
-    }
-
-
-    /*
-       ONLY BUILD ON EMPTY SPACE
-    */
-
-    if (
-        mcWorld[y][x] !==
+        !world[y] ||
+        world[y][x] !==
         "air"
-    ) {
-
-        addMusicCraftLog(
-
-            "❌ Mine that block before building there."
-
-        );
-
-
-        return;
-
-    }
+    ) return;
 
 
     if (
-        !mcInventory[
-            mcSelectedBlock
-        ]
-    ) {
+        Math.abs(
+            x-mcPlayer.x
+        ) > 2 ||
 
-        addMusicCraftLog(
-
-            `❌ You have no ${mcBlocks[mcSelectedBlock].name}.`
-
-        );
+        Math.abs(
+            y-mcPlayer.y
+        ) > 2
+    ) return;
 
 
-        return;
-
-    }
-
-
-    mcWorld[
-        y
-    ][
-        x
-    ] =
-        mcSelectedBlock;
+    if (
+        inventory[
+            selectedBlock
+        ] <= 0
+    ) return;
 
 
-    mcInventory[
-        mcSelectedBlock
+    world[y][x] =
+        selectedBlock;
+
+
+    inventory[
+        selectedBlock
     ]--;
 
 
-    addMusicCraftLog(
+    renderInventory();
 
-        `🧱 Placed ${mcBlocks[mcSelectedBlock].name}.`
+    renderMission();
 
-    );
-
-
-    if (
-        mcSelectedBlock ===
-        "music"
-    ) {
-
-        playPiano(
-            523.25
-        );
-
-    }
-
-
-    renderMusicCraftInventory();
-
-    updateMiningMission();
-
-    drawMusicCraft();
+    drawWorld();
 
 }
 
 
 
-/* =========================================================
-   INVENTORY
-========================================================= */
+canvas.onmousedown =
+    event => {
 
-function renderMusicCraftInventory() {
-
-    const container =
-        document.getElementById(
-            "mcInventory"
-        );
+        canvas.focus();
 
 
-    container.innerHTML =
-        "";
+        if (
+            event.button !== 0
+        ) return;
 
 
-    Object.entries(
-        mcInventory
-    )
-    .forEach(
-        (
-            [
-                blockName,
-                amount
-            ],
-            index
-        ) => {
-
-            const block =
-                mcBlocks[
-                    blockName
-                ];
-
-
-            const button =
-                document.createElement(
-                    "button"
-                );
-
-
-            button.type =
-                "button";
-
-
-            button.className =
-
-                `mc-inventory-item ${
-                    mcSelectedBlock ===
-                    blockName
-                        ? "selected"
-                        : ""
-                }`;
-
-
-            button.innerHTML = `
-
-                <span class="mc-inventory-icon">
-                    ${block.icon}
-                </span>
-
-                ${index + 1}. ${block.name}
-
-                <span class="mc-inventory-count">
-                    × ${amount}
-                </span>
-
-            `;
-
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    selectMusicCraftBlock(
-                        blockName
-                    );
-
-                }
+        const tile =
+            canvasTile(
+                event
             );
 
 
-            container.appendChild(
-                button
+        mineBlock(
+            tile.x,
+            tile.y
+        );
+
+    };
+
+
+canvas.oncontextmenu =
+    event => {
+
+        event.preventDefault();
+
+
+        const tile =
+            canvasTile(
+                event
+            );
+
+
+        placeBlock(
+            tile.x,
+            tile.y
+        );
+
+    };
+
+
+canvas.onkeydown =
+    event => {
+
+        const key =
+            event.key
+            .toLowerCase();
+
+
+        const moves = {
+
+            w:[0,-1],
+            arrowup:[0,-1],
+
+            s:[0,1],
+            arrowdown:[0,1],
+
+            a:[-1,0],
+            arrowleft:[-1,0],
+
+            d:[1,0],
+            arrowright:[1,0]
+
+        };
+
+
+        if (
+            moves[key]
+        ) {
+
+            event.preventDefault();
+
+
+            moveMC(
+                ...moves[key]
             );
 
         }
-    );
 
-}
 
+        const selections = {
 
-function selectMusicCraftBlock(
-    blockName
-) {
+            1:"dirt",
+            2:"stone",
+            3:"coal",
+            4:"iron",
+            5:"gold",
+            6:"diamond",
+            7:"music"
 
-    if (
-        mcInventory[
-            blockName
-        ] === undefined
-    ) {
+        };
 
-        return;
 
-    }
+        if (
+            selections[key]
+        ) {
 
+            selectedBlock =
+                selections[key];
 
-    mcSelectedBlock =
-        blockName;
 
-
-    document.getElementById(
-        "mcSelectedBlock"
-    ).textContent =
-
-        `${mcBlocks[blockName].icon} ${mcBlocks[blockName].name}`;
-
-
-    renderMusicCraftInventory();
-
-}
-
-
-
-/* =========================================================
-   MINING MISSIONS
-========================================================= */
-
-function updateMiningMission() {
-
-    const mission =
-        mcMissions[
-            mcDepth
-        ];
-
-
-    document.getElementById(
-        "mcDepth"
-    ).textContent =
-        mcDepthNames[
-            mcDepth
-        ];
-
-
-    const descriptionElement =
-        document.getElementById(
-            "mcDepthDescription"
-        );
-
-
-    if (
-        descriptionElement
-    ) {
-
-        descriptionElement.textContent =
-            mcDepthDescriptions[
-                mcDepth
-            ];
-
-    }
-
-
-    document.getElementById(
-        "mcMissionTitle"
-    ).textContent =
-        mission.name;
-
-
-    const list =
-        document.getElementById(
-            "mcMissionList"
-        );
-
-
-    list.innerHTML =
-        "";
-
-
-    let totalNeeded =
-        0;
-
-
-    let totalHave =
-        0;
-
-
-    Object.entries(
-        mission.requirements
-    )
-    .forEach(
-        (
-            [
-                resource,
-                required
-            ]
-        ) => {
-
-            const current =
-                Math.min(
-
-                    mcInventory[
-                        resource
-                    ] || 0,
-
-                    required
-
-                );
-
-
-            totalNeeded +=
-                required;
-
-
-            totalHave +=
-                current;
-
-
-            const complete =
-
-                current >=
-                required;
-
-
-            const row =
-                document.createElement(
-                    "div"
-                );
-
-
-            row.className =
-
-                `mc-mission-item ${
-                    complete
-                        ? "complete"
-                        : ""
-                }`;
-
-
-            row.innerHTML = `
-
-                <span>
-
-                    ${mcBlocks[resource].icon}
-                    ${mcBlocks[resource].name}
-
-                </span>
-
-                <strong>
-
-                    ${current}/${required}
-
-                    ${complete ? "✓" : ""}
-
-                </strong>
-
-            `;
-
-
-            list.appendChild(
-                row
-            );
+            renderInventory();
 
         }
-    );
+
+    };
 
 
-    const percentage =
 
-        totalNeeded === 0
+function renderInventory() {
 
-        ? 100
-
-        : Math.round(
-
-            totalHave /
-            totalNeeded *
-            100
-
-        );
-
-
-    document.getElementById(
-        "mcMissionProgressBar"
-    ).style.width =
-
-        `${percentage}%`;
-
-
-    const complete =
+    $("#mcInventory")
+        .innerHTML =
 
         Object.entries(
-            mission.requirements
-        )
-        .every(
+            inventory
+        ).map(
             (
-                [
-                    resource,
-                    amount
-                ]
-            ) =>
+                [name,count],
+                index
+            ) => `
 
-                (
-                    mcInventory[
-                        resource
-                    ] || 0
-                ) >= amount
+                <button
+                    class="
+                        inventory-button
 
-        );
+                        ${
+                            selectedBlock === name
+                            ? "selected"
+                            : ""
+                        }
+                    "
+
+                    data-block="${name}"
+                >
+
+                    <span>
+                        ${blockData[name].icon}
+                    </span>
+
+                    <span>
+
+                        ${index+1}.
+                        ${blockNames[name]}
+
+                    </span>
+
+                    <span>
+                        ×${count}
+                    </span>
+
+                </button>
+
+            `
+        ).join("");
+
+
+    $$(".inventory-button")
+    .forEach(
+        button => {
+
+            button.onclick =
+                () => {
+
+                    selectedBlock =
+                        button.dataset.block;
+
+
+                    $("#mcSelectedBlock")
+                        .textContent =
+
+                        `${blockData[selectedBlock].icon} ${blockNames[selectedBlock]}`;
+
+
+                    renderInventory();
+
+                };
+
+        }
+    );
+
+}
+
+
+
+function renderMission() {
+
+    const mission =
+        missions[
+            mcDepth
+        ];
+
+
+    $("#mcDepth")
+        .textContent =
+        depths[
+            mcDepth
+        ];
+
+
+    $("#mcDepthDescription")
+        .textContent =
+        `Depth ${mcDepth+1} of ${depths.length}`;
+
+
+    $("#mcMissionTitle")
+        .textContent =
+
+        mcDepth ===
+        depths.length-1
+
+        ? "Music Core Master"
+
+        : `Reach ${depths[mcDepth+1]}`;
+
+
+    let current =
+        0;
+
+
+    let required =
+        0;
+
+
+    let complete =
+        true;
+
+
+    $("#mcMissionList")
+        .innerHTML =
+
+        Object.entries(
+            mission
+        ).map(
+            ([name,amount]) => {
+
+                const have =
+                    inventory[name] || 0;
+
+
+                current +=
+                    Math.min(
+                        have,
+                        amount
+                    );
+
+
+                required +=
+                    amount;
+
+
+                if (
+                    have < amount
+                ) {
+
+                    complete =
+                        false;
+
+                }
+
+
+                return `
+
+                    <div>
+
+                        <span>
+
+                            ${blockData[name].icon}
+
+                            ${blockNames[name]}
+
+                        </span>
+
+                        <strong>
+
+                            ${Math.min(have,amount)}
+                            /
+                            ${amount}
+
+                        </strong>
+
+                    </div>
+
+                `;
+
+            }
+        ).join("");
+
+
+    $("#mcMissionProgressBar")
+        .style.width =
+
+        `${current/required*100}%`;
 
 
     const button =
-        document.getElementById(
-            "mcGoDeeper"
-        );
+        $("#mcGoDeeper");
 
 
     if (
-        mcDepth ===
-        mcDepthNames.length - 1
+        mcDepth >=
+        depths.length-1
     ) {
 
         button.disabled =
@@ -6639,44 +7004,42 @@ function updateMiningMission() {
 
             complete
 
-            ? "🏆 Music Core Conquered!"
+            ? "🏆 Music Core Conquered"
 
-            : "🎵 Complete Final Mission";
-
-
-        return;
+            : "Complete Final Mission";
 
     }
+    else {
+
+        button.disabled =
+            !complete;
 
 
-    button.disabled =
-        !complete;
+        button.textContent =
 
+            complete
 
-    button.textContent =
+            ? "⛏️ Mine Deeper"
 
-        complete
+            : "🔒 Complete Mission";
 
-        ? "⛏️ Mine Deeper!"
-
-        : "🔒 Complete Mission First";
+    }
 
 }
 
 
 
-/* =========================================================
-   MINE DEEPER
-========================================================= */
-
-document.getElementById(
-    "mcGoDeeper"
-).addEventListener(
-    "click",
+$("#mcGoDeeper").onclick =
     () => {
 
+        if (
+            mcDepth >=
+            depths.length-1
+        ) return;
+
+
         const mission =
-            mcMissions[
+            missions[
                 mcDepth
             ];
 
@@ -6684,67 +7047,23 @@ document.getElementById(
         const complete =
 
             Object.entries(
-                mission.requirements
-            )
-            .every(
-                (
-                    [
-                        resource,
-                        amount
-                    ]
-                ) =>
-
-                    (
-                        mcInventory[
-                            resource
-                        ] || 0
-                    ) >= amount
-
+                mission
+            ).every(
+                ([name,amount]) =>
+                    inventory[name] >=
+                    amount
             );
 
 
-        if (!complete) {
+        if (!complete) return;
 
-            addMusicCraftLog(
-
-                "🔒 Finish your mining mission first."
-
-            );
-
-
-            return;
-
-        }
-
-
-        if (
-            mcDepth >=
-            mcDepthNames.length - 1
-        ) {
-
-            return;
-
-        }
-
-
-        /*
-           SPEND REQUIRED MATERIALS
-        */
 
         Object.entries(
-            mission.requirements
-        )
-        .forEach(
-            (
-                [
-                    resource,
-                    amount
-                ]
-            ) => {
+            mission
+        ).forEach(
+            ([name,amount]) => {
 
-                mcInventory[
-                    resource
-                ] -=
+                inventory[name] -=
                     amount;
 
             }
@@ -6756,124 +7075,47 @@ document.getElementById(
 
         mcPlayer.x =
             Math.floor(
-                MC_WORLD_SIZE / 2
+                WORLD/2
             );
 
 
         mcPlayer.y =
             Math.floor(
-                MC_WORLD_SIZE / 2
+                WORLD/2
             );
 
 
-        addMusicCraftLog(
+        generateWorld();
 
-            `⬇️ Descending to ${mcDepthNames[mcDepth]}...`
-
-        );
-
-
-        playPiano(
-            392
-        );
-
-
-        setTimeout(
-            () =>
-                playPiano(
-                    329.63
-                ),
-            130
-        );
-
-
-        setTimeout(
-            () =>
-                playPiano(
-                    261.63
-                ),
-            260
-        );
-
-
-        generateMusicCraftWorld();
-
-        renderMusicCraftInventory();
-
-        updateMiningMission();
-
-    }
-);
+    };
 
 
 
-/* =========================================================
-   MUSICCRAFT HUD
-========================================================= */
+function addMCLog(text) {
 
-function updateMusicCraftHUD() {
-
-    document.getElementById(
-        "mcHealth"
-    ).textContent =
-        mcPlayer.health;
-
-
-    document.getElementById(
-        "mcExperience"
-    ).textContent =
-        mcPlayer.xp;
-
-
-    document.getElementById(
-        "mcPlayerX"
-    ).textContent =
-        mcPlayer.x;
-
-
-    document.getElementById(
-        "mcPlayerY"
-    ).textContent =
-        mcPlayer.y;
-
-}
-
-
-
-/* =========================================================
-   MUSICCRAFT LOG
-========================================================= */
-
-function addMusicCraftLog(
-    message
-) {
-
-    const log =
-        document.getElementById(
-            "mcLog"
-        );
-
-
-    const row =
+    const item =
         document.createElement(
             "div"
         );
 
 
-    row.textContent =
-        message;
+    item.textContent =
+        text;
 
 
-    log.prepend(
-        row
-    );
+    $("#mcLog")
+        .prepend(
+            item
+        );
 
 
     while (
-        log.children.length > 12
+        $("#mcLog")
+        .children.length > 12
     ) {
 
-        log.lastChild.remove();
+        $("#mcLog")
+        .lastChild.remove();
 
     }
 
@@ -6882,44 +7124,381 @@ function addMusicCraftLog(
 
 
 /* =========================================================
-   REGENERATE CURRENT DEPTH
+   LEADERBOARD
 ========================================================= */
 
-document.getElementById(
-    "mcNewWorld"
-).addEventListener(
-    "click",
-    () => {
+const leaderboardNames = [
 
-        const confirmed =
-            confirm(
+    "BeatLegend",
+    "PianoKing",
+    "MelodyMaster",
+    "RhythmAce",
+    "MusicHero",
+    "GuitarPro",
+    "ViolinStar",
+    "DrumChampion",
+    "SoundWizard",
+    "HarmonyKid",
+    "TempoTitan",
+    "GoldenNote",
+    "BassBoss",
+    "ChordMaster",
+    "MusicKnight",
+    "SonicStar",
+    "NoteNinja",
+    "BeatRider",
+    "TuneLegend",
+    "PianoWizard",
+    "DrumHero",
+    "JazzKing",
+    "MelodyAce",
+    "SoundMaster",
+    "MusicFox",
+    "RhythmKing",
+    "ChordHero",
+    "NoteMaster",
+    "SonicKid",
+    "BassLegend"
 
-                `Regenerate ${mcDepthNames[mcDepth]}? Your inventory will remain.`
+];
+
+
+let demoLeaderboard =
+    [];
+
+
+function createDemoLeaderboard() {
+
+    if (
+        demoLeaderboard.length
+    ) return;
+
+
+    for (
+        let i=0;
+        i<120;
+        i++
+    ) {
+
+        const instrument =
+            randomItem(
+                instruments
+            );
+
+
+        const avatar =
+            randomItem(
+                avatarPresets
+            );
+
+
+        const xp =
+            Math.max(
+
+                1000,
+
+                90000 -
+
+                i*650 +
+
+                randomNumber(
+                    -500,
+                    500
+                )
 
             );
 
 
-        if (!confirmed) {
-            return;
-        }
+        demoLeaderboard.push({
 
+            id:
+                `demo-${i}`,
 
-        mcPlayer.x =
-            Math.floor(
-                MC_WORLD_SIZE / 2
-            );
+            name:
 
+                `${leaderboardNames[
+                    i %
+                    leaderboardNames.length
+                ]}${i+1}`,
 
-        mcPlayer.y =
-            Math.floor(
-                MC_WORLD_SIZE / 2
-            );
+            avatar:
+                avatar.badge,
 
+            xp,
 
-        generateMusicCraftWorld();
+            level:
+                Math.floor(
+                    xp/100
+                )+1,
+
+            instrument:
+                instrument.name,
+
+            icon:
+                instrument.icon
+
+        });
 
     }
-);
+
+}
+
+
+
+function leaderboardData() {
+
+    createDemoLeaderboard();
+
+
+    const preset =
+        avatarPresets.find(
+            item =>
+                item.id ===
+                profile.avatar.preset
+        ) ||
+        avatarPresets[0];
+
+
+    const instrument =
+        getInstrument(
+            battleData.instrument
+        );
+
+
+    return [
+
+        ...demoLeaderboard,
+
+        {
+
+            id:"YOU",
+
+            name:
+                profile.playerName ||
+                "Player",
+
+            avatar:
+                preset.badge,
+
+            xp:
+                profile.totalXpEarned,
+
+            level:
+                profile.level,
+
+            instrument:
+                instrument.name,
+
+            icon:
+                instrument.icon,
+
+            you:true
+
+        }
+
+    ].sort(
+        (a,b) =>
+            b.xp-a.xp
+    );
+
+}
+
+
+
+function podiumCard(
+    player,
+    rank
+) {
+
+    const medal =
+
+        rank === 1
+        ? "🥇"
+
+        : rank === 2
+        ? "🥈"
+
+        : "🥉";
+
+
+    return `
+
+        <div class="podium-medal">
+            ${medal}
+        </div>
+
+        <div class="podium-avatar">
+            ${player.avatar}
+        </div>
+
+        <h3>
+            ${player.name}
+        </h3>
+
+        <small>
+
+            ${player.icon}
+            ${player.instrument}
+
+        </small>
+
+        <div class="podium-xp">
+
+            ${player.xp.toLocaleString()}
+            EXP
+
+        </div>
+
+        <small>
+            Level ${player.level}
+        </small>
+
+    `;
+
+}
+
+
+
+function renderLeaderboard() {
+
+    const data =
+        leaderboardData();
+
+
+    const top100 =
+        data.slice(
+            0,
+            100
+        );
+
+
+    const rank =
+        data.findIndex(
+            item =>
+                item.you
+        ) + 1;
+
+
+    $("#yourLeaderboardRank")
+        .textContent =
+        `#${rank}`;
+
+
+    $("#leaderboardPlayerName")
+        .textContent =
+        profile.playerName ||
+        "Player";
+
+
+    $("#leaderboardPlayerLevel")
+        .textContent =
+        profile.level;
+
+
+    $("#leaderboardPlayerXP")
+        .textContent =
+        profile.totalXpEarned
+        .toLocaleString();
+
+
+    $("#podiumFirst")
+        .innerHTML =
+        podiumCard(
+            top100[0],
+            1
+        );
+
+
+    $("#podiumSecond")
+        .innerHTML =
+        podiumCard(
+            top100[1],
+            2
+        );
+
+
+    $("#podiumThird")
+        .innerHTML =
+        podiumCard(
+            top100[2],
+            3
+        );
+
+
+    $("#leaderboardBody")
+        .innerHTML =
+
+        top100.map(
+            (player,index) => `
+
+                <tr
+                    class="${
+                        player.you
+                        ? "you-row"
+                        : ""
+                    }"
+                >
+
+                    <td>
+
+                        ${
+                            index === 0
+                            ? "🥇"
+
+                            : index === 1
+                            ? "🥈"
+
+                            : index === 2
+                            ? "🥉"
+
+                            : `#${index+1}`
+                        }
+
+                    </td>
+
+                    <td>
+
+                        <div class="leaderboard-player">
+
+                            <div class="table-avatar">
+
+                                ${player.avatar}
+
+                            </div>
+
+                            <strong>
+
+                                ${player.name}
+
+                            </strong>
+
+                        </div>
+
+                    </td>
+
+                    <td>
+                        ${player.level}
+                    </td>
+
+                    <td>
+
+                        ${player.icon}
+                        ${player.instrument}
+
+                    </td>
+
+                    <td>
+
+                        ${player.xp.toLocaleString()}
+
+                    </td>
+
+                </tr>
+
+            `
+        ).join("");
+
+}
 
 
 
@@ -6927,172 +7506,122 @@ document.getElementById(
    QUIZ
 ========================================================= */
 
-const quizQuestions = [
+const questions = [
 
-    {
-        question:
-            "Which instrument belongs to the string family?",
+{
+    q:"Which instrument belongs to the string family?",
+    answers:[
+        "Trumpet",
+        "Guitar",
+        "Flute",
+        "Drums"
+    ],
+    correct:1
+},
 
-        answers:
-            [
-                "Trumpet",
-                "Guitar",
-                "Flute",
-                "Drums"
-            ],
+{
+    q:"Which instrument commonly uses a slide?",
+    answers:[
+        "Trombone",
+        "Piano",
+        "Flute",
+        "Violin"
+    ],
+    correct:0
+},
 
-        correct:
-            1
-    },
+{
+    q:"Which instrument uses a double reed?",
+    answers:[
+        "Oboe",
+        "Guitar",
+        "Trumpet",
+        "Drums"
+    ],
+    correct:0
+},
 
-    {
-        question:
-            "Which instrument uses a keyboard?",
+{
+    q:"The saxophone belongs to which family?",
+    answers:[
+        "Woodwind",
+        "String",
+        "Percussion",
+        "Keyboard"
+    ],
+    correct:0
+},
 
-        answers:
-            [
-                "Violin",
-                "Piano",
-                "Trumpet",
-                "Flute"
-            ],
+{
+    q:"What does BPM measure?",
+    answers:[
+        "Tempo",
+        "Volume",
+        "Pitch",
+        "Instrument size"
+    ],
+    correct:0
+},
 
-        correct:
-            1
-    },
+{
+    q:"Which commonly has four strings?",
+    answers:[
+        "Ukulele",
+        "Trumpet",
+        "Flute",
+        "Oboe"
+    ],
+    correct:0
+},
 
-    {
-        question:
-            "Which is a brass instrument?",
+{
+    q:"Which is a brass instrument?",
+    answers:[
+        "Trumpet",
+        "Clarinet",
+        "Violin",
+        "Piano"
+    ],
+    correct:0
+},
 
-        answers:
-            [
-                "Clarinet",
-                "Trumpet",
-                "Violin",
-                "Piano"
-            ],
+{
+    q:"Which is percussion?",
+    answers:[
+        "Drums",
+        "Cello",
+        "Flute",
+        "Organ"
+    ],
+    correct:0
+},
 
-        correct:
-            1
-    },
+{
+    q:"Which is a keyboard instrument?",
+    answers:[
+        "Piano",
+        "Trumpet",
+        "Violin",
+        "Flute"
+    ],
+    correct:0
+},
 
-    {
-        question:
-            "The saxophone belongs to which family?",
-
-        answers:
-            [
-                "String",
-                "Woodwind",
-                "Percussion",
-                "Keyboard"
-            ],
-
-        correct:
-            1
-    },
-
-    {
-        question:
-            "Which instrument uses a slide?",
-
-        answers:
-            [
-                "Trombone",
-                "Guitar",
-                "Piano",
-                "Flute"
-            ],
-
-        correct:
-            0
-    },
-
-    {
-        question:
-            "Which instrument uses a double reed?",
-
-        answers:
-            [
-                "Oboe",
-                "Trumpet",
-                "Guitar",
-                "Drums"
-            ],
-
-        correct:
-            0
-    },
-
-    {
-        question:
-            "What does BPM measure?",
-
-        answers:
-            [
-                "Tempo",
-                "Pitch",
-                "Volume",
-                "Timbre"
-            ],
-
-        correct:
-            0
-    },
-
-    {
-        question:
-            "Which instrument commonly has four strings?",
-
-        answers:
-            [
-                "Ukulele",
-                "Trumpet",
-                "Clarinet",
-                "Drums"
-            ],
-
-        correct:
-            0
-    },
-
-    {
-        question:
-            "What is timbre?",
-
-        answers:
-            [
-                "Character of a sound",
-                "Speed",
-                "Volume only",
-                "Silence"
-            ],
-
-        correct:
-            0
-    },
-
-    {
-        question:
-            "What is a chord?",
-
-        answers:
-            [
-                "Several notes together",
-                "A drumstick",
-                "A microphone",
-                "A tempo"
-            ],
-
-        correct:
-            0
-    }
+{
+    q:"A chord contains...",
+    answers:[
+        "Several notes together",
+        "Only one beat",
+        "Only percussion",
+        "No pitch"
+    ],
+    correct:0
+}
 
 ];
 
 
-let quizIndex =
+let questionIndex =
     0;
 
 
@@ -7104,181 +7633,139 @@ let quizAnswered =
     false;
 
 
-let quizFinished =
-    false;
 
-
-function loadQuizQuestion() {
+function loadQuestion() {
 
     quizAnswered =
         false;
 
 
     const question =
-        quizQuestions[
-            quizIndex
+        questions[
+            questionIndex
         ];
 
 
-    document.getElementById(
-        "questionNumber"
-    ).textContent =
-        quizIndex + 1;
+    $("#questionNumber")
+        .textContent =
+        questionIndex+1;
 
 
-    document.getElementById(
-        "totalQuestions"
-    ).textContent =
-        quizQuestions.length;
+    $("#totalQuestions")
+        .textContent =
+        questions.length;
 
 
-    document.getElementById(
-        "questionText"
-    ).textContent =
-        question.question;
+    $("#questionText")
+        .textContent =
+        question.q;
 
 
-    document.getElementById(
-        "quizResult"
-    ).textContent =
+    $("#quizResult")
+        .textContent =
         "";
 
 
-    const container =
-        document.getElementById(
-            "answerButtons"
-        );
+    $("#answerButtons")
+        .innerHTML =
+
+        question.answers.map(
+            (
+                answer,
+                index
+            ) => `
+
+                <button
+                    class="quiz-answer"
+                    data-answer="${index}"
+                >
+                    ${answer}
+                </button>
+
+            `
+        ).join("");
 
 
-    container.innerHTML =
-        "";
+    $$(".quiz-answer")
+    .forEach(
+        button => {
 
-
-    document.getElementById(
-        "nextQuestion"
-    ).style.display =
-        "none";
-
-
-    question.answers.forEach(
-        (answer,index) => {
-
-            const button =
-                document.createElement(
-                    "button"
-                );
-
-
-            button.type =
-                "button";
-
-
-            button.className =
-                "quiz-answer";
-
-
-            button.textContent =
-                answer;
-
-
-            button.addEventListener(
-                "click",
+            button.onclick =
                 () => {
 
                     if (
                         quizAnswered
-                    ) {
-
-                        return;
-                    }
+                    ) return;
 
 
                     quizAnswered =
                         true;
 
 
-                    container
-                        .querySelectorAll(
-                            ".quiz-answer"
-                        )
-                        .forEach(
-                            (
-                                option,
-                                optionIndex
-                            ) => {
-
-                                option.disabled =
-                                    true;
-
-
-                                if (
-                                    optionIndex ===
-                                    question.correct
-                                ) {
-
-                                    option.classList.add(
-                                        "correct-answer"
-                                    );
-
-                                }
-
-                            }
+                    const answer =
+                        Number(
+                            button.dataset.answer
                         );
 
 
+                    $$(".quiz-answer")
+                    .forEach(
+                        (
+                            option,
+                            index
+                        ) => {
+
+                            option.disabled =
+                                true;
+
+
+                            if (
+                                index ===
+                                question.correct
+                            ) {
+
+                                option.classList.add(
+                                    "correct"
+                                );
+
+                            }
+
+                        }
+                    );
+
+
                     if (
-                        index ===
+                        answer ===
                         question.correct
                     ) {
 
                         quizScore++;
 
 
-                        button.classList.add(
-                            "correct-answer"
-                        );
-
-
-                        document.getElementById(
-                            "quizResult"
-                        ).textContent =
+                        $("#quizResult")
+                            .textContent =
                             "🎉 Correct!";
 
                     }
                     else {
 
                         button.classList.add(
-                            "wrong-answer"
+                            "wrong"
                         );
 
 
-                        document.getElementById(
-                            "quizResult"
-                        ).textContent =
-
-                            `❌ Correct answer: ${question.answers[question.correct]}`;
+                        $("#quizResult")
+                            .textContent =
+                            "❌ Incorrect.";
 
                     }
 
 
-                    document.getElementById(
-                        "score"
-                    ).textContent =
+                    $("#score")
+                        .textContent =
                         quizScore;
 
-
-                    document.getElementById(
-                        "nextQuestion"
-                    ).style.display =
-                        "inline-flex";
-
-                }
-            );
-
-
-            container.appendChild(
-                button
-            );
+                };
 
         }
     );
@@ -7286,200 +7773,171 @@ function loadQuizQuestion() {
 }
 
 
-function startQuiz() {
 
-    quizIndex =
-        0;
-
-
-    quizScore =
-        0;
-
-
-    quizFinished =
-        false;
-
-
-    document.getElementById(
-        "score"
-    ).textContent =
-        "0";
-
-
-    document.getElementById(
-        "nextQuestion"
-    ).textContent =
-        "Next →";
-
-
-    loadQuizQuestion();
-
-}
-
-
-function finishQuiz() {
-
-    quizFinished =
-        true;
-
-
-    document.getElementById(
-        "questionText"
-    ).textContent =
-        "🎉 Quiz Complete!";
-
-
-    document.getElementById(
-        "answerButtons"
-    ).innerHTML =
-        "";
-
-
-    document.getElementById(
-        "quizResult"
-    ).innerHTML =
-
-        `You scored <strong>${quizScore}/${quizQuestions.length}</strong>.`;
-
-
-    const next =
-        document.getElementById(
-            "nextQuestion"
-        );
-
-
-    next.textContent =
-        "🔄 Play Again";
-
-
-    next.style.display =
-        "inline-flex";
-
-}
-
-
-document.getElementById(
-    "nextQuestion"
-).addEventListener(
-    "click",
+$("#nextQuestion").onclick =
     () => {
 
         if (
-            quizFinished
-        ) {
-
-            startQuiz();
-
-            return;
-
-        }
-
-
-        if (
             !quizAnswered
-        ) {
-
-            return;
-        }
+        ) return;
 
 
-        quizIndex++;
+        questionIndex++;
 
 
         if (
-            quizIndex >=
-            quizQuestions.length
+            questionIndex >=
+            questions.length
         ) {
 
-            finishQuiz();
+            $("#questionText")
+                .textContent =
+                "🎉 Quiz Complete!";
+
+
+            $("#answerButtons")
+                .innerHTML =
+                "";
+
+
+            $("#quizResult")
+                .textContent =
+
+                `Score: ${quizScore}/${questions.length}`;
+
+
+            questionIndex =
+                0;
+
+
+            quizScore =
+                0;
+
+
+            $("#score")
+                .textContent =
+                "0";
+
+
+            return;
 
         }
-        else {
 
-            loadQuizQuestion();
 
-        }
+        loadQuestion();
 
-    }
-);
+    };
 
 
 
 /* =========================================================
-   FUN FACTS
+   SHARED DISPLAY
 ========================================================= */
 
-const funFacts = [
+function updateDisplays() {
 
-    "🎹 A modern piano normally has 88 keys.",
-
-    "🎷 The saxophone is made from brass but belongs to the woodwind family.",
-
-    "🥁 Drums are among the oldest musical instruments.",
-
-    "🎻 The cello has a lower range than the violin.",
-
-    "🎺 Brass instruments begin with vibrating lips.",
-
-    "🎵 BPM means beats per minute.",
-
-    "🎧 Timbre describes the character of a sound.",
-
-    "🎶 The clarinet uses a single reed.",
-
-    "🪈 The oboe uses a double reed.",
-
-    "🎸 A ukulele commonly has four strings.",
-
-    "🎛️ Synthesizers can create completely electronic sounds.",
-
-    "🎺 The trombone commonly changes pitch using a slide."
-
-];
+    $("#heroPlayerName")
+        .textContent =
+        profile.playerName ||
+        "Player";
 
 
-let previousFact =
-    -1;
+    const preset =
+        avatarPresets.find(
+            item =>
+                item.id ===
+                profile.avatar.preset
+        ) ||
+        avatarPresets[0];
 
 
-document.getElementById(
-    "factButton"
-).addEventListener(
-    "click",
-    () => {
-
-        let index;
+    $("#heroAvatarBadge")
+        .textContent =
+        preset.badge;
 
 
-        do {
-
-            index =
-                randomNumber(
-                    0,
-                    funFacts.length - 1
-                );
-
-        }
-        while (
-            index ===
-            previousFact &&
-            funFacts.length > 1
-        );
+    $("#heroLifetimeXP")
+        .textContent =
+        profile.totalXpEarned
+        .toLocaleString();
 
 
-        previousFact =
-            index;
+    $("#spendableXP")
+        .textContent =
+        profile.spendableXp
+        .toLocaleString();
 
 
-        document.getElementById(
-            "funFact"
-        ).textContent =
-            funFacts[
-                index
-            ];
+    $("#battleLifetimeXP")
+        .textContent =
+        profile.totalXpEarned
+        .toLocaleString();
 
-    }
-);
+
+    const battleDifficulty =
+        difficulty();
+
+
+    $("#battleDifficultyName")
+        .textContent =
+
+        `${battleDifficulty.icon} ${battleDifficulty.name}`;
+
+
+    $("#sharedLevelDisplay")
+        .textContent =
+        `Level ${profile.level}`;
+
+
+    $("#playerXPText")
+        .textContent =
+        `${profile.xp} / 100`;
+
+
+    $("#playerXPBar")
+        .style.width =
+        `${profile.xp}%`;
+
+
+    $("#mcExperience")
+        .textContent =
+
+        `Lv ${profile.level} • ${profile.xp}/100`;
+
+
+    $("#mcSpendableXP")
+        .textContent =
+        profile.spendableXp
+        .toLocaleString();
+
+
+    $("#mcEquippedInstrument")
+        .textContent =
+        battleData.instrument;
+
+}
+
+
+
+function refreshBattle() {
+
+    renderBattleShop();
+
+    renderPlayerStats();
+
+    renderUpgrades();
+
+    renderRecord();
+
+    renderMastery();
+
+    renderTrophyCabinet();
+
+    updateDisplays();
+
+    rebuildPlayerAvatar();
+
+}
 
 
 
@@ -7487,44 +7945,27 @@ document.getElementById(
    NAV
 ========================================================= */
 
-document.getElementById(
-    "menuToggle"
-).addEventListener(
-    "click",
-    () => {
-
-        document.getElementById(
-            "navLinks"
-        ).classList.toggle(
-            "nav-active"
+$("#menuToggle").onclick =
+    () =>
+        $("#navLinks")
+        .classList.toggle(
+            "show"
         );
+
+
+$$("#navLinks a")
+.forEach(
+    link => {
+
+        link.onclick =
+            () =>
+                $("#navLinks")
+                .classList.remove(
+                    "show"
+                );
 
     }
 );
-
-
-document
-    .querySelectorAll(
-        "#navLinks a"
-    )
-    .forEach(
-        link => {
-
-            link.addEventListener(
-                "click",
-                () => {
-
-                    document.getElementById(
-                        "navLinks"
-                    ).classList.remove(
-                        "nav-active"
-                    );
-
-                }
-            );
-
-        }
-    );
 
 
 
@@ -7532,41 +7973,25 @@ document
    THEME
 ========================================================= */
 
-const themeToggle =
-    document.getElementById(
-        "themeToggle"
+if (
+    localStorage.getItem(
+        "musicverseTheme"
+    ) === "light"
+) {
+
+    document.body.classList.add(
+        "light-mode"
     );
 
 
-try {
-
-    const savedTheme =
-        localStorage.getItem(
-            "musicverseTheme"
-        );
-
-
-    if (
-        savedTheme ===
-        "light"
-    ) {
-
-        document.body.classList.add(
-            "light-mode"
-        );
-
-
-        themeToggle.textContent =
-            "☀️";
-
-    }
+    $("#themeToggle")
+        .textContent =
+        "☀️";
 
 }
-catch (error) {}
 
 
-themeToggle.addEventListener(
-    "click",
+$("#themeToggle").onclick =
     () => {
 
         document.body.classList.toggle(
@@ -7574,38 +7999,30 @@ themeToggle.addEventListener(
         );
 
 
-        const isLight =
+        const light =
             document.body.classList.contains(
                 "light-mode"
             );
 
 
-        themeToggle.textContent =
-
-            isLight
-
+        $("#themeToggle")
+            .textContent =
+            light
             ? "☀️"
-
             : "🌙";
 
 
-        try {
+        localStorage.setItem(
 
-            localStorage.setItem(
+            "musicverseTheme",
 
-                "musicverseTheme",
+            light
+            ? "light"
+            : "dark"
 
-                isLight
-                    ? "light"
-                    : "dark"
+        );
 
-            );
-
-        }
-        catch (error) {}
-
-    }
-);
+    };
 
 
 
@@ -7622,7 +8039,69 @@ document.addEventListener(
             "Escape"
         ) {
 
-            closeInstrumentModal();
+            closePurchasePopup();
+
+        }
+
+    }
+);
+
+
+
+/* =========================================================
+   RESIZE
+========================================================= */
+
+window.addEventListener(
+    "resize",
+    () => {
+
+        if (
+            battleRenderer
+        ) {
+
+            battleCamera.aspect =
+                battleContainer.clientWidth /
+                battleContainer.clientHeight;
+
+
+            battleCamera.updateProjectionMatrix();
+
+
+            battleRenderer.setSize(
+
+                battleContainer.clientWidth,
+
+                battleContainer.clientHeight
+
+            );
+
+        }
+
+
+        if (
+            setupRenderer
+        ) {
+
+            const container =
+                $("#setupAvatarPreview");
+
+
+            setupCamera.aspect =
+                container.clientWidth /
+                container.clientHeight;
+
+
+            setupCamera.updateProjectionMatrix();
+
+
+            setupRenderer.setSize(
+
+                container.clientWidth,
+
+                container.clientHeight
+
+            );
 
         }
 
@@ -7635,37 +8114,20 @@ document.addEventListener(
    INITIALISE
 ========================================================= */
 
-renderInstruments();
+initialiseSetup();
 
-showFeaturedInstrument();
+createBattleScene();
 
-nextTrueFalse();
+renderLibrary();
 
-renderBattleChoices();
-
-renderBattleRecord();
+refreshBattle();
 
 clearCPU();
 
+generateWorld();
 
-if (
-    battleData.instrument
-) {
+renderLeaderboard();
 
-    renderBattlePlayer();
+loadQuestion();
 
-}
-
-
-generateMusicCraftWorld();
-
-renderMusicCraftInventory();
-
-updateMiningMission();
-
-updateMusicCraftHUD();
-
-startQuiz();
-
-
-});
+updateDisplays();
