@@ -1,1599 +1,1190 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MusicVerse</title>
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <title>MusicVerse 3D</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Montserrat:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
 
-    <link
-        rel="preconnect"
-        href="https://fonts.googleapis.com"
-    >
-
-    <link
-        rel="preconnect"
-        href="https://fonts.gstatic.com"
-        crossorigin
-    >
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet"
-    >
-
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
 
+  <!-- PLAYER SETUP -->
+  <div id="setupOverlay" class="overlay hidden">
+    <div class="modal setup-modal">
 
-<!-- =========================================================
-     PLAYER SETUP
-========================================================= -->
+      <div>
+        <p class="eyebrow">WELCOME TO</p>
+        <h1>MusicVerse</h1>
+        <p>Create your player before entering the world.</p>
+      </div>
 
-<div
-    id="playerSetup"
-    class="player-setup"
->
+      <div class="setup-grid">
 
-    <div class="player-setup-card">
-
-        <p class="eyebrow">
-            WELCOME TO MUSICVERSE
-        </p>
-
-        <h2>
-            Create Your 3D Player
-        </h2>
-
-        <p class="setup-copy">
-            Choose your name and build your blocky MusicVerse avatar.
-        </p>
-
-
-        <input
-            id="playerNameInput"
-            type="text"
-            maxlength="18"
-            placeholder="Enter player name"
-        >
-
-
-        <p class="mini-label">
-            AVATAR STYLE
-        </p>
-
-
-        <div
-            id="avatarPresetGrid"
-            class="avatar-preset-grid"
-        ></div>
-
-
-        <div class="avatar-custom-grid">
-
-            <label>
-
-                Skin Tone
-
-                <select id="skinSelect">
-
-                    <option value="#f2c7a5">
-                        Light
-                    </option>
-
-                    <option value="#dca57b">
-                        Warm
-                    </option>
-
-                    <option value="#b97850">
-                        Tan
-                    </option>
-
-                    <option value="#895638">
-                        Deep
-                    </option>
-
-                    <option value="#5d3828">
-                        Dark
-                    </option>
-
-                </select>
-
-            </label>
-
-
-            <label>
-
-                Hair
-
-                <select id="hairSelect">
-
-                    <option value="#201915">
-                        Black
-                    </option>
-
-                    <option value="#5b3526">
-                        Brown
-                    </option>
-
-                    <option value="#d0a05a">
-                        Blonde
-                    </option>
-
-                    <option value="#8b2635">
-                        Red
-                    </option>
-
-                    <option value="#503d74">
-                        Purple
-                    </option>
-
-                </select>
-
-            </label>
-
-
-            <label>
-
-                Outfit
-
-                <select id="outfitSelect">
-
-                    <option value="#19345b">
-                        Navy
-                    </option>
-
-                    <option value="#7a2534">
-                        Crimson
-                    </option>
-
-                    <option value="#264f45">
-                        Emerald
-                    </option>
-
-                    <option value="#654483">
-                        Violet
-                    </option>
-
-                    <option value="#4c4f58">
-                        Charcoal
-                    </option>
-
-                    <option value="#c59a51">
-                        Gold
-                    </option>
-
-                </select>
-
-            </label>
-
+        <div class="preview-card">
+          <div id="setupPreview" class="three-preview"></div>
         </div>
 
+        <div class="stack">
 
-        <div
-            id="setupAvatarPreview"
-            class="setup-avatar-preview"
-        ></div>
+          <label>
+            Player name
+            <input id="playerNameInput" maxlength="18" placeholder="Your name" />
+          </label>
 
+          <label>
+            Avatar style
+            <select id="avatarPresetSelect"></select>
+          </label>
 
-        <p
-            id="playerNameError"
-            class="setup-error"
-        ></p>
+          <label>
+            Skin tone
+            <select id="skinSelect"></select>
+          </label>
 
+          <label>
+            Hair colour
+            <select id="hairSelect"></select>
+          </label>
 
-        <button
-            id="startMusicVerse"
-            class="gold-button full-button"
-            type="button"
-        >
+          <label>
+            Outfit colour
+            <select id="outfitSelect"></select>
+          </label>
+
+          <button id="startBtn" class="btn primary">
             Enter MusicVerse
-        </button>
+          </button>
 
-    </div>
-
-</div>
-
-
-
-<!-- =========================================================
-     HERO
-========================================================= -->
-
-<header
-    class="hero"
-    id="home"
->
-
-    <nav class="navbar">
-
-        <a
-            href="#home"
-            class="logo"
-        >
-            MusicVerse
-        </a>
-
-
-        <ul
-            id="navLinks"
-            class="nav-links"
-        >
-
-            <li>
-                <a href="#instruments">
-                    Instruments
-                </a>
-            </li>
-
-            <li>
-                <a href="#battle">
-                    ⚔️ Battle
-                </a>
-            </li>
-
-            <li>
-                <a href="#musiccraft">
-                    ⛏️ MusicCraft
-                </a>
-            </li>
-
-            <li>
-                <a href="#leaderboard">
-                    🏆 Top 100
-                </a>
-            </li>
-
-            <li>
-                <a href="#quiz">
-                    Quiz
-                </a>
-            </li>
-
-        </ul>
-
-
-        <div class="nav-actions">
-
-            <button
-                id="themeToggle"
-                class="circle-button"
-                type="button"
-            >
-                🌙
-            </button>
-
-
-            <button
-                id="menuToggle"
-                class="menu-toggle"
-                type="button"
-            >
-                ☰
-            </button>
+          <p id="setupError" class="error" aria-live="polite"></p>
 
         </div>
 
+      </div>
+    </div>
+  </div>
+
+
+  <!-- NAVIGATION -->
+  <header class="topbar">
+
+    <a href="#home" class="brand">
+      MUSICVERSE
+    </a>
+
+    <nav>
+      <a href="#instruments">Instruments</a>
+      <a href="#battle">Battle</a>
+      <a href="#multiplayer">Multiplayer</a>
+      <a href="#gacha">Gacha</a>
+      <a href="#musiccraft">MusicCraft</a>
+      <a href="#leaderboard">Top 100</a>
+      <a href="#quiz">Quiz</a>
     </nav>
 
+    <div class="wallet-strip">
+      <span>🎵 <b id="coinTop">0</b></span>
+      <span>✨ <b id="dustTop">0</b></span>
+      <span>⭐ Lv <b id="levelTop">1</b></span>
+    </div>
 
-    <div class="hero-content">
+  </header>
+
+
+  <main>
+
+    <!-- HERO -->
+    <section id="home" class="hero section">
+
+      <div class="hero-copy">
 
         <p class="eyebrow">
-            THE 3D MUSIC ADVENTURE
+          PLAY • LEARN • COLLECT • BATTLE
         </p>
 
         <h1>
-            Enter the
-            <em>MusicVerse</em>
+          Build your sound.<br>
+          Master your world.
         </h1>
 
-        <p class="hero-copy">
-            Build your 3D musician, collect instruments,
-            battle rivals, master special moves and climb
-            into the Top 100.
+        <p class="hero-sub">
+          Master 45 instruments, collect pets and auras,
+          hatch gachas, build powerful cosmetic loadouts
+          and battle by actually performing music.
         </p>
 
+        <div class="hero-actions">
 
-        <div class="hero-profile">
+          <a href="#battle" class="btn primary">
+            Start battling
+          </a>
 
-            <div
-                id="heroAvatarBadge"
-                class="hero-avatar-badge"
-            >
-                H
-            </div>
-
-
-            <div>
-
-                <small>
-                    PLAYER
-                </small>
-
-                <strong id="heroPlayerName">
-                    Player
-                </strong>
-
-                <span>
-                    Lifetime EXP:
-                    <b id="heroLifetimeXP">
-                        0
-                    </b>
-                </span>
-
-            </div>
+          <a href="#gacha" class="btn ghost">
+            Open gacha hall
+          </a>
 
         </div>
 
+      </div>
 
-        <div class="hero-buttons">
 
-            <a
-                href="#battle"
-                class="gold-button"
-            >
-                ⚔️ Battle Arena
-            </a>
+      <div class="profile-card">
 
-            <a
-                href="#musiccraft"
-                class="outline-button"
-            >
-                ⛏️ MusicCraft
-            </a>
-
-            <a
-                href="#leaderboard"
-                class="outline-button"
-            >
-                🏆 Top 100
-            </a>
-
+        <div id="heroBadge" class="avatar-badge">
+          MV
         </div>
 
-    </div>
+        <div>
+          <strong id="heroName">
+            Player
+          </strong>
 
-</header>
+          <span id="heroLevel">
+            Level 1
+          </span>
+        </div>
 
+        <div class="currency-card">
+          <span>🎵 Music Coins</span>
+          <strong id="heroCoins">0</strong>
+        </div>
 
+        <div class="currency-card">
+          <span>✨ Star Dust</span>
+          <strong id="heroDust">0</strong>
+        </div>
 
-<!-- =========================================================
-     INTRO
-========================================================= -->
+        <div class="currency-card">
+          <span>Lifetime EXP</span>
+          <strong id="heroLifetime">0</strong>
+        </div>
 
-<section class="section">
+      </div>
 
-    <div class="section-heading">
-
-        <p class="eyebrow">
-            MUSIC + ADVENTURE
-        </p>
-
-        <h2>
-            Build Your Musical Legend
-        </h2>
-
-    </div>
-
-
-    <div class="feature-grid">
-
-        <article class="info-card">
-
-            <span>
-                🎵
-            </span>
-
-            <h3>
-                Learn
-            </h3>
-
-            <p>
-                Explore 18 instruments from six musical families.
-            </p>
-
-        </article>
+    </section>
 
 
-        <article class="info-card">
+    <!-- INSTRUMENT LIBRARY -->
+    <section id="instruments" class="section">
 
-            <span>
-                🧍
-            </span>
+      <div class="section-heading">
 
-            <h3>
-                Build Your Avatar
-            </h3>
+        <div>
+          <p class="eyebrow">
+            45 PLAYABLE INSTRUMENTS
+          </p>
 
-            <p>
-                Customize your 3D musician's style and colours.
-            </p>
-
-        </article>
-
-
-        <article class="info-card">
-
-            <span>
-                ⚔️
-            </span>
-
-            <h3>
-                Battle
-            </h3>
-
-            <p>
-                Fight musical rivals with animated attacks.
-            </p>
-
-        </article>
-
-
-        <article class="info-card">
-
-            <span>
-                ✨
-            </span>
-
-            <h3>
-                Special Moves
-            </h3>
-
-            <p>
-                Every instrument has its own signature move.
-            </p>
-
-        </article>
-
-    </div>
-
-</section>
-
-
-
-<!-- =========================================================
-     INSTRUMENTS
-========================================================= -->
-
-<section
-    class="section alt-section"
-    id="instruments"
->
-
-    <div class="section-heading">
-
-        <p class="eyebrow">
-            DISCOVER
-        </p>
-
-        <h2>
+          <h2>
             Instrument Library
-        </h2>
-
-    </div>
-
-
-    <div class="instrument-tools">
+          </h2>
+        </div>
 
         <input
-            id="searchInput"
-            type="search"
-            placeholder="Search instrument..."
-        >
+          id="instrumentSearch"
+          class="search"
+          placeholder="Search instruments..."
+        />
+
+      </div>
+
+      <div id="familyTabs" class="tabs"></div>
+
+      <div id="instrumentGrid" class="instrument-grid"></div>
+
+    </section>
 
 
-        <div class="instrument-tabs">
+    <!-- BATTLE -->
+    <section id="battle" class="section battle-section">
 
-            <button
-                class="tab-button active"
-                data-category="all"
-            >
-                All
-            </button>
+      <div class="section-heading">
 
-            <button
-                class="tab-button"
-                data-category="string"
-            >
-                Strings
-            </button>
+        <div>
+          <p class="eyebrow">
+            TURN-BASED MUSIC RPG
+          </p>
 
-            <button
-                class="tab-button"
-                data-category="woodwind"
-            >
-                Woodwind
-            </button>
+          <h2>
+            Battle Arena
+          </h2>
+        </div>
 
-            <button
-                class="tab-button"
-                data-category="brass"
-            >
-                Brass
-            </button>
+        <div class="battle-meta">
 
-            <button
-                class="tab-button"
-                data-category="percussion"
-            >
-                Percussion
-            </button>
+          <span>
+            Mode
+            <b id="battleModeLabel">
+              Practice
+            </b>
+          </span>
 
-            <button
-                class="tab-button"
-                data-category="keyboard"
-            >
-                Keyboard
-            </button>
-
-            <button
-                class="tab-button"
-                data-category="electronic"
-            >
-                Electronic
-            </button>
+          <span>
+            Record
+            <b id="recordLabel">
+              0W / 0L
+            </b>
+          </span>
 
         </div>
 
-    </div>
+      </div>
 
 
-    <div
-        id="instrumentGrid"
-        class="instrument-grid"
-    ></div>
+      <div class="mode-tabs" id="battleModeTabs">
 
-</section>
+        <button class="mode-btn active" data-mode="practice">
+          🤖 Practice
+        </button>
 
+        <button class="mode-btn" data-mode="demoRanked">
+          🎮 Demo Ranked
+        </button>
 
+        <button class="mode-btn" data-mode="onlineRanked">
+          🏆 Online Ranked
+        </button>
 
-<!-- =========================================================
-     BATTLE ARENA
-========================================================= -->
-
-<section
-    class="section battle-section"
-    id="battle"
->
-
-    <div class="section-heading">
-
-        <p class="eyebrow">
-            3D MUSIC RPG
-        </p>
-
-        <h2>
-            ⚔️ Battle Arena
-        </h2>
-
-        <p>
-            Blocky characters, jump attacks, knockback,
-            particles, camera zooms and animated special moves.
-        </p>
-
-    </div>
+      </div>
 
 
-    <div class="battle-top-strip">
+      <div class="rank-summary panel">
 
-        <div class="battle-wallet">
+        <div>
+          <span>Demo Rank</span>
+
+          <strong id="demoRankLabel">
+            Bronze III
+          </strong>
+
+          <small id="demoRpLabel">
+            0 RP
+          </small>
+        </div>
+
+
+        <div>
+          <span>Online Rank</span>
+
+          <strong id="onlineRankLabel">
+            Unranked
+          </strong>
+
+          <small id="onlineRpLabel">
+            0 RP
+          </small>
+        </div>
+
+
+        <div>
+          <span>Win Streak</span>
+
+          <strong id="streakLabel">
+            0 🔥
+          </strong>
+
+          <small>
+            Ranked only
+          </small>
+        </div>
+
+      </div>
+
+
+      <div class="battle-layout">
+
+        <!-- PLAYER LOADOUT -->
+        <aside class="panel loadout-panel">
+
+          <h3>
+            Your instrument
+          </h3>
+
+          <select id="battleInstrumentSelect"></select>
+
+          <div id="playerStats" class="stats-grid"></div>
+
+          <div
+            id="cosmeticBonusBox"
+            class="bonus-box"
+          ></div>
+
+          <div class="mastery-box">
 
             <span>
-                AVAILABLE EXP
+              Mastery
             </span>
 
-            <strong id="spendableXP">
-                0
+            <strong id="masteryValue">
+              0 EXP
             </strong>
 
-        </div>
+            <small id="masteryTier">
+              Beginner
+            </small>
+
+          </div>
 
 
-        <div class="battle-wallet">
+          <div class="energy-box">
 
             <span>
-                LIFETIME EXP
+              Energy
             </span>
-
-            <strong id="battleLifetimeXP">
-                0
-            </strong>
-
-        </div>
-
-
-        <div class="battle-wallet">
-
-            <span>
-                DIFFICULTY
-            </span>
-
-            <strong id="battleDifficultyName">
-                🟢 Beginner
-            </strong>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- SHOP -->
-
-    <div class="battle-shop">
-
-        <div class="battle-shop-heading">
-
-            <div>
-
-                <p class="eyebrow">
-                    INSTRUMENT SHOP
-                </p>
-
-                <h3>
-                    Choose Your Fighter
-                </h3>
-
-            </div>
-
-
-            <div class="owned-counter">
-
-                <strong id="ownedInstrumentCount">
-                    1
-                </strong>
-
-                / 18 OWNED
-
-            </div>
-
-        </div>
-
-
-        <div
-            id="battleInstrumentGrid"
-            class="battle-instrument-grid"
-        ></div>
-
-    </div>
-
-
-
-    <!-- 3D STAGE -->
-
-    <div class="three-battle-shell">
-
-        <div
-            id="battle3D"
-            class="battle-3d"
-        ></div>
-
-
-        <div class="arena-cloud cloud-1"></div>
-
-        <div class="arena-cloud cloud-2"></div>
-
-
-        <div class="battle-nameplates">
-
-            <div class="nameplate player-nameplate">
-
-                <span>
-                    YOU
-                </span>
-
-                <strong id="playerBattleName">
-                    Guitar
-                </strong>
-
-                <small id="playerBattleLevel">
-                    LV 1
-                </small>
-
-            </div>
-
-
-            <div class="battle-vs">
-                VS
-            </div>
-
-
-            <div class="nameplate cpu-nameplate">
-
-                <span>
-                    CPU
-                </span>
-
-                <strong id="cpuBattleName">
-                    Waiting...
-                </strong>
-
-                <small id="cpuBattleLevel">
-                    LV ?
-                </small>
-
-            </div>
-
-        </div>
-
-
-        <!-- SPECIAL MOVE OVERLAY -->
-
-        <div
-            id="specialMoveBanner"
-            class="special-move-banner"
-        >
 
             <div
-                id="specialMoveIcon"
-                class="special-banner-icon"
-            >
-                ⚡🎸
-            </div>
-
-            <p id="specialMoveOwner">
-                PLAYER SPECIAL
-            </p>
-
-            <h2 id="specialMoveTitle">
-                POWER CHORD
-            </h2>
-
-            <span id="specialMoveBonus">
-                +0 POWER
-            </span>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- STATS -->
-
-    <div class="fighter-stat-grid">
-
-        <article class="fighter-stats-panel">
-
-            <p class="mini-label">
-                PLAYER STATS
-            </p>
-
-            <div class="stat-row">
-
-                <span>
-                    ⚡ Power
-                </span>
-
-                <strong id="playerPower">
-                    0
-                </strong>
-
-            </div>
-
-            <div class="stat-row">
-
-                <span>
-                    🎵 Melody
-                </span>
-
-                <strong id="playerMelody">
-                    0
-                </strong>
-
-            </div>
-
-            <div class="stat-row">
-
-                <span>
-                    🥁 Rhythm
-                </span>
-
-                <strong id="playerRhythm">
-                    0
-                </strong>
-
-            </div>
-
-            <div class="stat-row">
-
-                <span>
-                    🛡 Defense
-                </span>
-
-                <strong id="playerDefense">
-                    0
-                </strong>
-
-            </div>
-
-
-            <div class="special-info">
-
-                <span>
-                    SPECIAL MOVE
-                </span>
-
-                <strong id="playerSpecialMove">
-                    ⚡🎸 Power Chord
-                </strong>
-
-                <small id="playerSpecialDescription"></small>
-
-            </div>
-
-        </article>
-
-
-        <article class="fighter-stats-panel">
-
-            <p class="mini-label">
-                CPU STATS
-            </p>
-
-            <div class="stat-row">
-
-                <span>
-                    ⚡ Power
-                </span>
-
-                <strong id="cpuPower">
-                    ?
-                </strong>
-
-            </div>
-
-            <div class="stat-row">
-
-                <span>
-                    🎵 Melody
-                </span>
-
-                <strong id="cpuMelody">
-                    ?
-                </strong>
-
-            </div>
-
-            <div class="stat-row">
-
-                <span>
-                    🥁 Rhythm
-                </span>
-
-                <strong id="cpuRhythm">
-                    ?
-                </strong>
-
-            </div>
-
-            <div class="stat-row">
-
-                <span>
-                    🛡 Defense
-                </span>
-
-                <strong id="cpuDefense">
-                    ?
-                </strong>
-
-            </div>
-
-        </article>
-
-    </div>
-
-
-
-    <!-- LEVEL -->
-
-    <div class="level-panel">
-
-        <div>
-
-            <span>
-                MUSICVERSE LEVEL
-            </span>
-
-            <strong id="sharedLevelDisplay">
-                Level 1
-            </strong>
-
-        </div>
-
-
-        <div class="level-progress">
-
-            <div class="level-progress-top">
-
-                <span>
-                    EXP
-                </span>
-
-                <span id="playerXPText">
-                    0 / 100
-                </span>
-
-            </div>
-
-
-            <div class="progress-bar">
-
-                <div
-                    id="playerXPBar"
-                    class="progress-fill"
-                ></div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- MASTERY -->
-
-    <div
-        id="instrumentMastery"
-        class="mastery-panel"
-    ></div>
-
-
-
-    <!-- CONTROLS -->
-
-    <div class="battle-buttons">
-
-        <button
-            id="findOpponentButton"
-            class="outline-button"
-        >
-            🔎 Find Opponent
-        </button>
-
-        <button
-            id="battleButton"
-            class="battle-button"
-            disabled
-        >
-            ⚔️ BATTLE
-        </button>
-
-    </div>
-
-
-    <div
-        id="battleStatus"
-        class="battle-status"
-    >
-        Find an opponent when you are ready.
-    </div>
-
-
-    <div
-        id="battleLog"
-        class="battle-log"
-    ></div>
-
-
-
-    <!-- RECORD -->
-
-    <div class="record-grid">
-
-        <article>
-
-            <strong id="battleWins">
-                0
-            </strong>
-
-            <span>
-                Wins
-            </span>
-
-        </article>
-
-
-        <article>
-
-            <strong id="battleLosses">
-                0
-            </strong>
-
-            <span>
-                Losses
-            </span>
-
-        </article>
-
-
-        <article>
-
-            <strong id="battleWinRate">
-                0%
-            </strong>
-
-            <span>
-                Win Rate
-            </span>
-
-        </article>
-
-
-        <article>
-
-            <strong id="battleHighestLevel">
-                1
-            </strong>
-
-            <span>
-                Highest Level
-            </span>
-
-        </article>
-
-    </div>
-
-
-
-    <!-- UPGRADES -->
-
-    <div class="upgrade-panel">
-
-        <p class="eyebrow">
-            TRAIN YOUR FIGHTER
-        </p>
-
-        <h3>
-            Upgrade
-            <span id="upgradeInstrumentName">
-                Guitar
-            </span>
-        </h3>
-
-
-        <div class="upgrade-grid">
-
-            <button
-                class="upgrade-button"
-                data-upgrade="power"
-            ></button>
-
-            <button
-                class="upgrade-button"
-                data-upgrade="melody"
-            ></button>
-
-            <button
-                class="upgrade-button"
-                data-upgrade="rhythm"
-            ></button>
-
-            <button
-                class="upgrade-button"
-                data-upgrade="defense"
-            ></button>
-
-        </div>
-
-    </div>
-
-
-    <div
-        id="trophyCabinet"
-        class="trophy-cabinet"
-    ></div>
-
-</section>
-
-
-
-<!-- =========================================================
-     MUSICCRAFT
-========================================================= -->
-
-<section
-    class="section alt-section musiccraft-section"
-    id="musiccraft"
->
-
-    <div class="section-heading">
-
-        <p class="eyebrow">
-            MINING ADVENTURE
-        </p>
-
-        <h2>
-            ⛏️ MusicCraft
-        </h2>
-
-        <p>
-            Mine blocks and earn MusicVerse EXP plus
-            mastery for your equipped instrument.
-        </p>
-
-    </div>
-
-
-    <div class="musiccraft-top">
-
-        <div>
-            ❤️
-            <strong id="mcHealth">
-                10
-            </strong>
-        </div>
-
-        <div>
-            ⭐
-            <strong id="mcExperience">
-                Lv 1 • 0/100
-            </strong>
-        </div>
-
-        <div>
-            💰
-            <strong id="mcSpendableXP">
-                0
-            </strong>
-        </div>
-
-        <div>
-            🎵
-            <strong id="mcEquippedInstrument">
-                Guitar
-            </strong>
-        </div>
-
-    </div>
-
-
-    <div class="musiccraft-layout">
-
-        <div class="minecraft-canvas-wrap">
-
-            <canvas
-                id="musiccraftCanvas"
-                width="800"
-                height="520"
-                tabindex="0"
-            ></canvas>
-
-            <p>
-                WASD / arrows = move • left click = mine •
-                right click = place • 1–7 = inventory
-            </p>
-
-        </div>
-
-
-        <aside class="musiccraft-sidebar">
-
-            <p class="mini-label">
-                CURRENT DEPTH
-            </p>
-
-            <h3 id="mcDepth">
-                🌱 Surface
-            </h3>
-
-            <p
-                id="mcDepthDescription"
-                class="muted"
-            ></p>
-
-
-            <hr>
-
-
-            <p class="mini-label">
-                MISSION
-            </p>
-
-            <h3 id="mcMissionTitle"></h3>
-
-            <div id="mcMissionList"></div>
-
-
-            <div class="progress-bar">
-
-                <div
-                    id="mcMissionProgressBar"
-                    class="progress-fill"
-                ></div>
-
-            </div>
-
-
-            <button
-                id="mcGoDeeper"
-                class="gold-button full-button"
-            >
-                Complete Mission
-            </button>
-
-
-            <hr>
-
-
-            <p class="mini-label">
-                INVENTORY
-            </p>
-
-            <div id="mcInventory"></div>
-
-
-            <p class="mini-label top-gap">
-                SELECTED BLOCK
-            </p>
-
-            <div id="mcSelectedBlock">
-                🟫 Dirt
-            </div>
-
-
-            <hr>
-
-
-            <p class="mini-label">
-                ADVENTURE LOG
-            </p>
-
-            <div id="mcLog"></div>
+              id="energyPips"
+              class="energy-pips"
+            ></div>
+
+          </div>
 
         </aside>
 
-    </div>
 
-</section>
+        <!-- ARENA -->
+        <div class="arena-wrap">
 
+          <div class="fighter-bar player-bar">
 
-
-<!-- =========================================================
-     LEADERBOARD
-========================================================= -->
-
-<section
-    class="section"
-    id="leaderboard"
->
-
-    <div class="section-heading">
-
-        <p class="eyebrow">
-            MUSICVERSE RANKINGS
-        </p>
-
-        <h2>
-            🏆 Top 100
-        </h2>
-
-        <p>
-            Ranking is based on Lifetime EXP.
-        </p>
-
-    </div>
-
-
-    <div class="your-rank">
-
-        <div>
-
-            <span>
-                YOUR RANK
-            </span>
-
-            <strong id="yourLeaderboardRank">
-                #-
-            </strong>
-
-        </div>
-
-
-        <div>
-
-            <span>
-                PLAYER
-            </span>
-
-            <strong id="leaderboardPlayerName">
+            <div>
+              <strong id="playerBattleName">
                 Player
-            </strong>
+              </strong>
+
+              <span id="playerInstrumentLabel">
+                Guitar
+              </span>
+            </div>
+
+            <div class="hp">
+              <i id="playerHpFill"></i>
+            </div>
+
+            <b id="playerHpText">
+              100 / 100
+            </b>
+
+          </div>
+
+
+          <div
+            id="battle3D"
+            class="battle3d"
+          ></div>
+
+
+          <div class="fighter-bar cpu-bar">
+
+            <div>
+
+              <strong id="cpuBattleName">
+                CPU
+              </strong>
+
+              <span id="cpuInstrumentLabel">
+                Piano
+              </span>
+
+            </div>
+
+            <div class="hp">
+              <i id="cpuHpFill"></i>
+            </div>
+
+            <b id="cpuHpText">
+              100 / 100
+            </b>
+
+          </div>
+
+
+          <div
+            id="battleStatus"
+            class="battle-status"
+          >
+            Choose a move.
+          </div>
+
+
+          <div
+            id="moveButtons"
+            class="move-grid"
+          ></div>
 
         </div>
 
+
+        <!-- OPPONENT INFO -->
+        <aside class="panel cpu-panel">
+
+          <h3>
+            Opponent
+          </h3>
+
+          <div
+            id="cpuStats"
+            class="stats-grid"
+          ></div>
+
+          <div
+            class="battle-log"
+            id="battleLog"
+          ></div>
+
+          <button
+            id="newOpponentBtn"
+            class="btn ghost small"
+          >
+            New opponent
+          </button>
+
+        </aside>
+
+      </div>
+
+    </section>
+
+
+    <!-- MULTIPLAYER -->
+    <section id="multiplayer" class="section">
+
+      <div class="section-heading">
+
+        <div>
+          <p class="eyebrow">
+            TEAM MUSIC BATTLES
+          </p>
+
+          <h2>
+            Multiplayer
+          </h2>
+        </div>
+
+        <div class="online-pill">
+          LOCAL DEMO + ONLINE READY
+        </div>
+
+      </div>
+
+
+      <div class="multiplayer-grid">
+
+
+        <div class="panel multiplayer-card">
+
+          <span class="big-icon">
+            ⚔️
+          </span>
+
+          <h3>
+            Casual 1v1
+          </h3>
+
+          <p>
+            Instant local simulated opponent.
+            No RP is gained or lost.
+          </p>
+
+          <button
+            class="btn primary mp-start"
+            data-team="1"
+          >
+            Play 1v1
+          </button>
+
+        </div>
+
+
+        <div class="panel multiplayer-card wide">
+
+          <span class="big-icon">
+            🎼
+          </span>
+
+          <h3>
+            Team Battles
+          </h3>
+
+          <p>
+            Choose a team size. Your teammates
+            and opponents are simulated locally
+            until a backend is connected.
+          </p>
+
+
+          <div class="team-size-grid">
+
+            <button class="btn ghost mp-start" data-team="2">
+              2v2
+            </button>
+
+            <button class="btn ghost mp-start" data-team="3">
+              3v3
+            </button>
+
+            <button class="btn ghost mp-start" data-team="4">
+              4v4
+            </button>
+
+            <button class="btn ghost mp-start" data-team="5">
+              5v5
+            </button>
+
+            <button class="btn primary mp-start" data-team="10">
+              10v10 Mega Orchestra
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <div class="panel multiplayer-card">
+
+          <span class="big-icon">
+            🔐
+          </span>
+
+          <h3>
+            Private Room
+          </h3>
+
+          <p>
+            Create a local room code now.
+            Real friend invites activate when
+            online multiplayer is connected.
+          </p>
+
+          <button
+            id="createRoomBtn"
+            class="btn ghost"
+          >
+            Create Room
+          </button>
+
+          <div id="roomCode" class="room-code">
+            —
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="teamLobby"
+        class="panel team-lobby hidden"
+      >
+
+        <div class="section-heading compact">
+
+          <div>
+            <p class="eyebrow">
+              MATCH LOBBY
+            </p>
+
+            <h3 id="teamLobbyTitle">
+              2v2 Team Battle
+            </h3>
+          </div>
+
+          <button
+            id="closeLobby"
+            class="btn ghost small"
+          >
+            Close
+          </button>
+
+        </div>
+
+
+        <div class="lobby-columns">
+
+          <div>
+
+            <h4>
+              TEAM BLUE
+            </h4>
+
+            <div
+              id="blueTeamList"
+              class="team-list"
+            ></div>
+
+          </div>
+
+
+          <div class="versus">
+            VS
+          </div>
+
+
+          <div>
+
+            <h4>
+              TEAM RED
+            </h4>
+
+            <div
+              id="redTeamList"
+              class="team-list"
+            ></div>
+
+          </div>
+
+        </div>
+
+
+        <button
+          id="startTeamBattleBtn"
+          class="btn primary"
+        >
+          Start simulated team battle
+        </button>
+
+
+        <p class="fineprint">
+          Real cross-device multiplayer requires a backend
+          such as Supabase or Firebase. This prototype never
+          pretends simulated players are real people.
+        </p>
+
+      </div>
+
+    </section>
+
+
+    <!-- GACHA -->
+    <section id="gacha" class="section">
+
+      <div class="section-heading">
 
         <div>
 
-            <span>
-                LEVEL
-            </span>
+          <p class="eyebrow">
+            COLLECT • EQUIP • POWER UP
+          </p>
 
-            <strong id="leaderboardPlayerLevel">
-                1
-            </strong>
+          <h2>
+            Gacha Hall
+          </h2>
 
         </div>
 
+
+        <div class="shop-wallet">
+          🎵 <strong id="gachaCoins">0</strong>
+          &nbsp;
+          ✨ <strong id="gachaDust">0</strong>
+        </div>
+
+      </div>
+
+
+      <div id="gachaTabs" class="gacha-tabs">
+
+        <button
+          class="gacha-tab active"
+          data-gacha="accessory"
+        >
+          👑 Accessory
+        </button>
+
+        <button
+          class="gacha-tab"
+          data-gacha="pet"
+        >
+          🐾 Pet
+        </button>
+
+        <button
+          class="gacha-tab"
+          data-gacha="aura"
+        >
+          ✨ Aura
+        </button>
+
+        <button
+          class="gacha-tab"
+          data-gacha="skin"
+        >
+          🎸 Instrument Skin
+        </button>
+
+      </div>
+
+
+      <div class="gacha-machine panel">
+
+        <div class="gacha-visual">
+
+          <div
+            id="gachaOrb"
+            class="gacha-orb"
+          >
+            ?
+          </div>
+
+          <p id="gachaTitle">
+            Accessory Gacha
+          </p>
+
+          <small id="gachaSubtitle">
+            Hair • Hats • Clothing • Wings • Glasses
+          </small>
+
+        </div>
+
+
+        <div class="gacha-info">
+
+          <div class="rates">
+
+            <span>⚪ 45%</span>
+            <span>🟢 28%</span>
+            <span>🔵 16%</span>
+            <span>🟣 8%</span>
+            <span>🟡 2.5%</span>
+            <span>🌈 0.5%</span>
+
+          </div>
+
+
+          <div class="pity-grid">
+
+            <div>
+
+              <span>
+                Legendary pity
+              </span>
+
+              <strong id="gachaLegendaryPity">
+                0 / 30
+              </strong>
+
+            </div>
+
+
+            <div>
+
+              <span>
+                Mythic pity
+              </span>
+
+              <strong id="gachaMythicPity">
+                0 / 100
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <div class="roll-actions">
+
+            <button
+              id="rollOneBtn"
+              class="btn primary"
+            >
+              Roll x1 • 100 🎵
+            </button>
+
+            <button
+              id="rollTenBtn"
+              class="btn ghost"
+            >
+              Roll x10 • 900 🎵
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="gachaReveal"
+        class="gacha-reveal panel hidden"
+      ></div>
+
+
+      <div class="collection-layout">
+
+        <div class="panel">
+
+          <div class="section-heading compact">
+
+            <div>
+
+              <p class="eyebrow">
+                LOADOUT
+              </p>
+
+              <h3>
+                Equipped Cosmetics
+              </h3>
+
+            </div>
+
+          </div>
+
+          <div
+            id="equippedGrid"
+            class="inventory-grid"
+          ></div>
+
+        </div>
+
+
+        <div class="panel">
+
+          <div class="section-heading compact">
+
+            <div>
+
+              <p class="eyebrow">
+                COLLECTION
+              </p>
+
+              <h3>
+                Owned Items
+              </h3>
+
+            </div>
+
+
+            <select id="inventoryFilter">
+
+              <option value="all">
+                All
+              </option>
+
+              <option value="accessory">
+                Accessories
+              </option>
+
+              <option value="pet">
+                Pets
+              </option>
+
+              <option value="aura">
+                Auras
+              </option>
+
+              <option value="skin">
+                Instrument Skins
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <div
+            id="inventoryGrid"
+            class="inventory-grid"
+          ></div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- MUSICCRAFT -->
+    <section id="musiccraft" class="section">
+
+      <div class="section-heading">
 
         <div>
 
-            <span>
-                LIFETIME EXP
-            </span>
+          <p class="eyebrow">
+            MINE • BUILD • UNLOCK
+          </p>
 
-            <strong id="leaderboardPlayerXP">
-                0
-            </strong>
+          <h2>
+            MusicCraft
+          </h2>
 
         </div>
 
-    </div>
+
+        <div class="craft-hud">
+
+          <span>
+            Depth
+            <b id="depthLabel">
+              Surface
+            </b>
+          </span>
+
+          <span>
+            HP
+            <b id="craftHp">
+              100
+            </b>
+          </span>
+
+        </div>
+
+      </div>
 
 
-    <div class="podium">
+      <div class="craft-layout">
 
-        <article
-            id="podiumSecond"
-            class="podium-card second"
-        ></article>
+        <div class="craft-canvas-wrap">
 
-        <article
-            id="podiumFirst"
-            class="podium-card first"
-        ></article>
+          <canvas
+            id="craftCanvas"
+            width="800"
+            height="520"
+          ></canvas>
 
-        <article
-            id="podiumThird"
-            class="podium-card third"
-        ></article>
+          <p>
+            WASD / arrows to move •
+            Left click mine •
+            Right click place •
+            1–7 select block
+          </p>
 
-    </div>
+        </div>
 
 
-    <div class="leaderboard-table-wrap">
+        <aside class="panel">
+
+          <h3>
+            Mission
+          </h3>
+
+          <p id="missionText"></p>
+
+          <button
+            id="missionBtn"
+            class="btn primary small"
+          >
+            Unlock next depth
+          </button>
+
+
+          <h3>
+            Inventory
+          </h3>
+
+          <div
+            id="craftInventory"
+            class="craft-inventory"
+          ></div>
+
+          <button
+            id="newWorldBtn"
+            class="btn ghost small"
+          >
+            New world
+          </button>
+
+        </aside>
+
+      </div>
+
+    </section>
+
+
+    <!-- LEADERBOARD -->
+    <section id="leaderboard" class="section">
+
+      <div class="section-heading">
+
+        <div>
+
+          <p class="eyebrow">
+            LOCAL DEMO RANKING
+          </p>
+
+          <h2>
+            Top 100
+          </h2>
+
+        </div>
+
+
+        <div class="rank-card">
+
+          Your rank
+
+          <strong id="yourRank">
+            #--
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="podium"
+        class="podium"
+      ></div>
+
+
+      <div class="table-wrap">
 
         <table>
 
-            <thead>
+          <thead>
 
-                <tr>
+            <tr>
+              <th>Rank</th>
+              <th>Player</th>
+              <th>Level</th>
+              <th>Instrument</th>
+              <th>Lifetime EXP</th>
+            </tr>
 
-                    <th>
-                        Rank
-                    </th>
+          </thead>
 
-                    <th>
-                        Player
-                    </th>
-
-                    <th>
-                        Level
-                    </th>
-
-                    <th>
-                        Instrument
-                    </th>
-
-                    <th>
-                        Lifetime EXP
-                    </th>
-
-                </tr>
-
-            </thead>
-
-
-            <tbody id="leaderboardBody"></tbody>
+          <tbody id="leaderboardBody"></tbody>
 
         </table>
 
-    </div>
+      </div>
 
-</section>
-
-
-
-<!-- =========================================================
-     QUIZ
-========================================================= -->
-
-<section
-    class="section alt-section"
-    id="quiz"
->
-
-    <div class="section-heading">
-
-        <p class="eyebrow">
-            MUSIC KNOWLEDGE
-        </p>
-
-        <h2>
-            Quiz Challenge
-        </h2>
-
-    </div>
+    </section>
 
 
-    <div class="quiz-card">
+    <!-- QUIZ -->
+    <section id="quiz" class="section">
 
-        <div class="quiz-meta">
+      <div class="section-heading">
 
-            <span>
+        <div>
 
-                Question
+          <p class="eyebrow">
+            TEST YOUR MUSIC KNOWLEDGE
+          </p>
 
-                <strong id="questionNumber">
-                    1
-                </strong>
-
-                /
-
-                <strong id="totalQuestions">
-                    10
-                </strong>
-
-            </span>
-
-
-            <span>
-
-                Score:
-
-                <strong id="score">
-                    0
-                </strong>
-
-            </span>
+          <h2>
+            Quick Quiz
+          </h2>
 
         </div>
 
 
-        <h3 id="questionText"></h3>
+        <div class="rank-card">
 
-        <div id="answerButtons"></div>
+          Score
 
-        <p id="quizResult"></p>
+          <strong id="quizScore">
+            0 / 10
+          </strong>
 
-
-        <button
-            id="nextQuestion"
-            class="gold-button"
-        >
-            Next
-        </button>
-
-    </div>
-
-</section>
-
-
-
-<!-- =========================================================
-     PURCHASE POPUP
-========================================================= -->
-
-<div
-    id="purchasePopup"
-    class="popup-overlay"
->
-
-    <div class="popup-card">
-
-        <button
-            id="purchasePopupClose"
-            class="popup-close"
-        >
-            ×
-        </button>
-
-
-        <div class="popup-icon">
-            🔒
         </div>
 
-
-        <p class="eyebrow danger-text">
-            PURCHASE DENIED
-        </p>
+      </div>
 
 
-        <h2 id="purchasePopupTitle">
-            Cannot Buy Item
-        </h2>
+      <div
+        id="quizCard"
+        class="quiz-card panel"
+      ></div>
 
+    </section>
+
+  </main>
+
+
+  <!-- TIMING MINI GAME -->
+  <div
+    id="timingOverlay"
+    class="overlay hidden"
+  >
+
+    <div class="modal timing-modal">
+
+      <p
+        class="eyebrow"
+        id="timingType"
+      >
+        PERFORMANCE
+      </p>
+
+      <h2 id="timingMoveName">
+        Power Strum
+      </h2>
+
+      <p id="timingHint">
+        Hit SPACE or tap when the marker
+        is inside the gold zone.
+      </p>
+
+
+      <div class="timing-track">
 
         <div
-            id="purchasePopupInstrument"
-            class="popup-instrument"
-        >
-            🎻
-        </div>
+          id="timingTarget"
+          class="timing-target"
+        ></div>
+
+        <div
+          id="timingMarker"
+          class="timing-marker"
+        ></div>
+
+      </div>
 
 
-        <p>
-            You do not have enough Available EXP.
-        </p>
+      <button
+        id="timingHitBtn"
+        class="btn primary"
+      >
+        PLAY!
+      </button>
 
-
-        <div class="popup-exp">
-
-            <div>
-
-                <span>
-                    YOUR EXP
-                </span>
-
-                <strong id="purchaseCurrentXP">
-                    0
-                </strong>
-
-            </div>
-
-
-            <div>
-
-                <span>
-                    PRICE
-                </span>
-
-                <strong id="purchaseRequiredXP">
-                    0
-                </strong>
-
-            </div>
-
-        </div>
-
-
-        <p id="purchaseXPNeeded"></p>
-
-
-        <button
-            id="purchasePopupOkay"
-            class="gold-button full-button"
-        >
-            Keep Playing
-        </button>
+      <p
+        id="timingResult"
+        class="timing-result"
+      ></p>
 
     </div>
 
-</div>
+  </div>
 
 
-
-<footer>
-
-    <h2>
-        MusicVerse
-    </h2>
-
-    <p>
-        Build your musician. Master every instrument.
-        Become a MusicVerse legend.
-    </p>
-
-</footer>
+  <div
+    id="toast"
+    class="toast"
+  ></div>
 
 
-<script
+  <footer>
+
+    <strong>
+      MUSICVERSE
+    </strong>
+
+    <span>
+      Local-browser prototype.
+      Run through Live Server because Three.js
+      is loaded as an ES module.
+    </span>
+
+  </footer>
+
+
+  <script
     type="module"
     src="script.js"
-></script>
+  ></script>
 
 </body>
-
 </html>
