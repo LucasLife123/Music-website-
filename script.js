@@ -1,5401 +1,2301 @@
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.164.1/+esm";
-
-const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
-const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
-const pick=a=>a[Math.floor(Math.random()*a.length)];
-const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
-const load=(k,f)=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}};
-const slug=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"");
-
-const families=["All","Strings","Keys","Percussion","Brass","Woodwind","World"];
-
-const rawInstruments=[
-["Guitar","🎸","Strings",78,58,72,76,"Balanced attacker","strum"],
-["Ukulele","🪕","Strings",86,38,70,82,"Fast glass cannon","strum"],
-["Piano","🎹","Keys",62,88,92,70,"Defensive powerhouse","keys"],
-["Flute","🪈","Woodwind",58,48,96,82,"Melody specialist","wind"],
-["Drums","🥁","Percussion",92,72,38,96,"Heavy rhythm attacker","drums"],
-["Clarinet","🎶","Woodwind",60,64,88,72,"Balanced melody","wind"],
-["Trumpet","🎺","Brass",88,54,68,74,"Burst damage","brass"],
-["Violin","🎻","Strings",72,52,98,84,"High-skill melody","bow"],
-["Saxophone","🎷","Woodwind",76,62,88,78,"Versatile","wind"],
-["Cello","🎻","Strings",70,84,94,58,"Tanky melody","bow"],
-["Xylophone","🪇","Percussion",68,50,76,92,"Combo specialist","mallet"],
-["Trombone","🎺","Brass",84,70,62,64,"Heavy brass","brass"],
-["Synthesizer","🎛️","Keys",74,58,90,86,"Effects specialist","keys"],
-["French Horn","📯","Brass",72,82,86,58,"Defensive brass","brass"],
-["Oboe","🎶","Woodwind",64,56,94,68,"Precision melody","wind"],
-["Digital Piano","🎹","Keys",68,78,88,78,"Balanced keyboard","keys"],
-["Organ","🎹","Keys",76,92,90,48,"Super tank","keys"],
-["Drum Machine","🥁","Percussion",82,54,58,100,"Rhythm machine","pads"],
-["Electric Guitar","⚡","Strings",94,48,68,88,"Aggressive attacker","strum"],
-["Bass Guitar","🎸","Strings",86,76,54,90,"Heavy groove","pluck"],
-["Harp","🪉","Strings",52,64,100,72,"Healing support","pluck"],
-["Banjo","🪕","Strings",82,44,64,94,"Rapid combo","pluck"],
-["Mandolin","🪕","Strings",80,46,78,90,"Fast melodic attacker","pluck"],
-["Double Bass","🎻","Strings",82,90,72,54,"Massive tank","bow"],
-["Accordion","🪗","Keys",72,74,82,78,"All-rounder","bellows"],
-["Keytar","🎹","Keys",86,46,76,92,"Mobile attacker","keys"],
-["Harpsichord","🎹","Keys",70,60,92,80,"Precision keys","keys"],
-["Marimba","🥁","Percussion",66,58,84,94,"Melody/rhythm hybrid","mallet"],
-["Timpani","🥁","Percussion",90,86,42,72,"Heavy percussion","drums"],
-["Bongos","🪘","Percussion",78,42,54,98,"Extremely fast","drums"],
-["Congas","🪘","Percussion",82,58,50,94,"Rhythm attacker","drums"],
-["Tambourine","🪇","Percussion",70,34,58,100,"Fastest support","shake"],
-["Steel Pan","🥁","Percussion",68,56,86,88,"Melodic percussion","mallet"],
-["Tuba","🎺","Brass",90,94,54,38,"Super-heavy tank","brass"],
-["Euphonium","🎺","Brass",76,84,78,54,"Balanced tank","brass"],
-["Cornet","🎺","Brass",84,58,74,76,"Fast brass","brass"],
-["Piccolo","🪈","Woodwind",66,32,96,92,"Fragile speed specialist","wind"],
-["Bassoon","🎶","Woodwind",68,86,84,48,"Woodwind tank","wind"],
-["Recorder","🪈","Woodwind",70,44,78,84,"Beginner all-rounder","wind"],
-["Erhu","🐉","World",74,54,98,82,"Melodic bowed specialist","bow"],
-["Guzheng","🌸","World",78,62,96,88,"Combo melody","pluck"],
-["Pipa","🌙","World",84,50,88,92,"Rapid plucking","pluck"],
-["Kalimba","✨","World",58,60,90,86,"Healing support","pluck"],
-["Sitar","🌌","World",76,64,96,80,"Resonance specialist","pluck"],
-["Shamisen","🌸","World",88,48,74,92,"Precision attacker","pluck"]
-];
-
-const instrumentData=rawInstruments.map(
-  ([name,icon,family,attack,defense,melody,rhythm,style,play],i)=>({
-    name,
-    icon,
-    family,
-    attack,
-    defense,
-    melody,
-    rhythm,
-    style,
-    play,
-    price:i===0?0:220+i*95
-  })
-);
-
-const moveSets={
-  strum:[
-    ["Power Strum","Heavy soundwave",1.06,"attack"],
-    ["Rapid Riff","Fast combo",.80,"rhythm"],
-    ["Perfect Chord","Shielding chord",.62,"shield"],
-    ["Dragon Solo","Cinematic ultimate",1.88,"ultimate"]
-  ],
-  keys:[
-    ["Power Chord","Heavy chord",1.00,"attack"],
-    ["Rapid Keys","Fast run",.82,"rhythm"],
-    ["Sustain Shield","Defensive harmony",.62,"shield"],
-    ["Grand Crescendo","Massive finale",1.82,"ultimate"]
-  ],
-  drums:[
-    ["Power Beat","Heavy beat",1.10,"attack"],
-    ["Drum Roll","Rapid combo",.84,"rhythm"],
-    ["Rhythm Barrier","Beat shield",.62,"shield"],
-    ["Thunder Beat","Lightning ultimate",1.90,"ultimate"]
-  ],
-  wind:[
-    ["Focused Note","Precise note",.94,"melody"],
-    ["Rapid Scale","Fast run",.82,"rhythm"],
-    ["Breath Guard","Heal with melody",.58,"heal"],
-    ["Cyclone Symphony","Wind ultimate",1.78,"ultimate"]
-  ],
-  brass:[
-    ["Brass Blast","Direct blast",1.06,"attack"],
-    ["Fanfare Rush","Fast phrase",.82,"rhythm"],
-    ["Royal Guard","Protective resonance",.62,"shield"],
-    ["Solar Fanfare","Brass ultimate",1.86,"ultimate"]
-  ],
-  bow:[
-    ["Power Bow","Strong bow stroke",.98,"melody"],
-    ["Rapid Bow","Fast bow combo",.82,"rhythm"],
-    ["Harmony Strings","Shielding phrase",.62,"shield"],
-    ["Phoenix Symphony","String ultimate",1.86,"ultimate"]
-  ],
-  mallet:[
-    ["Mallet Strike","Focused strike",.98,"attack"],
-    ["Scale Rush","Rapid scale",.82,"rhythm"],
-    ["Resonance","Protective ring",.60,"shield"],
-    ["Rainbow Cascade","Mallet ultimate",1.80,"ultimate"]
-  ],
-  pads:[
-    ["Beat Drop","Heavy pad",1.02,"attack"],
-    ["Pad Rush","Fast sequence",.84,"rhythm"],
-    ["Bass Sequence","Build shield",.60,"shield"],
-    ["Mega Beat Drop","Electronic ultimate",1.90,"ultimate"]
-  ],
-  pluck:[
-    ["Crystal Pluck","Focused pluck",.94,"melody"],
-    ["Finger Rush","Rapid plucking",.82,"rhythm"],
-    ["Resonance","Harmony shield",.60,"shield"],
-    ["Starlight Cascade","Plucked ultimate",1.82,"ultimate"]
-  ],
-  bellows:[
-    ["Squeeze Beat","Bellows attack",.98,"attack"],
-    ["Polka Rush","Fast combo",.82,"rhythm"],
-    ["Bellows Guard","Defensive squeeze",.60,"shield"],
-    ["Festival Frenzy","Accordion ultimate",1.80,"ultimate"]
-  ],
-  shake:[
-    ["Rhythm Shake","Fast shake",.92,"rhythm"],
-    ["Jingle Rush","Multi-hit burst",.80,"rhythm"],
-    ["Tempo Guard","Protective tempo",.58,"shield"],
-    ["Carnival Storm","Rhythm ultimate",1.78,"ultimate"]
-  ]
-};
-
-const rarities={
-  common:{
-    label:"COMMON",
-    weight:45,
-    color:"#aab5c0",
-    dust:8
-  },
-  uncommon:{
-    label:"UNCOMMON",
-    weight:28,
-    color:"#54d88a",
-    dust:15
-  },
-  rare:{
-    label:"RARE",
-    weight:16,
-    color:"#5cafff",
-    dust:30
-  },
-  epic:{
-    label:"EPIC",
-    weight:8,
-    color:"#bd7cff",
-    dust:60
-  },
-  legendary:{
-    label:"LEGENDARY",
-    weight:2.5,
-    color:"#ffd65a",
-    dust:120
-  },
-  mythic:{
-    label:"MYTHIC",
-    weight:.5,
-    color:"#ff7fe1",
-    dust:260
-  }
-};
-
-const rarityOrder=[
-  "common",
-  "uncommon",
-  "rare",
-  "epic",
-  "legendary",
-  "mythic"
-];
-
-const bonus=(text,mods)=>({text,mods});
-
-const accessoryPool=[
-  [
-    "black_cap",
-    "Black Cap",
-    "head",
-    "common",
-    bonus("+1% Defense",{defense:1})
-  ],
-  [
-    "round_glasses",
-    "Round Glasses",
-    "face",
-    "common",
-    bonus("+1% Melody",{melody:1})
-  ],
-  [
-    "studio_headphones",
-    "Studio Headphones",
-    "head",
-    "uncommon",
-    bonus("+2% Rhythm",{rhythm:2})
-  ],
-  [
-    "gold_chain",
-    "Gold Chain",
-    "neck",
-    "rare",
-    bonus("+3% Attack",{attack:3})
-  ],
-  [
-    "star_glasses",
-    "Star Glasses",
-    "face",
-    "rare",
-    bonus("+3% Melody",{melody:3})
-  ],
-  [
-    "cyber_visor",
-    "Cyber Visor",
-    "face",
-    "epic",
-    bonus("+4% Rhythm",{rhythm:4})
-  ],
-  [
-    "angel_wings",
-    "Angel Wings",
-    "back",
-    "legendary",
-    bonus("+5% Defense",{defense:5})
-  ],
-  [
-    "royal_crown",
-    "Royal Crown",
-    "head",
-    "legendary",
-    bonus("+5% Attack",{attack:5})
-  ],
-  [
-    "musicverse_crown",
-    "MusicVerse Crown",
-    "head",
-    "mythic",
-    bonus("+3% all stats",{
-      attack:3,
-      defense:3,
-      melody:3,
-      rhythm:3
-    })
-  ],
-  [
-    "neon_sneakers",
-    "Neon Sneakers",
-    "shoes",
-    "rare",
-    bonus("+3% Rhythm",{rhythm:3})
-  ],
-  [
-    "royal_jacket",
-    "Royal Music Jacket",
-    "clothing",
-    "epic",
-    bonus("+2% Attack +2% Defense",{
-      attack:2,
-      defense:2
-    })
-  ],
-  [
-    "golden_cape",
-    "Golden Cape",
-    "back",
-    "legendary",
-    bonus("+3% Melody +3% Defense",{
-      melody:3,
-      defense:3
-    })
-  ]
-].map(
-  ([id,name,slot,rarity,ability])=>({
-    id,
-    name,
-    slot,
-    rarity,
-    ability,
-    type:"accessory",
-    icon:"👑"
-  })
-);
-
-const petPool=[
-  [
-    "music_cat",
-    "Music Cat",
-    "common",
-    "🐱",
-    bonus("+2% Melody",{melody:2})
-  ],
-  [
-    "beat_puppy",
-    "Beat Puppy",
-    "common",
-    "🐶",
-    bonus("+2% Rhythm",{rhythm:2})
-  ],
-  [
-    "mini_robot",
-    "Mini Robot",
-    "rare",
-    "🤖",
-    bonus("+3% Defense",{defense:3})
-  ],
-  [
-    "neon_fox",
-    "Neon Fox",
-    "rare",
-    "🦊",
-    bonus("+3% Attack",{attack:3})
-  ],
-  [
-    "music_ghost",
-    "Music Ghost",
-    "epic",
-    "👻",
-    bonus("+4% Melody",{melody:4})
-  ],
-  [
-    "baby_dragon",
-    "Baby Dragon",
-    "epic",
-    "🐲",
-    bonus("+4% Attack",{attack:4})
-  ],
-  [
-    "crystal_unicorn",
-    "Crystal Unicorn",
-    "legendary",
-    "🦄",
-    bonus("+5% Melody",{melody:5})
-  ],
-  [
-    "thunder_wolf",
-    "Thunder Wolf",
-    "legendary",
-    "🐺",
-    bonus("+5% Rhythm",{rhythm:5})
-  ],
-  [
-    "phoenix",
-    "Phoenix",
-    "legendary",
-    "🔥",
-    bonus("Phoenix Guard: +5% Defense",{defense:5})
-  ],
-  [
-    "celestial_dragon",
-    "Celestial Dragon",
-    "mythic",
-    "🐉",
-    bonus("+5% Attack +3% Defense",{
-      attack:5,
-      defense:3
-    })
-  ],
-  [
-    "cosmic_owl",
-    "Cosmic Owl",
-    "mythic",
-    "🦉",
-    bonus("+5% Melody +3% Rhythm",{
-      melody:5,
-      rhythm:3
-    })
-  ],
-  [
-    "musicverse_spirit",
-    "MusicVerse Spirit",
-    "mythic",
-    "🎼",
-    bonus("+3% all stats",{
-      attack:3,
-      defense:3,
-      melody:3,
-      rhythm:3
-    })
-  ]
-].map(
-  ([id,name,rarity,icon,ability])=>({
-    id,
-    name,
-    rarity,
-    icon,
-    ability,
-    type:"pet",
-    slot:"pet"
-  })
-);
-
-const auraPool=[
-  [
-    "music_notes",
-    "Musical Notes",
-    "common",
-    "🎵",
-    bonus("+2% Melody",{melody:2})
-  ],
-  [
-    "rhythm_pulse",
-    "Rhythm Pulse",
-    "uncommon",
-    "💨",
-    bonus("+2% Rhythm",{rhythm:2})
-  ],
-  [
-    "flame_aura",
-    "Flame Aura",
-    "rare",
-    "🔥",
-    bonus("+3% Attack",{attack:3})
-  ],
-  [
-    "frost_aura",
-    "Frost Aura",
-    "rare",
-    "❄️",
-    bonus("+3% Defense",{defense:3})
-  ],
-  [
-    "lightning_aura",
-    "Lightning Aura",
-    "epic",
-    "⚡",
-    bonus("+4% Rhythm",{rhythm:4})
-  ],
-  [
-    "sakura_aura",
-    "Sakura Aura",
-    "epic",
-    "🌸",
-    bonus("+4% Melody",{melody:4})
-  ],
-  [
-    "celestial_aura",
-    "Celestial Aura",
-    "legendary",
-    "👼",
-    bonus("+5% Defense",{defense:5})
-  ],
-  [
-    "dragon_aura",
-    "Dragon Aura",
-    "legendary",
-    "🐉",
-    bonus("+5% Attack",{attack:5})
-  ],
-  [
-    "galaxy_aura",
-    "Galaxy Aura",
-    "mythic",
-    "🌌",
-    bonus("+5% Melody +3% Rhythm",{
-      melody:5,
-      rhythm:3
-    })
-  ],
-  [
-    "rainbow_symphony",
-    "Rainbow Symphony",
-    "mythic",
-    "🌈",
-    bonus("+3% all stats",{
-      attack:3,
-      defense:3,
-      melody:3,
-      rhythm:3
-    })
-  ],
-  [
-    "void_aura",
-    "Void Aura",
-    "mythic",
-    "🕳️",
-    bonus("+5% Attack +3% Defense",{
-      attack:5,
-      defense:3
-    })
-  ]
-].map(
-  ([id,name,rarity,icon,ability])=>({
-    id,
-    name,
-    rarity,
-    icon,
-    ability,
-    type:"aura",
-    slot:"aura"
-  })
-);
-
-const skinThemes=[
-  [
-    "sakura",
-    "Sakura",
-    "rare",
-    "🌸",
-    bonus("+2% Melody",{melody:2}),
-    "#f4aac9",
-    "#6f3154"
-  ],
-  [
-    "thunder",
-    "Thunder",
-    "epic",
-    "⚡",
-    bonus("+3% Rhythm",{rhythm:3}),
-    "#eed34e",
-    "#18203a"
-  ],
-  [
-    "phoenix",
-    "Phoenix",
-    "legendary",
-    "🔥",
-    bonus("+4% Attack",{attack:4}),
-    "#ff7433",
-    "#7c1717"
-  ],
-  [
-    "celestial",
-    "Celestial",
-    "legendary",
-    "✨",
-    bonus("+4% Melody",{melody:4}),
-    "#cfe8ff",
-    "#775f9e"
-  ],
-  [
-    "void",
-    "Cosmic Void",
-    "mythic",
-    "🌌",
-    bonus("+3% Attack +3% Rhythm",{
-      attack:3,
-      rhythm:3
-    }),
-    "#5d45a7",
-    "#130b29"
-  ]
-];
-
-const skinPool=instrumentData.flatMap(inst=>
-  skinThemes.map(
-    ([key,label,rarity,icon,ability,primary,secondary])=>({
-      id:`skin_${slug(inst.name)}_${key}`,
-      name:`${label} ${inst.name}`,
-      instrument:inst.name,
-      rarity,
-      icon,
-      ability,
-      primary,
-      secondary,
-      type:"skin",
-      slot:"skin"
-    })
-  )
-);
-
-const allCollectibles=[
-  ...accessoryPool,
-  ...petPool,
-  ...auraPool,
-  ...skinPool
-];
-
-const defaultProfile={
-  playerName:"",
-  level:1,
-  xp:0,
-  totalXpEarned:0,
-  highestLevel:1,
-  musicCoins:1200,
-  starDust:0,
-
-  avatar:{
-    preset:"hero",
-    skin:"#dca57b",
-    hairColor:"#201915",
-    outfit:"#19345b"
-  },
-
-  owned:{
-    accessory:[],
-    pet:[],
-    aura:[],
-    skin:[]
-  },
-
-  equipped:{
-    head:null,
-    face:null,
-    neck:null,
-    back:null,
-    shoes:null,
-    clothing:null,
-    pet:null,
-    aura:null,
-    skins:{}
-  },
-
-  gacha:{
-    accessory:{
-      legendary:0,
-      mythic:0
-    },
-    pet:{
-      legendary:0,
-      mythic:0
-    },
-    aura:{
-      legendary:0,
-      mythic:0
-    },
-    skin:{
-      legendary:0,
-      mythic:0
-    }
-  }
-};
-
-let profile={
-  ...defaultProfile,
-  ...load("musicverseProfile",{})
-};
-
-profile.avatar={
-  ...defaultProfile.avatar,
-  ...(profile.avatar||{})
-};
-
-profile.owned={
-  ...defaultProfile.owned,
-  ...(profile.owned||{})
-};
-
-profile.equipped={
-  ...defaultProfile.equipped,
-  ...(profile.equipped||{})
-};
-
-profile.equipped.skins={
-  ...(profile.equipped.skins||{})
-};
-
-profile.gacha={
-  ...defaultProfile.gacha,
-  ...(profile.gacha||{})
-};
-
-for(const k of ["accessory","pet","aura","skin"]){
-  profile.gacha[k]={
-    ...defaultProfile.gacha[k],
-    ...(profile.gacha[k]||{})
-  };
+:root{
+  --bg:#06111f;
+  --bg2:#09192a;
+  --panel:#0d1e32;
+  --panel2:#122a44;
+  --gold:#e6c87a;
+  --gold2:#ffe8a6;
+  --text:#f8f5ec;
+  --muted:#9fb0c4;
+  --line:#1f3a58;
+  --blue:#61bdff;
+  --red:#ff7288;
+  --green:#61df9a;
+  --shadow:0 25px 70px rgba(0,0,0,.34);
+  --radius:22px;
 }
 
-const defaultBattleData={
-  wins:0,
-  losses:0,
-  equipped:"Guitar",
-  owned:["Guitar"],
-  mastery:{},
-  energy:0,
-  demoRP:0,
-  onlineRP:0,
-  streak:0,
-  demoWins:0,
-  demoLosses:0
-};
-
-let battleData={
-  ...defaultBattleData,
-  ...load("musicverseBattle",{})
-};
-
-battleData.owned=[
-  ...new Set(
-    battleData.owned||["Guitar"]
-  )
-];
-
-battleData.mastery||={};
-
-let craft=load(
-  "musicverseCraft",
-  null
-);
-
-let activeFamily="All";
-let battleMode="practice";
-let activeGacha="accessory";
-
-let battle={
-  playerHp:100,
-  enemyHp:100,
-  playerMax:100,
-  enemyMax:100,
-  enemy:null,
-  turnLocked:false,
-  playerShield:0,
-  enemyShield:0
-};
-
-let pendingTiming=null;
-let timingRAF=null;
-let timingStart=0;
-
-function persist(){
-  save(
-    "musicverseProfile",
-    profile
-  );
-
-  save(
-    "musicverseBattle",
-    battleData
-  );
+*{
+  box-sizing:border-box;
 }
 
-function toast(m){
-  const e=$("#toast");
-
-  e.textContent=m;
-  e.classList.add("show");
-
-  setTimeout(
-    ()=>e.classList.remove("show"),
-    2100
-  );
+html{
+  scroll-behavior:smooth;
 }
 
-function addXP(n){
-
-  if(n>0){
-
-    profile.totalXpEarned+=n;
-    profile.xp+=n;
-
-    while(profile.xp>=100){
-
-      profile.xp-=100;
-      profile.level++;
-
-      profile.highestLevel=Math.max(
-        profile.highestLevel,
-        profile.level
-      );
-
-      profile.musicCoins+=75;
-
-      toast(
-        `Level up! Level ${profile.level} +75 Music Coins`
-      );
-    }
-
-  }else{
-
-    profile.xp+=n;
-
-    while(
-      profile.xp<0 &&
-      profile.level>1
-    ){
-
-      profile.level--;
-      profile.xp+=100;
-    }
-
-    profile.xp=Math.max(
-      0,
-      profile.xp
+body{
+  margin:0;
+  background:
+    radial-gradient(
+      circle at 50% 0,
+      #102944 0,
+      #06111f 40%,
+      #040b13 100%
     );
-  }
-
-  persist();
-  updateProfileUI();
+  color:var(--text);
+  font-family:Montserrat,sans-serif;
 }
 
-function addCoins(n){
-
-  profile.musicCoins=Math.max(
-    0,
-    profile.musicCoins+n
-  );
-
-  persist();
-  updateProfileUI();
+button,
+input,
+select{
+  font:inherit;
 }
 
-function addMastery(name,n){
-
-  battleData.mastery[name]=
-    (battleData.mastery[name]||0)+n;
-
-  persist();
+button{
+  cursor:pointer;
 }
 
-function masteryTier(x){
-
-  return x>=50000
-    ?"👑 Grand Master"
-
-    :x>=40000
-    ?"💎 Diamond Master"
-
-    :x>=30000
-    ?"🥇 Gold Master"
-
-    :x>=20000
-    ?"🥈 Silver Master"
-
-    :x>=10000
-    ?"🥉 Bronze Master"
-
-    :"Beginner";
+a{
+  color:inherit;
+  text-decoration:none;
 }
 
-function getInst(n){
-
-  return instrumentData.find(
-    x=>x.name===n
-  )||instrumentData[0];
+.hidden{
+  display:none!important;
 }
 
-function rankName(rp){
-
-  if(rp>=4000)
-    return"🌌 MusicVerse Legend";
-
-  if(rp>=3000)
-    return"👑 Master";
-
-  if(rp>=2600)
-    return"💎 Diamond I";
-
-  if(rp>=2300)
-    return"💎 Diamond II";
-
-  if(rp>=2000)
-    return"💎 Diamond III";
-
-  if(rp>=1800)
-    return"🥇 Gold I";
-
-  if(rp>=1600)
-    return"🥇 Gold II";
-
-  if(rp>=1400)
-    return"🥇 Gold III";
-
-  if(rp>=1200)
-    return"🥈 Silver I";
-
-  if(rp>=1000)
-    return"🥈 Silver II";
-
-  if(rp>=800)
-    return"🥈 Silver III";
-
-  if(rp>=600)
-    return"🥉 Bronze I";
-
-  if(rp>=400)
-    return"🥉 Bronze II";
-
-  return"🥉 Bronze III";
+.muted{
+  color:var(--muted);
 }
 
-function cosmeticMods(){
 
-  const mods={
-    attack:0,
-    defense:0,
-    melody:0,
-    rhythm:0
-  };
+/* =========================================================
+   HEADER
+========================================================= */
 
-  const ids=
-    Object.values(profile.equipped)
-    .filter(
-      v=>typeof v==="string"
+.topbar{
+  position:sticky;
+  top:0;
+  z-index:50;
+
+  display:flex;
+  align-items:center;
+  gap:20px;
+
+  padding:14px 3vw;
+
+  background:rgba(4,12,21,.9);
+
+  backdrop-filter:blur(14px);
+
+  border-bottom:
+    1px solid rgba(255,255,255,.06);
+}
+
+.brand{
+  font-weight:900;
+  letter-spacing:.1em;
+}
+
+.brand span{
+  color:var(--gold);
+}
+
+.topbar nav{
+  display:flex;
+  gap:15px;
+  flex:1;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+
+.topbar nav a{
+  font-size:11px;
+  color:#c7d3df;
+}
+
+.topbar nav a:hover{
+  color:var(--gold2);
+}
+
+.top-actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:11px;
+}
+
+.icon-btn{
+  border:1px solid var(--line);
+  background:#0a1b2d;
+  color:white;
+
+  border-radius:10px;
+
+  padding:7px 9px;
+}
+
+
+/* =========================================================
+   COMMON
+========================================================= */
+
+.section{
+  width:min(1220px,93vw);
+  margin:0 auto;
+
+  padding:72px 0;
+}
+
+.panel{
+  background:
+    linear-gradient(
+      180deg,
+      rgba(15,35,57,.96),
+      rgba(7,21,35,.98)
     );
 
-  const skinId=
-    profile.equipped.skins?.[
-      battleData.equipped
-    ];
+  border:
+    1px solid rgba(255,255,255,.07);
 
-  if(skinId)
-    ids.push(skinId);
+  border-radius:var(--radius);
 
-  for(const id of ids){
-
-    const item=
-      allCollectibles.find(
-        i=>i.id===id
-      );
-
-    if(!item)
-      continue;
-
-    for(
-      const [k,v]
-      of Object.entries(
-        item.ability?.mods||{}
-      )
-    ){
-
-      mods[k]=
-        (mods[k]||0)+v;
-    }
-  }
-
-  if(
-    battleMode==="demoRanked" ||
-    battleMode==="onlineRanked"
-  ){
-
-    for(const k in mods)
-      mods[k]=Math.min(
-        mods[k],
-        10
-      );
-  }
-
-  return mods;
+  box-shadow:var(--shadow);
 }
 
-function finalStats(inst){
+.section-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:end;
+  gap:20px;
 
-  const m=cosmeticMods();
-
-  return{
-    attack:
-      inst.attack*
-      (1+m.attack/100),
-
-    defense:
-      inst.defense*
-      (1+m.defense/100),
-
-    melody:
-      inst.melody*
-      (1+m.melody/100),
-
-    rhythm:
-      inst.rhythm*
-      (1+m.rhythm/100)
-  };
+  margin-bottom:22px;
 }
 
-function statHtml(i){
+.section h2,
+.section h1{
+  font-family:
+    "Cormorant Garamond",
+    serif;
 
-  return[
-    ["ATK",i.attack],
-    ["DEF",i.defense],
-    ["MEL",i.melody],
-    ["RHY",i.rhythm]
-  ]
-  .map(([l,v])=>
-    `
-    <div class="stat-row">
-
-      <span>${l}</span>
-
-      <div class="stat-bar">
-        <i style="width:${Math.min(100,v)}%"></i>
-      </div>
-
-      <b>${Math.round(v)}</b>
-
-    </div>
-    `
-  )
-  .join("");
+  margin:0;
 }
 
-function updateProfileUI(){
+.section h2{
+  font-size:42px;
+}
 
-  $("#heroName").textContent=
-    profile.playerName||"Player";
+.eyebrow{
+  font-size:10px;
+  letter-spacing:.18em;
+  font-weight:800;
+  color:var(--gold);
+  text-transform:uppercase;
+}
 
-  $("#heroLevel").textContent=
-    `Level ${profile.level}`;
+.btn{
+  border:1px solid var(--line);
 
-  $("#heroCoins").textContent=
-    profile.musicCoins.toLocaleString();
+  background:#10253d;
 
-  $("#heroDust").textContent=
-    profile.starDust.toLocaleString();
+  color:white;
 
-  $("#heroLifetime").textContent=
-    profile.totalXpEarned.toLocaleString();
+  padding:11px 16px;
 
-  $("#coinTop").textContent=
-    profile.musicCoins.toLocaleString();
+  border-radius:12px;
 
-  $("#dustTop").textContent=
-    profile.starDust.toLocaleString();
+  font-weight:800;
+  font-size:11px;
 
-  $("#levelTop").textContent=
-    profile.level;
+  letter-spacing:.03em;
+}
 
-  $("#gachaCoins").textContent=
-    profile.musicCoins.toLocaleString();
+.btn:hover{
+  transform:translateY(-1px);
+}
 
-  $("#gachaDust").textContent=
-    profile.starDust.toLocaleString();
-
-  $("#recordLabel").textContent=
-    `${battleData.wins}W / ${battleData.losses}L`;
-
-  $("#demoRankLabel").textContent=
-    rankName(
-      battleData.demoRP
+.btn.gold{
+  background:
+    linear-gradient(
+      135deg,
+      #b89444,
+      #f0d482
     );
 
-  $("#demoRpLabel").textContent=
-    `${battleData.demoRP} RP`;
+  color:#151007;
 
-  $("#onlineRankLabel").textContent=
-    battleData.onlineRP
-      ?rankName(
-        battleData.onlineRP
-      )
-      :"Unranked";
-
-  $("#onlineRpLabel").textContent=
-    `${battleData.onlineRP} RP`;
-
-  $("#streakLabel").textContent=
-    `${battleData.streak} 🔥`;
-
-  updateGachaUI();
+  border:none;
 }
 
-function setupProfile(){
-
-  const presets=[
-    "hero",
-    "swift",
-    "power",
-    "star",
-    "neo",
-    "legend"
-  ];
-
-  const tones=[
-    "#dca57b",
-    "#f0c7a5",
-    "#a56b46",
-    "#71452f",
-    "#4a2d24"
-  ];
-
-  const hairs=[
-    "#201915",
-    "#4b2b18",
-    "#8a552e",
-    "#d3aa55",
-    "#111111"
-  ];
-
-  const outfits=[
-    "#19345b",
-    "#7d2b3e",
-    "#265a45",
-    "#5b3f86",
-    "#111827"
-  ];
-
-  $("#avatarPresetSelect").innerHTML=
-    presets.map(
-      x=>`<option>${x}</option>`
-    ).join("");
-
-  $("#skinSelect").innerHTML=
-    tones.map(
-      x=>`<option value="${x}">${x}</option>`
-    ).join("");
-
-  $("#hairSelect").innerHTML=
-    hairs.map(
-      x=>`<option value="${x}">${x}</option>`
-    ).join("");
-
-  $("#outfitSelect").innerHTML=
-    outfits.map(
-      x=>`<option value="${x}">${x}</option>`
-    ).join("");
-
-  if(!profile.playerName){
-
-    $("#setupOverlay")
-      .classList
-      .remove("hidden");
-
-    requestAnimationFrame(
-      initSetupPreview
-    );
-  }
-
-  $("#startBtn").onclick=()=>{
-
-    const name=
-      $("#playerNameInput")
-      .value
-      .trim();
-
-    if(!name){
-
-      $("#setupError").textContent=
-        "Please choose a player name.";
-
-      return;
-    }
-
-    profile.playerName=name;
-
-    profile.avatar.preset=
-      $("#avatarPresetSelect").value;
-
-    profile.avatar.skin=
-      $("#skinSelect").value;
-
-    profile.avatar.hairColor=
-      $("#hairSelect").value;
-
-    profile.avatar.outfit=
-      $("#outfitSelect").value;
-
-    persist();
-
-    $("#setupOverlay")
-      .classList
-      .add("hidden");
-
-    updateProfileUI();
-
-    refreshBattle(true);
-  };
+.btn.ghost{
+  background:#0a1b2c;
 }
 
-function renderFamilies(){
-
-  $("#familyTabs").innerHTML=
-    families.map(
-      f=>`
-      <button
-        class="tab ${f===activeFamily?"active":""}"
-        data-family="${f}"
-      >
-        ${f}
-      </button>
-      `
-    ).join("");
-
-  $$("[data-family]")
-  .forEach(
-    b=>b.onclick=()=>{
-
-      activeFamily=
-        b.dataset.family;
-
-      renderFamilies();
-      renderInstruments();
-    }
-  );
+.btn.small{
+  padding:8px 12px;
 }
 
-function renderInstruments(){
-
-  const q=
-    $("#instrumentSearch")
-    .value
-    .toLowerCase()
-    .trim();
-
-  const rows=
-    instrumentData.filter(
-      i=>
-        (
-          activeFamily==="All" ||
-          i.family===activeFamily
-        )
-        &&
-        i.name
-        .toLowerCase()
-        .includes(q)
-    );
-
-  $("#instrumentGrid").innerHTML=
-    rows.map(
-      i=>`
-      <article class="instrument-card">
-
-        <div class="icon">
-          ${i.icon}
-        </div>
-
-        <h3>
-          ${i.name}
-        </h3>
-
-        <p>
-          ${i.family} • ${i.style}
-        </p>
-
-        ${statHtml(i)}
-
-        <button
-          class="btn ${
-            battleData.equipped===i.name
-              ?"primary"
-              :"ghost"
-          } small"
-          data-equip="${i.name}"
-        >
-
-          ${
-            battleData.owned.includes(
-              i.name
-            )
-
-            ?(
-              battleData.equipped===i.name
-                ?"Equipped"
-                :"Equip"
-            )
-
-            :`Unlock • ${i.price} 🎵`
-          }
-
-        </button>
-
-      </article>
-      `
-    ).join("");
-
-  $$("[data-equip]")
-  .forEach(
-    b=>b.onclick=()=>
-      unlockOrEquip(
-        b.dataset.equip
-      )
-  );
+.btn.wide{
+  width:100%;
+  margin-top:14px;
 }
 
-function unlockOrEquip(name){
+.search,
+select,
+input{
+  background:#081728;
+  color:white;
 
-  const i=getInst(name);
+  border:1px solid var(--line);
 
-  if(
-    !battleData.owned.includes(
-      name
-    )
-  ){
+  border-radius:11px;
 
-    if(
-      profile.musicCoins<
-      i.price
-    ){
+  padding:11px 12px;
 
-      return toast(
-        `Need ${
-          i.price-
-          profile.musicCoins
-        } more Music Coins.`
-      );
-    }
+  outline:none;
+}
 
-    profile.musicCoins-=
-      i.price;
+.search{
+  min-width:250px;
+}
 
-    battleData.owned.push(
-      name
+
+/* =========================================================
+   HERO
+========================================================= */
+
+.hero{
+  min-height:72vh;
+
+  display:grid;
+
+  grid-template-columns:
+    1.2fr .8fr;
+
+  align-items:center;
+
+  gap:42px;
+}
+
+.hero-copy h1{
+  font-size:68px;
+  line-height:.95;
+
+  margin:10px 0 18px;
+}
+
+.hero-copy h1 em{
+  display:block;
+
+  color:var(--gold2);
+
+  font-style:normal;
+}
+
+.hero-copy p{
+  color:#b3c3d3;
+
+  max-width:650px;
+
+  line-height:1.7;
+}
+
+.hero-buttons{
+  display:flex;
+  gap:12px;
+
+  margin-top:22px;
+}
+
+.profile-card{
+  padding:24px;
+
+  display:grid;
+
+  grid-template-columns:
+    auto 1fr;
+
+  gap:18px;
+
+  align-items:center;
+}
+
+.mini-avatar{
+  width:90px;
+  height:100px;
+
+  position:relative;
+}
+
+.mini-head{
+  position:absolute;
+
+  width:45px;
+  height:40px;
+
+  left:22px;
+  top:20px;
+
+  background:#dca57b;
+
+  border-radius:9px;
+}
+
+.mini-hair{
+  position:absolute;
+
+  width:49px;
+  height:18px;
+
+  left:20px;
+  top:14px;
+
+  background:#1f1714;
+
+  border-radius:
+    10px 10px 3px 3px;
+
+  z-index:2;
+}
+
+.mini-body{
+  position:absolute;
+
+  width:58px;
+  height:48px;
+
+  left:16px;
+  top:58px;
+
+  background:#19345b;
+
+  border-radius:10px;
+}
+
+.profile-card h2{
+  font-size:34px;
+}
+
+.xp-wrap{
+  grid-column:1/-1;
+}
+
+.xp-wrap>div:first-child{
+  display:flex;
+  justify-content:space-between;
+
+  font-size:11px;
+
+  margin-bottom:6px;
+}
+
+.xpbar,
+.hpbar,
+.team-hp-bar{
+  height:12px;
+
+  background:#121e2d;
+
+  border-radius:999px;
+
+  overflow:hidden;
+
+  border:1px solid #263b51;
+}
+
+.xpbar i,
+.hpbar i,
+.team-hp-bar i{
+  display:block;
+
+  height:100%;
+  width:100%;
+
+  background:
+    linear-gradient(
+      90deg,
+      #2f91ff,
+      #77d7ff
     );
 
-    toast(
-      `${name} unlocked!`
-    );
-  }
-
-  battleData.equipped=name;
-
-  persist();
-  renderInstruments();
-  refreshBattle(true);
-  updateProfileUI();
+  transition:width .35s;
 }
 
-function setBattleMode(mode){
+.profile-stats{
+  grid-column:1/-1;
 
-  battleMode=mode;
+  display:grid;
 
-  $$("#battleModeTabs .mode-btn")
-  .forEach(
-    b=>
-      b.classList.toggle(
-        "active",
-        b.dataset.mode===mode
-      )
-  );
+  grid-template-columns:
+    repeat(3,1fr);
 
-  $("#battleModeLabel").textContent=
-    mode==="practice"
-      ?"Practice"
-
-      :mode==="demoRanked"
-      ?"Demo Ranked"
-
-      :"Online Ranked";
-
-  if(
-    mode==="onlineRanked"
-  ){
-
-    toast(
-      "Online Ranked UI is ready; real players require a connected backend."
-    );
-  }
-
-  refreshBattle(true);
+  gap:8px;
 }
 
-function renderBattleInstrumentSelect(){
+.profile-stats div{
+  padding:12px;
 
-  $("#battleInstrumentSelect").innerHTML=
-    battleData.owned.map(
-      n=>`
-      <option
-        value="${n}"
-        ${
-          n===battleData.equipped
-            ?"selected"
-            :""
-        }
-      >
-        ${n}
-      </option>
-      `
-    ).join("");
+  background:#081726;
+
+  border-radius:12px;
+
+  text-align:center;
 }
 
-function refreshBattle(
-  newEnemy=false
-){
+.profile-stats b{
+  display:block;
 
-  renderBattleInstrumentSelect();
+  color:var(--gold2);
 
-  const inst=
-    getInst(
-      battleData.equipped
-    );
+  font-size:18px;
+}
 
-  const fs=
-    finalStats(inst);
+.profile-stats span{
+  font-size:9px;
 
-  $("#playerBattleName").textContent=
-    profile.playerName||"Player";
+  color:var(--muted);
+}
 
-  $("#playerInstrumentLabel").textContent=
-    inst.name;
 
-  $("#playerStats").innerHTML=
-    statHtml(fs);
+/* =========================================================
+   TABS
+========================================================= */
 
-  const mx=
-    battleData.mastery[
-      inst.name
-    ]||0;
+.tabs{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
 
-  $("#masteryValue").textContent=
-    `${mx.toLocaleString()} EXP`;
+  margin-bottom:18px;
+}
 
-  $("#masteryTier").textContent=
-    masteryTier(mx);
+.tabs button,
+.team-size-buttons button{
+  border:1px solid var(--line);
 
-  const mods=
-    cosmeticMods();
+  background:#0b1b2b;
 
-  $("#cosmeticBonusBox").innerHTML=
-    `
-    <span>
-      COSMETIC BONUSES
-      ${
-        battleMode!=="practice"
-          ?" • Ranked cap 10%"
-          :""
-      }
-    </span>
+  color:#b8c7d7;
 
-    <strong>
-      ATK +${mods.attack}%
-      • DEF +${mods.defense}%
-      <br>
-      MEL +${mods.melody}%
-      • RHY +${mods.rhythm}%
-    </strong>
-    `;
+  padding:8px 12px;
 
-  if(
-    newEnemy ||
-    !battle.enemy
-  ){
+  border-radius:999px;
 
-    makeEnemy();
-  }
+  font-size:10px;
+  font-weight:800;
+}
 
-  battle.playerMax=
-    Math.round(
-      90+
-      fs.defense*.38
+.tabs button.active,
+.team-size-buttons button.active{
+  background:var(--gold);
+
+  color:#17120a;
+
+  border-color:transparent;
+}
+
+
+/* =========================================================
+   INSTRUMENTS
+========================================================= */
+
+.instrument-grid{
+  display:grid;
+
+  grid-template-columns:
+    repeat(4,1fr);
+
+  gap:14px;
+}
+
+.instrument-card{
+  padding:17px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #0e2238,
+      #091827
     );
 
-  battle.enemyMax=
-    Math.round(
-      90+
-      battle.enemy.defense*.38
+  border:1px solid var(--line);
+
+  border-radius:17px;
+
+  position:relative;
+}
+
+.instrument-card.equipped{
+  border-color:var(--gold);
+
+  box-shadow:
+    0 0 24px rgba(230,200,122,.12);
+}
+
+.instrument-icon{
+  font-size:30px;
+}
+
+.instrument-card h3{
+  margin:8px 0 2px;
+}
+
+.instrument-card p{
+  margin:0 0 12px;
+
+  color:var(--muted);
+
+  font-size:10px;
+}
+
+.stat-line{
+  display:flex;
+
+  gap:6px;
+
+  margin:7px 0;
+}
+
+.stat-line span{
+  flex:1;
+
+  background:#071421;
+
+  padding:5px 6px;
+
+  border-radius:8px;
+
+  font-size:8px;
+
+  text-align:center;
+}
+
+.instrument-actions{
+  display:flex;
+
+  gap:7px;
+
+  margin-top:12px;
+}
+
+.instrument-actions button{
+  flex:1;
+}
+
+
+/* =========================================================
+   SOLO BATTLE
+========================================================= */
+
+.battle-board{
+  display:grid;
+
+  grid-template-columns:
+    250px 1fr 250px;
+
+  gap:18px;
+
+  padding:22px;
+}
+
+.fighter{
+  text-align:center;
+
+  padding:15px;
+
+  background:#081625;
+
+  border-radius:16px;
+}
+
+.cool-avatar{
+  width:130px;
+  height:150px;
+
+  margin:0 auto 8px;
+
+  position:relative;
+
+  filter:
+    drop-shadow(
+      0 14px 18px
+      rgba(0,0,0,.35)
     );
 
-  battle.playerHp=
-    battle.playerMax;
-
-  battle.enemyHp=
-    battle.enemyMax;
-
-  battle.playerShield=0;
-  battle.enemyShield=0;
-
-  battleData.energy=0;
-
-  battle.turnLocked=false;
-
-  updateBattleBars();
-  renderMoves();
-  renderBattleScene();
-  updateEnergy();
-}
-
-function makeEnemy(){
-
-  const inst={
-    ...pick(
-      instrumentData.filter(
-        i=>
-          i.name!==
-          battleData.equipped
-      )
-    )
-  };
-
-  let mult=1;
-
-  if(
-    battleMode==="practice"
-  )
-    mult=.92;
-
-  if(
-    battleMode==="demoRanked"
-  )
-    mult=1.02;
-
-  if(
-    battleMode==="onlineRanked"
-  )
-    mult=1.04;
-
-  for(
-    const k of [
-      "attack",
-      "defense",
-      "melody",
-      "rhythm"
-    ]
-  ){
-
-    inst[k]=Math.round(
-      inst[k]*mult
-    );
-  }
-
-  battle.enemy=inst;
-
-  const name=
-    battleMode==="practice"
-      ?"Training CPU"
-
-      :battleMode==="demoRanked"
-      ?pick([
-        "BeatKnight",
-        "PianoNova",
-        "RhythmFox",
-        "StringStorm",
-        "TempoAce",
-        "ChordKing"
-      ])+rand(10,99)
-
-      :"Online Player (backend needed)";
-
-  $("#cpuBattleName").textContent=
-    name;
-
-  $("#cpuInstrumentLabel").textContent=
-    inst.name;
-
-  $("#cpuStats").innerHTML=
-    statHtml(inst);
-
-  logBattle(
-    `${name} entered with ${inst.name}.`
-  );
-}
-
-function updateBattleBars(){
-
-  $("#playerHpFill").style.width=
-    `${battle.playerHp/battle.playerMax*100}%`;
-
-  $("#cpuHpFill").style.width=
-    `${battle.enemyHp/battle.enemyMax*100}%`;
-
-  $("#playerHpText").textContent=
-    `${battle.playerHp} / ${battle.playerMax}`;
-
-  $("#cpuHpText").textContent=
-    `${battle.enemyHp} / ${battle.enemyMax}`;
-}
-
-function updateEnergy(){
-
-  $("#energyPips").innerHTML=
-    [0,1,2].map(
-      i=>`
-      <i
-        class="pip ${
-          i<battleData.energy
-            ?"on"
-            :""
-        }"
-      ></i>
-      `
-    ).join("");
-}
-
-function renderMoves(){
-
-  const inst=
-    getInst(
-      battleData.equipped
-    );
-
-  const moves=
-    moveSets[inst.play]
-    ||moveSets.strum;
-
-  $("#moveButtons").innerHTML=
-    moves.map(
-      (m,i)=>`
-      <button
-        class="move-btn ${
-          i===3
-            ?"ultimate"
-            :""
-        }"
-        data-move="${i}"
-
-        ${
-          i===3 &&
-          battleData.energy<3
-
-          ?"disabled"
-          :""
-        }
-      >
-
-        <strong>
-          ${m[0]}
-        </strong>
-
-        <span>
-          ${
-            i===3
-              ?"ULTIMATE • 3 ENERGY"
-              :m[3].toUpperCase()
-          }
-        </span>
-
-        <small>
-          ${m[1]}
-        </small>
-
-      </button>
-      `
-    ).join("");
-
-  $$("[data-move]")
-  .forEach(
-    b=>b.onclick=()=>
-      startPlayerMove(
-        +b.dataset.move
-      )
-  );
-}
-
-function startPlayerMove(i){
-
-  if(
-    battle.turnLocked
-  )
-    return;
-
-  const inst=
-    getInst(
-      battleData.equipped
-    );
-
-  const move=
-    (
-      moveSets[inst.play]
-      ||moveSets.strum
-    )[i];
-
-  if(
-    i===3 &&
-    battleData.energy<3
-  )
-    return;
-
-  battle.turnLocked=true;
-
-  pendingTiming={
-    inst,
-    move,
-    index:i
-  };
-
-  startTiming(
-    move[0],
-    inst.play
-  );
-}
-
-function startTiming(
-  name,
-  play
-){
-
-  $("#timingOverlay")
-    .classList
-    .remove("hidden");
-
-  $("#timingMoveName").textContent=
-    name;
-
-  $("#timingType").textContent=
-    `${play.toUpperCase()} PERFORMANCE`;
-
-  $("#timingResult").textContent=
-    "";
-
-  $("#timingHint").textContent=
-    {
-      strum:
-        "Strum in the gold zone.",
-
-      keys:
-        "Land the chord in the gold zone.",
-
-      drums:
-        "Hit the beat in the gold zone.",
-
-      wind:
-        "Release the note in the gold zone.",
-
-      brass:
-        "Blast the note in the gold zone.",
-
-      bow:
-        "Change bow direction in the gold zone.",
-
-      mallet:
-        "Strike the bar in the gold zone.",
-
-      pads:
-        "Tap the pad in the gold zone.",
-
-      pluck:
-        "Pluck in the gold zone.",
-
-      bellows:
-        "Squeeze in the gold zone.",
-
-      shake:
-        "Shake on the beat."
-    }[play]
-    ||
-    "Play in the gold zone.";
-
-  timingStart=
-    performance.now();
-
-  cancelAnimationFrame(
-    timingRAF
-  );
-
-  const marker=
-    $("#timingMarker");
-
-  const loop=t=>{
-
-    const x=
-      (
-        (
-          Math.sin(
-            (t-timingStart)/420-
-            Math.PI/2
-          )+1
-        )/2
-      )*96;
-
-    marker.style.left=
-      `${x}%`;
-
-    marker.dataset.x=x;
-
-    timingRAF=
-      requestAnimationFrame(
-        loop
-      );
-  };
-
-  timingRAF=
-    requestAnimationFrame(
-      loop
+  background:
+    radial-gradient(
+      circle at 50% 80%,
+      rgba(99,199,255,.32),
+      transparent 45%
     );
 }
 
-function resolveTiming(){
+.cool-avatar:before{
+  content:"";
 
-  if(!pendingTiming)
-    return;
+  position:absolute;
 
-  cancelAnimationFrame(
-    timingRAF
-  );
+  width:65px;
+  height:65px;
 
-  const x=
-    +(
-      $("#timingMarker")
-      .dataset.x||0
-    );
+  left:32px;
+  top:16px;
 
-  const d=
-    Math.abs(
-      x-50
-    );
+  background:#d7a078;
 
-  let rating="MISS";
-  let mult=.4;
+  border-radius:14px;
 
-  if(d<=4){
-
-    rating="PERFECT";
-    mult=1.25;
-
-  }else if(d<=9){
-
-    rating="GREAT";
-    mult=1;
-
-  }else if(d<=16){
-
-    rating="GOOD";
-    mult=.8;
-  }
-
-  $("#timingResult").textContent=
-    rating;
-
-  setTimeout(
-    ()=>{
-
-      $("#timingOverlay")
-        .classList
-        .add("hidden");
-
-      executePlayerMove(
-        pendingTiming.inst,
-        pendingTiming.move,
-        pendingTiming.index,
-        mult,
-        rating
-      );
-
-      pendingTiming=null;
-
-    },
-    350
-  );
+  box-shadow:
+    inset 0 12px 0 #241a16;
 }
 
-$("#timingHitBtn").onclick=
-  resolveTiming;
+.cool-avatar:after{
+  content:"♫";
 
-window.addEventListener(
-  "keydown",
-  e=>{
+  position:absolute;
 
-    if(
-      e.code==="Space" &&
-      !$("#timingOverlay")
-      .classList
-      .contains("hidden")
-    ){
+  width:86px;
+  height:80px;
 
-      e.preventDefault();
-      resolveTiming();
-    }
-  }
-);
+  left:22px;
+  top:79px;
 
-async function executePlayerMove(
-  inst,
-  move,
-  index,
-  timing,
-  rating
-){
+  border-radius:
+    18px 18px 12px 12px;
 
-  const fs=
-    finalStats(inst);
-
-  $("#battleStatus").textContent=
-    `${rating}! ${move[0]}`;
-
-  await playMoveAnimation(
-    "player",
-    inst.play,
-    index
-  );
-
-  if(
-    move[3]==="heal"
-  ){
-
-    const h=
-      Math.round(
-        (
-          fs.melody*.22+9
-        )*timing
-      );
-
-    battle.playerHp=
-      clamp(
-        battle.playerHp+h,
-        0,
-        battle.playerMax
-      );
-
-    logBattle(
-      `${move[0]} healed ${h} HP.`
+  background:
+    linear-gradient(
+      135deg,
+      #1b4f80,
+      #0d2948
     );
 
-  }else if(
-    move[3]==="shield"
-  ){
+  display:grid;
 
-    battle.playerShield=1;
+  place-items:center;
 
-    const dmg=
-      Math.round(
-        (
-          fs.melody*.12+5
-        )*timing
-      );
+  color:#ffe29a;
 
-    battle.enemyHp=
-      clamp(
-        battle.enemyHp-dmg,
-        0,
-        battle.enemyMax
-      );
+  font-size:28px;
 
-    logBattle(
-      `${move[0]} created a shield and dealt ${dmg}.`
-    );
+  font-weight:900;
 
-  }else{
-
-    const source=
-      move[3]==="rhythm"
-        ?(
-          fs.attack*.55+
-          fs.rhythm*.45
-        )
-
-        :move[3]==="melody"
-        ?fs.melody
-
-        :fs.attack;
-
-    let dmg=
-      Math.max(
-        4,
-        Math.round(
-          (
-            source*.29+8
-          )*
-          move[2]*
-          timing
-          -
-          battle.enemy.defense*.07
-        )
-      );
-
-    if(
-      battle.enemyShield
-    ){
-
-      const block=
-        Math.round(
-          dmg*.4
-        );
-
-      dmg-=block;
-
-      battle.enemyShield=0;
-
-      logBattle(
-        `Enemy shield blocked ${block}.`
-      );
-    }
-
-    battle.enemyHp=
-      clamp(
-        battle.enemyHp-dmg,
-        0,
-        battle.enemyMax
-      );
-
-    logBattle(
-      `${move[0]} dealt ${dmg} (${rating}).`
-    );
-  }
-
-  if(index===3){
-
-    battleData.energy=0;
-
-  }else{
-
-    battleData.energy=
-      clamp(
-        battleData.energy+
-        (
-          rating==="PERFECT"
-            ?2
-            :1
-        ),
-        0,
-        3
-      );
-  }
-
-  updateBattleBars();
-  updateEnergy();
-  renderMoves();
-
-  if(
-    battle.enemyHp<=0
-  ){
-
-    return finishBattle(
-      true
-    );
-  }
-
-  setTimeout(
-    enemyTurn,
-    500
-  );
+  border:
+    2px solid
+    rgba(255,255,255,.1);
 }
 
-async function enemyTurn(){
-
-  const inst=
-    battle.enemy;
-
-  const moves=
-    moveSets[inst.play]
-    ||moveSets.strum;
-
-  const idx=
-    Math.random()<.2
-      ?2
-
-      :Math.random()<.5
-      ?1
-
-      :0;
-
-  const move=
-    moves[idx];
-
-  $("#battleStatus").textContent=
-    `Opponent performs ${move[0]}`;
-
-  await playMoveAnimation(
-    "enemy",
-    inst.play,
-    idx
-  );
-
-  if(
-    move[3]==="heal"
-  ){
-
-    const h=
-      Math.round(
-        inst.melody*.14
-      );
-
-    battle.enemyHp=
-      clamp(
-        battle.enemyHp+h,
-        0,
-        battle.enemyMax
-      );
-
-    logBattle(
-      `Opponent healed ${h}.`
-    );
-
-  }else if(
-    move[3]==="shield"
-  ){
-
-    battle.enemyShield=1;
-
-    logBattle(
-      "Opponent gained a shield."
-    );
-
-  }else{
-
-    const source=
-      move[3]==="rhythm"
-        ?(
-          inst.attack*.55+
-          inst.rhythm*.45
-        )
-
-        :move[3]==="melody"
-        ?inst.melody
-
-        :inst.attack;
-
-    let dmg=
-      Math.max(
-        4,
-        Math.round(
-          source*.24*
-          move[2]
-          -
-          finalStats(
-            getInst(
-              battleData.equipped
-            )
-          ).defense*.06
-        )
-      );
-
-    if(
-      battle.playerShield
-    ){
-
-      const block=
-        Math.round(
-          dmg*.45
-        );
-
-      dmg-=block;
-
-      battle.playerShield=0;
-
-      logBattle(
-        `Your shield blocked ${block}.`
-      );
-    }
-
-    battle.playerHp=
-      clamp(
-        battle.playerHp-dmg,
-        0,
-        battle.playerMax
-      );
-
-    logBattle(
-      `Opponent dealt ${dmg}.`
-    );
-  }
-
-  updateBattleBars();
-
-  if(
-    battle.playerHp<=0
-  ){
-
-    return finishBattle(
-      false
-    );
-  }
-
-  battle.turnLocked=false;
-
-  $("#battleStatus").textContent=
-    "Your turn — choose a move.";
-}
-
-function finishBattle(win){
-
-  battle.turnLocked=true;
-
-  const exp=
-    win
-      ?rand(24,38)
-      :-rand(12,22);
-
-  const coins=
-    win
-
-      ?battleMode==="practice"
-      ?rand(20,35)
-
-      :battleMode==="demoRanked"
-      ?rand(35,50)
-
-      :rand(50,75)
-
-      :0;
-
-  battleData[
-    win
-      ?"wins"
-      :"losses"
-  ]++;
-
-  if(win){
-
-    addXP(exp);
-
-    addMastery(
-      battleData.equipped,
-      exp
-    );
-
-    addCoins(coins);
-
-    if(
-      battleMode==="demoRanked"
-    ){
-
-      const rp=
-        rand(18,30);
-
-      battleData.demoRP+=rp;
-      battleData.streak++;
-      battleData.demoWins++;
-
-      toast(
-        `Victory +${rp} RP +${coins} Music Coins`
-      );
-
-    }else if(
-      battleMode==="onlineRanked"
-    ){
-
-      toast(
-        "Online RP requires backend verification; local demo rewards only."
-      );
-
-    }else{
-
-      toast(
-        `Victory +${coins} Music Coins`
-      );
-    }
-
-    $("#battleStatus").textContent=
-      "Victory!";
-
-    playVictory(
-      "player"
-    );
-
-  }else{
-
-    addXP(exp);
-
-    if(
-      battleMode==="demoRanked"
-    ){
-
-      const loss=
-        rand(12,22);
-
-      battleData.demoRP=
-        Math.max(
-          0,
-          battleData.demoRP-loss
-        );
-
-      battleData.streak=0;
-      battleData.demoLosses++;
-
-      toast(
-        `Defeat -${loss} RP`
-      );
-    }
-
-    $("#battleStatus").textContent=
-      "Defeat";
-
-    playVictory(
-      "enemy"
-    );
-  }
-
-  persist();
-  updateProfileUI();
-
-  setTimeout(
-    ()=>refreshBattle(true),
-    1800
-  );
-}
-
-function logBattle(m){
-
-  const l=
-    $("#battleLog");
-
-  l.insertAdjacentHTML(
-    "afterbegin",
-    `<p>• ${m}</p>`
-  );
-}
-
-/* ===========================
-   THREE.JS BATTLE
-=========================== */
-
-let scene;
-let camera;
-let renderer;
-let playerAvatar;
-let enemyAvatar;
-let raf;
-
-let fx=[];
-
-const cameraBase=
-  new THREE.Vector3(
-    0,
-    3.2,
-    8.6
-  );
-
-let cameraShake=0;
-
-function mat(
-  c,
-  e=0x000000
-){
-
-  return new THREE.MeshStandardMaterial({
-    color:c,
-    roughness:.62,
-    metalness:.08,
-    emissive:e,
-    emissiveIntensity:.25
-  });
-}
-
-function box(
-  w,
-  h,
-  d,
-  m
-){
-
-  const x=
-    new THREE.Mesh(
-      new THREE.BoxGeometry(
-        w,
-        h,
-        d
-      ),
-      m
-    );
-
-  x.castShadow=true;
-
-  return x;
-}
-
-function createInstrument3D(name){
-
-  const inst=
-    getInst(name);
-
-  const skin=
-    skinPool.find(
-      s=>
-        s.id===
-        profile.equipped.skins?.[
-          name
-        ]
-    );
-
-  const p=
-    mat(
-      skin?.primary
-      ||
-      "#c9884c"
-    );
-
-  const s=
-    mat(
-      skin?.secondary
-      ||
-      "#3b2419"
-    );
-
-  const g=
-    new THREE.Group();
-
-  if(
-    inst.play==="keys"
-  ){
-
-    const b=
-      box(
-        1.25,
-        .28,
-        .58,
-        s
-      );
-
-    g.add(b);
-
-    for(
-      let i=0;
-      i<8;
-      i++
-    ){
-
-      const k=
-        box(
-          .12,
-          .05,
-          .42,
-          mat("#f4f2e9")
-        );
-
-      k.position.set(
-        -.5+i*.145,
-        .16,
-        .02
-      );
-
-      g.add(k);
-    }
-
-  }else if(
-    inst.play==="drums" ||
-    inst.play==="pads" ||
-    inst.play==="mallet"
-  ){
-
-    const d=
-      box(
-        1.0,
-        .42,
-        .5,
-        p
-      );
-
-    g.add(d);
-
-    for(
-      let i=-1;
-      i<=1;
-      i++
-    ){
-
-      const pad=
-        box(
-          .24,
-          .06,
-          .22,
-          mat("#e7d7a1")
-        );
-
-      pad.position.set(
-        i*.3,
-        .25,
-        .05
-      );
-
-      g.add(pad);
-    }
-
-  }else if(
-    inst.play==="wind" ||
-    inst.play==="brass"
-  ){
-
-    const tube=
-      box(
-        1.15,
-        .14,
-        .14,
-        p
-      );
-
-    tube.rotation.z=
-      -.12;
-
-    g.add(tube);
-
-    const bell=
-      box(
-        .25,
-        .3,
-        .3,
-        p
-      );
-
-    bell.position.x=.65;
-
-    g.add(bell);
-
-  }else{
-
-    const body=
-      box(
-        .62,
-        .78,
-        .18,
-        p
-      );
-
-    body.position.y=
-      -.08;
-
-    g.add(body);
-
-    const neck=
-      box(
-        .16,
-        .95,
-        .13,
-        s
-      );
-
-    neck.position.set(
-      .2,
-      .72,
-      0
-    );
-
-    neck.rotation.z=
-      -.18;
-
-    g.add(neck);
-  }
-
-  g.scale.set(
-    .7,
-    .7,
-    .7
-  );
-
-  return g;
-}
-
-function createAvatar(
-  config,
-  instrumentName,
-  isEnemy=false
-){
-
-  const r=
-    new THREE.Group();
-
-  const skin=
-    mat(
-      config.skin
-      ||
-      "#dca57b"
-    );
-
-  const shirt=
-    mat(
-      isEnemy
-      ?"#7d2d3d"
-      :config.outfit
-      ||"#19345b"
-    );
-
-  const hair=
-    mat(
-      config.hairColor
-      ||
-      "#201915"
-    );
-
-  const pants=
-    mat(
-      "#24334a"
-    );
-
-  const torso=
-    box(
-      1.1,
-      .95,
-      .55,
-      shirt
-    );
-
-  torso.position.y=
-    1.65;
-
-  r.add(torso);
-
-  const head=
-    box(
-      .9,
-      .9,
-      .9,
-      skin
-    );
-
-  head.position.y=
-    2.6;
-
-  r.add(head);
-
-  const ht=
-    box(
-      .94,
-      .18,
-      .94,
-      hair
-    );
-
-  ht.position.y=
-    3.12;
-
-  r.add(ht);
-
-  [-.18,.18]
-  .forEach(
-    x=>{
-
-      const e=
-        box(
-          .07,
-          .09,
-          .04,
-          mat("#111")
-        );
-
-      e.position.set(
-        x,
-        2.66,
-        .47
-      );
-
-      r.add(e);
-    }
-  );
-
-  const armL=
-    new THREE.Group();
-
-  const armR=
-    new THREE.Group();
-
-  armL.position.set(
-    -.7,
-    1.95,
-    0
-  );
-
-  armR.position.set(
-    .7,
-    1.95,
-    0
-  );
-
-  r.add(
-    armL,
-    armR
-  );
-
-  for(
-    const a of [
-      armL,
-      armR
-    ]
-  ){
-
-    const u=
-      box(
-        .32,
-        .72,
-        .32,
-        shirt
-      );
-
-    u.position.y=
-      -.38;
-
-    a.add(u);
-
-    const h=
-      box(
-        .33,
-        .3,
-        .33,
-        skin
-      );
-
-    h.position.y=
-      -.82;
-
-    a.add(h);
-  }
-
-  const legL=
-    new THREE.Group();
-
-  const legR=
-    new THREE.Group();
-
-  legL.position.set(
-    -.26,
-    1.05,
-    0
-  );
-
-  legR.position.set(
-    .26,
-    1.05,
-    0
-  );
-
-  r.add(
-    legL,
-    legR
-  );
-
-  for(
-    const l of [
-      legL,
-      legR
-    ]
-  ){
-
-    const z=
-      box(
-        .38,
-        .9,
-        .42,
-        pants
-      );
-
-    z.position.y=
-      -.48;
-
-    l.add(z);
-
-    const f=
-      box(
-        .42,
-        .2,
-        .58,
-        mat("#111827")
-      );
-
-    f.position.set(
-      0,
-      -1,
-      .08
-    );
-
-    l.add(f);
-  }
-
-  const instrument=
-    createInstrument3D(
-      instrumentName
-    );
-
-  instrument.position.set(
-    .05,
-    1.45,
-    .66
-  );
-
-  r.add(instrument);
-
-  r.userData={
-    torso,
-    head,
-    armL,
-    armR,
-    legL,
-    legR,
-    instrument,
-    phase:
-      Math.random()*6
-  };
-
-  if(!isEnemy)
-    addEquippedVisuals(r);
-
-  return r;
-}
-
-function addEquippedVisuals(r){
-
-  const eq=
-    profile.equipped;
-
-  if(eq.head){
-
-    const c=
-      box(
-        .7,
-        .15,
-        .7,
-        mat("#d2ac48")
-      );
-
-    c.position.set(
-      0,
-      3.35,
-      0
-    );
-
-    r.add(c);
-  }
-
-  if(eq.aura){
-
-    for(
-      let i=0;
-      i<6;
-      i++
-    ){
-
-      const q=
-        box(
-          .08,
-          .08,
-          .08,
-          mat(
-            "#f0d05a",
-            0xf0d05a
-          )
-        );
-
-      q.userData.orbit=i;
-
-      q.position.y=
-        1.5;
-
-      r.add(q);
-    }
-  }
-
-  if(eq.pet){
-
-    const pet=
-      box(
-        .38,
-        .38,
-        .38,
-        mat("#7cc5ff")
-      );
-
-    pet.position.set(
-      -1.0,
-      .65,
-      .2
-    );
-
-    pet.userData.pet=
-      true;
-
-    r.add(pet);
-  }
-}
-
-function renderBattleScene(){
-
-  const host=
-    $("#battle3D");
-
-  const w=
-    Math.max(
-      300,
-      host.clientWidth
-    );
-
-  const h=
-    Math.max(
-      260,
-      host.clientHeight
-    );
-
-  if(renderer){
-
-    cancelAnimationFrame(
-      raf
-    );
-
-    renderer.dispose();
-  }
-
-  scene=
-    new THREE.Scene();
-
-  scene.background=
-    new THREE.Color(
-      0x9bd8ff
-    );
-
-  camera=
-    new THREE.PerspectiveCamera(
-      42,
-      w/h,
-      .1,
-      100
-    );
-
-  camera.position.copy(
-    cameraBase
-  );
-
-  camera.lookAt(
-    0,
-    1.5,
-    0
-  );
-
-  renderer=
-    new THREE.WebGLRenderer({
-      antialias:true,
-      alpha:true
-    });
-
-  renderer.setPixelRatio(
-    Math.min(
-      devicePixelRatio,
-      2
-    )
-  );
-
-  renderer.setSize(
-    w,
-    h
-  );
-
-  renderer.shadowMap.enabled=
-    true;
-
-  host.innerHTML="";
-
-  host.appendChild(
-    renderer.domElement
-  );
-
-  scene.add(
-    new THREE.HemisphereLight(
-      0xffffff,
-      0x496b43,
-      2.2
-    )
-  );
-
-  const dl=
-    new THREE.DirectionalLight(
-      0xffffff,
-      2.3
-    );
-
-  dl.position.set(
-    4,
-    7,
-    4
-  );
-
-  scene.add(dl);
-
-  const ground=
-    box(
-      14,
-      .2,
-      8,
-      mat("#6aa84f")
-    );
-
-  ground.position.y=
-    -.1;
-
-  scene.add(ground);
-
-  playerAvatar=
-    createAvatar(
-      profile.avatar,
-      battleData.equipped,
-      false
-    );
-
-  enemyAvatar=
-    createAvatar(
-      {
-        skin:"#c98d67",
-        hairColor:"#2e221d",
-        outfit:"#7d2d3d"
-      },
-      battle.enemy?.name
-      ||
-      "Piano",
-      true
-    );
-
-  playerAvatar.position.set(
-    -2.4,
-    0,
-    0
-  );
-
-  enemyAvatar.position.set(
-    2.4,
-    0,
-    0
-  );
-
-  enemyAvatar.rotation.y=
-    Math.PI;
-
-  scene.add(
-    playerAvatar,
-    enemyAvatar
-  );
-
-  loopScene();
-}
-
-function loopScene(
-  t=0
-){
-
-  if(!renderer)
-    return;
-
-  for(
-    const [a,off]
-    of [
-      [playerAvatar,0],
-      [enemyAvatar,2]
-    ]
-  ){
-
-    if(a){
-
-      a.position.y=
-        Math.sin(
-          t*.003+
-          a.userData.phase
-        )*.035;
-
-      a.userData.armL.rotation.x=
-        Math.sin(
-          t*.003+off
-        )*.06;
-
-      a.userData.armR.rotation.x=
-        -Math.sin(
-          t*.003+off
-        )*.06;
-
-      for(
-        const c
-        of a.children
-      ){
-
-        if(
-          c.userData?.orbit!=null
-        ){
-
-          const ang=
-            t*.001+
-            c.userData.orbit;
-
-          c.position.set(
-            Math.cos(ang)*1.05,
-            1.6+
-            Math.sin(
-              ang*1.8
-            )*.35,
-            Math.sin(ang)*.7
-          );
-        }
-      }
-    }
-  }
-
-  fx=
-    fx.filter(
-      o=>{
-
-        o.mesh.position.add(
-          o.vel
-        );
-
-        o.life--;
-
-        if(
-          o.life<=0
-        ){
-
-          scene.remove(
-            o.mesh
-          );
-
-          return false;
-        }
-
-        return true;
-      }
-    );
-
-  camera.position.copy(
-    cameraBase
-  );
-
-  if(
-    cameraShake>0
-  ){
-
-    camera.position.x+=
-      (
-        Math.random()-.5
-      )*cameraShake;
-
-    camera.position.y+=
-      (
-        Math.random()-.5
-      )*cameraShake;
-
-    cameraShake*=.82;
-  }
-
-  camera.lookAt(
-    0,
-    1.5,
-    0
-  );
-
-  renderer.render(
-    scene,
-    camera
-  );
-
-  raf=
-    requestAnimationFrame(
-      loopScene
+.red-avatar{
+  background:
+    radial-gradient(
+      circle at 50% 80%,
+      rgba(255,80,110,.28),
+      transparent 45%
     );
 }
 
-function spawnNotes(
-  fromX,
-  toX,
-  color="#f1d16f"
-){
-
-  for(
-    let i=0;
-    i<12;
-    i++
-  ){
-
-    const m=
-      box(
-        .08,
-        .08,
-        .08,
-        mat(
-          color,
-          0xffffff
-        )
-      );
-
-    m.position.set(
-      fromX+
-      Math.random()*.2,
-
-      1.5+
-      Math.random()*1.3,
-
-      (
-        Math.random()-.5
-      )*.7
-    );
-
-    scene.add(m);
-
-    fx.push({
-      mesh:m,
-
-      vel:
-        new THREE.Vector3(
-          (toX-fromX)/28,
-          (
-            Math.random()-.5
-          )*.02,
-          (
-            Math.random()-.5
-          )*.02
-        ),
-
-      life:
-        28+
-        rand(0,10)
-    });
-  }
-}
-
-function playMoveAnimation(
-  side,
-  play,
-  index
-){
-
-  return new Promise(
-    res=>{
-
-      const a=
-        side==="player"
-          ?playerAvatar
-          :enemyAvatar;
-
-      const dir=
-        side==="player"
-          ?1
-          :-1;
-
-      if(!a)
-        return res();
-
-      a.userData.torso.rotation.z=
-        -dir*.10;
-
-      a.userData.armL.rotation.x=
-        -1.0;
-
-      a.userData.armR.rotation.x=
-        -.7;
-
-      a.userData.instrument.rotation.z=
-        dir*.08;
-
-      spawnNotes(
-        side==="player"
-          ?-1.8
-          :1.8,
-
-        side==="player"
-          ?1.8
-          :-1.8,
-
-        index===3
-          ?"#ffd84f"
-          :"#bfe5ff"
-      );
-
-      if(index===3){
-
-        cameraShake=.22;
-
-        a.scale.set(
-          1.08,
-          1.08,
-          1.08
-        );
-      }
-
-      setTimeout(
-        ()=>{
-
-          a.userData.torso.rotation.z=0;
-          a.userData.armL.rotation.x=0;
-          a.userData.armR.rotation.x=0;
-          a.userData.instrument.rotation.z=0;
-
-          a.scale.set(
-            1,
-            1,
-            1
-          );
-
-          res();
-        },
-        620
-      );
-    }
-  );
-}
-
-function playVictory(side){
-
-  const a=
-    side==="player"
-      ?playerAvatar
-      :enemyAvatar;
-
-  if(!a)
-    return;
-
-  let n=0;
-
-  const iv=
-    setInterval(
-      ()=>{
-
-        a.rotation.y+=
-          .45;
-
-        a.position.y=
-          .35*
-          Math.abs(
-            Math.sin(
-              n*.8
-            )
-          );
-
-        n++;
-
-        if(n>12){
-
-          clearInterval(iv);
-
-          a.rotation.y=
-            side==="player"
-              ?0
-              :Math.PI;
-
-          a.position.y=0;
-        }
-      },
-      70
+.red-avatar:after{
+  background:
+    linear-gradient(
+      135deg,
+      #7a2638,
+      #3d1421
     );
 }
 
-let setupRenderer;
-let setupScene;
-let setupCamera;
-let setupAvatar;
-let setupRAF;
+.fighter h3{
+  margin:6px 0 3px;
+}
 
-function initSetupPreview(){
+.fighter small{
+  color:var(--muted);
+}
 
-  const host=
-    $("#setupPreview");
+.fighter .hpbar{
+  margin:12px 0 5px;
+}
 
-  const w=
-    Math.max(
-      280,
-      host.clientWidth
-    );
-
-  const h=
-    Math.max(
-      240,
-      host.clientHeight
-    );
-
-  setupScene=
-    new THREE.Scene();
-
-  setupCamera=
-    new THREE.PerspectiveCamera(
-      40,
-      w/h,
-      .1,
-      100
-    );
-
-  setupCamera.position.set(
-    0,
-    2.25,
-    6.4
-  );
-
-  setupRenderer=
-    new THREE.WebGLRenderer({
-      antialias:true,
-      alpha:true
-    });
-
-  setupRenderer.setSize(
-    w,
-    h
-  );
-
-  host.innerHTML="";
-
-  host.appendChild(
-    setupRenderer.domElement
-  );
-
-  setupScene.add(
-    new THREE.HemisphereLight(
-      0xffffff,
-      0x35536b,
-      2.2
-    )
-  );
-
-  const d=
-    new THREE.DirectionalLight(
-      0xffffff,
-      2
-    );
-
-  d.position.set(
-    3,
-    5,
-    4
-  );
-
-  setupScene.add(d);
-
-  setupAvatar=
-    createAvatar(
-      profile.avatar,
-      "Guitar",
-      false
-    );
-
-  setupAvatar.position.y=
-    -1.1;
-
-  setupScene.add(
-    setupAvatar
-  );
-
-  const loop=t=>{
-
-    if(!setupRenderer)
-      return;
-
-    setupAvatar.rotation.y=
-      Math.sin(
-        t*.0006
-      )*.35;
-
-    setupRenderer.render(
-      setupScene,
-      setupCamera
-    );
-
-    setupRAF=
-      requestAnimationFrame(
-        loop
-      );
-  };
-
-  setupRAF=
-    requestAnimationFrame(
-      loop
+.hpbar.red i{
+  background:
+    linear-gradient(
+      90deg,
+      #c93c57,
+      #ff8093
     );
 }
 
-/* ===========================
+.battle-center{
+  text-align:center;
+
+  display:flex;
+
+  flex-direction:column;
+
+  justify-content:center;
+}
+
+.versus{
+  font-family:
+    "Cormorant Garamond",
+    serif;
+
+  font-size:54px;
+
+  color:var(--gold2);
+}
+
+#battleStatus{
+  min-height:42px;
+
+  color:#c7d5e3;
+}
+
+.move-grid{
+  display:grid;
+
+  grid-template-columns:
+    repeat(2,1fr);
+
+  gap:9px;
+
+  margin-top:14px;
+}
+
+.move-btn{
+  padding:12px;
+
+  text-align:left;
+
+  border:1px solid var(--line);
+
+  background:#0a1a2a;
+
+  color:white;
+
+  border-radius:12px;
+}
+
+.move-btn strong,
+.move-btn span,
+.move-btn small{
+  display:block;
+}
+
+.move-btn span{
+  color:var(--gold);
+
+  font-size:9px;
+
+  margin:3px 0;
+}
+
+.move-btn small{
+  color:var(--muted);
+
+  font-size:9px;
+}
+
+.move-btn.ultimate{
+  border-color:#ab7bff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #241547,
+      #0f2038
+    );
+}
+
+.move-btn:disabled{
+  opacity:.4;
+
+  cursor:not-allowed;
+}
+
+.energy-pips{
+  display:flex;
+
+  justify-content:center;
+
+  gap:5px;
+
+  margin:10px;
+}
+
+.energy-pips i{
+  width:16px;
+  height:6px;
+
+  border-radius:999px;
+
+  background:#203247;
+}
+
+.energy-pips i.on{
+  background:#bd8fff;
+
+  box-shadow:
+    0 0 10px #9f65ff;
+}
+
+.battle-footer{
+  display:grid;
+
+  grid-template-columns:
+    auto 1fr;
+
+  gap:14px;
+
+  margin-top:12px;
+}
+
+.battle-log{
+  padding:10px;
+
+  color:var(--muted);
+
+  font-size:10px;
+
+  min-height:38px;
+}
+
+
+/* =========================================================
+   TEAM BATTLE
+========================================================= */
+
+.team-lobby{
+  padding:18px;
+}
+
+.team-hp-section{
+  display:grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap:16px;
+
+  padding:8px 0 16px;
+}
+
+.team-hp-label{
+  display:flex;
+
+  justify-content:space-between;
+
+  font-size:10px;
+
+  font-weight:900;
+
+  margin-bottom:6px;
+}
+
+.team-hp-label.blue{
+  color:#74c7ff;
+}
+
+.team-hp-label.red{
+  color:#ff8397;
+}
+
+.team-hp-bar{
+  height:18px;
+}
+
+.team-hp-bar i.blue{
+  background:
+    linear-gradient(
+      90deg,
+      #2679ff,
+      #75d6ff
+    );
+}
+
+.team-hp-bar i.red{
+  background:
+    linear-gradient(
+      90deg,
+      #c92e4d,
+      #ff7188
+    );
+}
+
+.concert-shell{
+  height:520px;
+
+  position:relative;
+
+  overflow:hidden;
+
+  border-radius:18px;
+
+  border:
+    1px solid rgba(230,200,122,.3);
+
+  background:
+    linear-gradient(
+      #150913 0 12%,
+      #301320 12% 33%,
+      #140a0d 33% 100%
+    );
+}
+
+.concert-title{
+  position:absolute;
+
+  top:12px;
+  left:50%;
+
+  transform:translateX(-50%);
+
+  z-index:8;
+
+  text-align:center;
+
+  text-shadow:
+    0 2px 8px #000;
+}
+
+.concert-title b{
+  display:block;
+
+  font-family:
+    "Cormorant Garamond",
+    serif;
+
+  color:var(--gold2);
+
+  font-size:22px;
+
+  white-space:nowrap;
+}
+
+.concert-title span{
+  font-size:10px;
+
+  color:white;
+}
+
+.concert-lights{
+  position:absolute;
+
+  top:45px;
+  left:0;
+  right:0;
+
+  display:flex;
+
+  justify-content:space-around;
+
+  z-index:5;
+}
+
+.concert-lights i{
+  width:16px;
+  height:16px;
+
+  background:#ffd77c;
+
+  border-radius:50%;
+
+  box-shadow:
+    0 0 35px 15px
+    rgba(255,211,124,.18);
+}
+
+.stage-curtain{
+  position:absolute;
+
+  top:0;
+  bottom:70px;
+
+  width:95px;
+
+  background:
+    repeating-linear-gradient(
+      90deg,
+      #5a1124 0 15px,
+      #7e1932 15px 30px
+    );
+
+  z-index:4;
+}
+
+.stage-curtain.left{
+  left:0;
+}
+
+.stage-curtain.right{
+  right:0;
+}
+
+.concert-stage{
+  position:absolute;
+
+  left:7%;
+  right:7%;
+  bottom:105px;
+
+  height:315px;
+
+  display:grid;
+
+  grid-template-columns:
+    1fr 70px 1fr;
+
+  align-items:end;
+
+  padding:
+    34px 30px 14px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.02),
+      rgba(84,47,26,.1)
+    ),
+    repeating-linear-gradient(
+      90deg,
+      #5b351f 0 22px,
+      #674126 22px 44px
+    );
+
+  border:
+    2px solid #8d6433;
+
+  box-shadow:
+    0 10px 0 #2e1b12;
+}
+
+.concert-team-side{
+  display:grid;
+
+  grid-template-columns:
+    repeat(5,1fr);
+
+  gap:8px;
+
+  align-items:end;
+}
+
+.stage-center-mark{
+  align-self:center;
+
+  text-align:center;
+
+  font-size:44px;
+
+  color:
+    rgba(255,226,153,.7);
+}
+
+.concert-player{
+  position:relative;
+
+  height:118px;
+
+  display:flex;
+
+  align-items:flex-end;
+
+  justify-content:center;
+
+  transition:
+    transform .25s,
+    filter .25s;
+}
+
+.concert-player .body{
+  width:36px;
+  height:54px;
+
+  border-radius:
+    10px 10px 8px 8px;
+
+  position:relative;
+
+  border:
+    2px solid
+    rgba(255,255,255,.12);
+
+  box-shadow:
+    0 0 18px
+    rgba(0,0,0,.35);
+}
+
+.concert-player.blue .body{
+  background:
+    linear-gradient(
+      #2c78bb,
+      #103c68
+    );
+}
+
+.concert-player.red .body{
+  background:
+    linear-gradient(
+      #b63a56,
+      #671d31
+    );
+}
+
+.concert-player .body:before{
+  content:"";
+
+  position:absolute;
+
+  width:30px;
+  height:30px;
+
+  border-radius:8px;
+
+  background:#d6a079;
+
+  left:1px;
+  top:-31px;
+
+  box-shadow:
+    inset 0 8px 0 #211a16;
+}
+
+.concert-player .body:after{
+  content:
+    attr(data-icon);
+
+  position:absolute;
+
+  font-size:19px;
+
+  left:6px;
+  top:16px;
+}
+
+.concert-player .name{
+  position:absolute;
+
+  bottom:-20px;
+
+  font-size:7px;
+
+  width:70px;
+
+  text-align:center;
+
+  overflow:hidden;
+
+  text-overflow:ellipsis;
+
+  white-space:nowrap;
+}
+
+.concert-player.active{
+  transform:
+    translateY(-12px)
+    scale(1.08);
+
+  filter:
+    drop-shadow(
+      0 0 16px #ffe197
+    );
+}
+
+.audience{
+  position:absolute;
+
+  left:0;
+  right:0;
+  bottom:0;
+
+  height:90px;
+
+  background:
+    radial-gradient(
+      circle at 10% 70%,
+      #3b1d2c 0 12px,
+      transparent 13px
+    ),
+    radial-gradient(
+      circle at 25% 60%,
+      #281926 0 13px,
+      transparent 14px
+    ),
+    radial-gradient(
+      circle at 40% 75%,
+      #3a2130 0 11px,
+      transparent 12px
+    ),
+    radial-gradient(
+      circle at 60% 65%,
+      #251a24 0 12px,
+      transparent 13px
+    ),
+    radial-gradient(
+      circle at 77% 72%,
+      #3c2030 0 11px,
+      transparent 12px
+    ),
+    radial-gradient(
+      circle at 90% 60%,
+      #281a26 0 13px,
+      transparent 14px
+    ),
+    linear-gradient(
+      #140b10,
+      #090608
+    );
+}
+
+.multiplayer-battle-message{
+  min-height:92px;
+
+  margin:14px 0;
+
+  padding:14px;
+
+  text-align:center;
+
+  background:#081624;
+
+  border:1px solid var(--line);
+
+  border-radius:14px;
+
+  display:flex;
+
+  flex-direction:column;
+
+  justify-content:center;
+
+  gap:6px;
+}
+
+.multiplayer-battle-message strong{
+  color:var(--gold2);
+}
+
+.multiplayer-battle-message span{
+  font-size:10px;
+
+  color:#becddd;
+}
+
+.team-move-panel{
+  padding:16px;
+
+  margin-top:12px;
+
+  background:#081726;
+
+  border:1px solid var(--line);
+
+  border-radius:14px;
+}
+
+.team-turn-header{
+  display:flex;
+
+  justify-content:space-between;
+}
+
+.team-turn-header h3{
+  margin:3px 0;
+}
+
+.team-energy-box{
+  font-size:10px;
+
+  color:var(--muted);
+}
+
+
+/* =========================================================
+   GAME HUB
+========================================================= */
+
+.game-grid{
+  display:grid;
+
+  grid-template-columns:
+    repeat(5,1fr);
+
+  gap:12px;
+}
+
+.game-card{
+  padding:16px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #10253c,
+      #081626
+    );
+
+  border:1px solid var(--line);
+
+  border-radius:16px;
+
+  cursor:pointer;
+
+  transition:.2s;
+}
+
+.game-card:hover{
+  transform:translateY(-3px);
+
+  border-color:#557aa0;
+}
+
+.game-card .game-icon{
+  font-size:30px;
+}
+
+.game-card h3{
+  margin:8px 0 4px;
+
+  font-size:14px;
+}
+
+.game-card p{
+  font-size:9px;
+
+  color:var(--muted);
+
+  line-height:1.5;
+}
+
+.game-card b{
+  font-size:9px;
+
+  color:var(--gold);
+}
+
+.game-stage{
+  margin-top:18px;
+
+  padding:20px;
+}
+
+.game-stage-head{
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  margin-bottom:18px;
+}
+
+.shared-progress{
+  font-size:11px;
+
+  color:var(--muted);
+}
+
+.shared-progress b{
+  color:var(--gold2);
+}
+
+.game-panel{
+  padding:20px;
+
+  border:1px solid var(--line);
+
+  border-radius:14px;
+
+  background:#081726;
+
+  text-align:center;
+}
+
+.game-toolbar{
+  display:flex;
+
+  justify-content:center;
+
+  gap:10px;
+
+  flex-wrap:wrap;
+
+  margin-bottom:14px;
+}
+
+.game-stat{
+  padding:8px 12px;
+
+  background:#0d2236;
+
+  border-radius:10px;
+
+  font-size:10px;
+}
+
+.lane-board{
+  height:360px;
+
+  max-width:520px;
+
+  margin:0 auto;
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(4,1fr);
+
+  gap:6px;
+
+  position:relative;
+
+  overflow:hidden;
+
+  background:#040d17;
+
+  border:1px solid var(--line);
+
+  border-radius:14px;
+}
+
+.lane{
+  position:relative;
+
+  border-right:
+    1px solid #15314c;
+}
+
+.lane:last-child{
+  border-right:0;
+}
+
+.lane-key{
+  position:absolute;
+
+  bottom:5px;
+  left:8px;
+  right:8px;
+
+  padding:10px;
+
+  background:#15324c;
+
+  border-radius:8px;
+
+  font-weight:900;
+}
+
+.fall-note{
+  position:absolute;
+
+  left:10%;
+  right:10%;
+
+  height:30px;
+
+  border-radius:8px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #e0bd5e,
+      #ffe7a0
+    );
+
+  box-shadow:
+    0 0 15px
+    rgba(255,223,137,.3);
+}
+
+.pitch-buttons,
+.memory-buttons,
+.choice-grid{
+  display:flex;
+
+  justify-content:center;
+
+  gap:9px;
+
+  flex-wrap:wrap;
+}
+
+.pitch-buttons button,
+.memory-buttons button,
+.choice-grid button{
+  padding:12px 16px;
+
+  border:1px solid var(--line);
+
+  border-radius:10px;
+
+  background:#10253b;
+
+  color:white;
+
+  font-weight:800;
+}
+
+.memory-buttons button.flash{
+  background:var(--gold);
+
+  color:#171008;
+}
+
+.career-road{
+  display:grid;
+
+  grid-template-columns:
+    repeat(4,1fr);
+
+  gap:10px;
+}
+
+.venue-card{
+  padding:14px;
+
+  border:1px solid var(--line);
+
+  border-radius:12px;
+
+  background:#0a1a2a;
+}
+
+.venue-card.locked{
+  opacity:.4;
+}
+
+.dash-canvas,
+.boss-canvas{
+  display:block;
+
+  width:min(100%,760px);
+
+  height:auto;
+
+  margin:0 auto;
+
+  background:#07111d;
+
+  border:1px solid var(--line);
+
+  border-radius:14px;
+}
+
+.dungeon-actions{
+  display:flex;
+
+  justify-content:center;
+
+  gap:10px;
+
+  flex-wrap:wrap;
+}
+
+
+/* =========================================================
    GACHA
-=========================== */
+========================================================= */
 
-const gachaConfig={
-  accessory:{
-    title:"Accessory Gacha",
-    subtitle:"Hair • Hats • Clothing • Wings • Glasses",
-    cost:100,
-    ten:900,
-    pool:accessoryPool,
-    icon:"👑"
-  },
+.gacha-layout{
+  display:grid;
 
-  pet:{
-    title:"Pet Gacha",
-    subtitle:"Pets only • Hatch your companion",
-    cost:200,
-    ten:1800,
-    pool:petPool,
-    icon:"🥚"
-  },
+  grid-template-columns:
+    .9fr 1.1fr;
 
-  aura:{
-    title:"Aura Gacha",
-    subtitle:"Animated battle auras",
-    cost:175,
-    ten:1575,
-    pool:auraPool,
-    icon:"🔮"
-  },
-
-  skin:{
-    title:"Instrument Skin Gacha",
-    subtitle:"Exclusive visual instrument skins",
-    cost:150,
-    ten:1350,
-    pool:skinPool,
-    icon:"🎸"
-  }
-};
-
-function updateGachaUI(){
-
-  const c=
-    gachaConfig[
-      activeGacha
-    ];
-
-  const p=
-    profile.gacha[
-      activeGacha
-    ];
-
-  $("#gachaTitle").textContent=
-    c.title;
-
-  $("#gachaSubtitle").textContent=
-    c.subtitle;
-
-  $("#gachaOrb").textContent=
-    c.icon;
-
-  $("#rollOneBtn").textContent=
-    `Roll x1 • ${c.cost} 🎵`;
-
-  $("#rollTenBtn").textContent=
-    `Roll x10 • ${c.ten} 🎵`;
-
-  $("#gachaLegendaryPity").textContent=
-    `${p.legendary} / 30`;
-
-  $("#gachaMythicPity").textContent=
-    `${p.mythic} / 100`;
+  gap:16px;
 }
 
-function rollRarity(){
-
-  const p=
-    profile.gacha[
-      activeGacha
-    ];
-
-  if(
-    p.mythic>=99
-  )
-    return"mythic";
-
-  if(
-    p.legendary>=29
-  ){
-
-    return Math.random()<.18
-      ?"mythic"
-      :"legendary";
-  }
-
-  let r=
-    Math.random()*100;
-
-  let acc=0;
-
-  for(
-    const k
-    of rarityOrder
-  ){
-
-    acc+=
-      rarities[k].weight;
-
-    if(r<=acc)
-      return k;
-  }
-
-  return"common";
+.gacha-orb,
+.inventory-panel{
+  padding:20px;
 }
 
-function ownedList(type){
+.orb{
+  width:140px;
+  height:140px;
 
-  return profile.owned[type]
-    ||[];
-}
+  margin:0 auto;
 
-function rollOne(){
+  display:grid;
 
-  let rarity=
-    rollRarity();
+  place-items:center;
 
-  let pool=
-    gachaConfig[
-      activeGacha
-    ].pool.filter(
-      i=>
-        i.rarity===rarity
+  border-radius:50%;
+
+  font-size:58px;
+
+  background:
+    radial-gradient(
+      circle at 35% 30%,
+      #ffe9a8,
+      #b98b32 45%,
+      #4c3211 70%
     );
 
-  if(
-    activeGacha==="skin"
-  ){
-
-    pool=
-      pool.filter(
-        i=>
-          battleData.owned
-          .includes(
-            i.instrument
-          )
-      );
-  }
-
-  if(!pool.length){
-
-    pool=
-      gachaConfig[
-        activeGacha
-      ].pool;
-  }
-
-  const item=
-    pick(pool);
-
-  const list=
-    ownedList(
-      activeGacha
-    );
-
-  const dup=
-    list.includes(
-      item.id
-    );
-
-  if(dup){
-
-    profile.starDust+=
-      rarities[
-        item.rarity
-      ].dust;
-
-  }else{
-
-    list.push(
-      item.id
-    );
-  }
-
-  const p=
-    profile.gacha[
-      activeGacha
-    ];
-
-  if(
-    item.rarity==="mythic"
-  ){
-
-    p.mythic=0;
-    p.legendary=0;
-
-  }else{
-
-    p.mythic++;
-
-    if(
-      item.rarity==="legendary"
-    )
-      p.legendary=0;
-
-    else
-      p.legendary++;
-  }
-
-  return{
-    item,
-    dup,
-    dust:
-      dup
-        ?rarities[
-          item.rarity
-        ].dust
-        :0
-  };
+  box-shadow:
+    0 0 55px
+    rgba(230,200,122,.25);
 }
 
-function rollGacha(count){
-
-  const c=
-    gachaConfig[
-      activeGacha
-    ];
-
-  const cost=
-    count===10
-      ?c.ten
-      :c.cost;
-
-  if(
-    profile.musicCoins<
-    cost
-  ){
-
-    return toast(
-      `Need ${
-        cost-
-        profile.musicCoins
-      } more Music Coins.`
-    );
-  }
-
-  profile.musicCoins-=
-    cost;
-
-  const orb=
-    $("#gachaOrb");
-
-  orb.classList.add(
-    "rolling"
-  );
-
-  setTimeout(
-    ()=>{
-
-      const results=
-        Array.from(
-          {
-            length:count
-          },
-          rollOne
-        );
-
-      orb.classList.remove(
-        "rolling"
-      );
-
-      persist();
-      updateProfileUI();
-      renderInventory();
-
-      const box=
-        $("#gachaReveal");
-
-      box.classList.remove(
-        "hidden"
-      );
-
-      box.innerHTML=
-        `
-        <p class="eyebrow">
-          GACHA RESULTS
-        </p>
-
-        <div class="reveal-grid">
-
-          ${
-            results.map(
-              ({
-                item,
-                dup,
-                dust
-              })=>
-              `
-              <div
-                class="reveal-card"
-                style="
-                  border-color:
-                  ${rarities[
-                    item.rarity
-                  ].color}
-                "
-              >
-
-                <div
-                  style="
-                    font-size:30px
-                  "
-                >
-                  ${item.icon}
-                </div>
-
-                <div
-                  class="rarity"
-                  style="
-                    color:
-                    ${rarities[
-                      item.rarity
-                    ].color}
-                  "
-                >
-                  ${
-                    rarities[
-                      item.rarity
-                    ].label
-                  }
-                </div>
-
-                <strong>
-                  ${item.name}
-                </strong>
-
-                <small>
-                  ${
-                    dup
-
-                    ?`Duplicate → +${dust} ✨`
-
-                    :item.ability.text
-                  }
-                </small>
-
-              </div>
-              `
-            ).join("")
-          }
-
-        </div>
-        `;
-    },
-    650
-  );
+.gacha-orb{
+  text-align:center;
 }
 
-function renderInventory(){
+.gacha-buttons{
+  display:flex;
 
-  const filter=
-    $("#inventoryFilter")
-    .value;
+  justify-content:center;
 
-  const ids=[];
-
-  for(
-    const type
-    of [
-      "accessory",
-      "pet",
-      "aura",
-      "skin"
-    ]
-  ){
-
-    for(
-      const id
-      of profile.owned[type]
-      ||[]
-    ){
-
-      ids.push({
-        type,
-        id
-      });
-    }
-  }
-
-  const rows=
-    ids
-    .map(
-      x=>
-        allCollectibles.find(
-          i=>i.id===x.id
-        )
-    )
-    .filter(Boolean)
-    .filter(
-      i=>
-        filter==="all"
-        ||
-        i.type===filter
-    );
-
-  $("#inventoryGrid").innerHTML=
-    rows.length
-
-    ?rows.map(
-      i=>{
-
-        const equipped=
-          isEquipped(i);
-
-        return`
-        <div class="inventory-item">
-
-          <strong>
-            ${i.icon}
-            ${i.name}
-          </strong>
-
-          <small>
-            ${
-              rarities[
-                i.rarity
-              ].label
-            }
-
-            ${
-              i.instrument
-                ?` • ${i.instrument}`
-                :""
-            }
-          </small>
-
-          <span class="ability">
-            ${i.ability.text}
-          </span>
-
-          <button
-            class="btn ${
-              equipped
-                ?"primary"
-                :"ghost"
-            } small"
-            data-inv="${i.id}"
-          >
-            ${
-              equipped
-                ?"Equipped"
-                :"Equip"
-            }
-          </button>
-
-        </div>
-        `;
-      }
-    ).join("")
-
-    :`
-    <p class="fineprint">
-      No items in this category yet.
-    </p>
-    `;
-
-  $$("[data-inv]")
-  .forEach(
-    b=>b.onclick=()=>
-      equipItem(
-        b.dataset.inv
-      )
-  );
-
-  renderEquipped();
+  gap:8px;
 }
 
-function isEquipped(i){
+.gacha-reveal{
+  min-height:44px;
 
-  if(
-    i.type==="skin"
-  ){
+  margin-top:14px;
 
-    return profile
-      .equipped
-      .skins?.[
-        i.instrument
-      ]===i.id;
-  }
-
-  return profile.equipped[
-    i.slot
-  ]===i.id;
+  color:var(--gold2);
 }
 
-function equipItem(id){
+.inventory-grid{
+  display:grid;
 
-  const i=
-    allCollectibles.find(
-      x=>x.id===id
-    );
+  grid-template-columns:
+    repeat(3,1fr);
 
-  if(!i)
-    return;
-
-  if(
-    i.type==="skin"
-  ){
-
-    profile.equipped.skins[
-      i.instrument
-    ]=id;
-
-  }else{
-
-    profile.equipped[
-      i.slot
-    ]=
-      profile.equipped[
-        i.slot
-      ]===id
-
-      ?null
-      :id;
-  }
-
-  persist();
-
-  renderInventory();
-  refreshBattle(false);
-
-  toast(
-    `${i.name} ${
-      isEquipped(i)
-        ?"equipped"
-        :"unequipped"
-    }.`
-  );
+  gap:8px;
 }
 
-function renderEquipped(){
+.inventory-item{
+  padding:10px;
 
-  const items=[];
+  background:#081726;
 
-  for(
-    const [slot,id]
-    of Object.entries(
-      profile.equipped
-    )
-  ){
+  border-radius:10px;
 
-    if(
-      slot==="skins" ||
-      !id
-    )
-      continue;
+  border:1px solid var(--line);
 
-    const i=
-      allCollectibles.find(
-        x=>x.id===id
-      );
-
-    if(i)
-      items.push(i);
-  }
-
-  const sid=
-    profile.equipped
-    .skins?.[
-      battleData.equipped
-    ];
-
-  if(sid){
-
-    const s=
-      skinPool.find(
-        x=>x.id===sid
-      );
-
-    if(s)
-      items.push(s);
-  }
-
-  $("#equippedGrid").innerHTML=
-    items.length
-
-    ?items.map(
-      i=>`
-      <div class="inventory-item">
-
-        <strong>
-          ${i.icon}
-          ${i.name}
-        </strong>
-
-        <small>
-          ${i.slot}
-          ${
-            i.instrument
-              ?` • ${i.instrument}`
-              :""
-          }
-        </small>
-
-        <span class="ability">
-          ${i.ability.text}
-        </span>
-
-        <span class="equipped-badge">
-          EQUIPPED
-        </span>
-
-      </div>
-      `
-    ).join("")
-
-    :`
-    <p class="fineprint">
-      Nothing equipped yet.
-    </p>
-    `;
+  font-size:9px;
 }
 
-/* ===========================
-   MULTIPLAYER DEMO
-=========================== */
+.inventory-item b{
+  display:block;
 
-const botNames=[
-  "BeatKnight",
-  "PianoNova",
-  "RhythmFox",
-  "StringStorm",
-  "TempoAce",
-  "ChordKing",
-  "MelodyMint",
-  "BassOrbit",
-  "JazzPixel",
-  "GrooveCat",
-  "TempoTiger",
-  "HarpHero"
-];
-
-let lobbySize=1;
-
-function openLobby(size){
-
-  lobbySize=size;
-
-  $("#teamLobby")
-    .classList
-    .remove("hidden");
-
-  $("#teamLobbyTitle").textContent=
-    size===10
-      ?"10v10 Mega Orchestra"
-      :`${size}v${size} Team Battle`;
-
-  const make=
-    team=>
-      Array.from(
-        {
-          length:size
-        },
-        (_,i)=>
-          i===0 &&
-          team==="blue"
-
-          ?{
-            name:
-              profile.playerName
-              ||"You",
-            inst:
-              battleData.equipped,
-            you:true
-          }
-
-          :{
-            name:
-              pick(botNames)
-              +
-              rand(1,99),
-
-            inst:
-              pick(
-                instrumentData
-              ).name
-          }
-      );
-
-  const blue=
-    make("blue");
-
-  const red=
-    make("red");
-
-  $("#blueTeamList").innerHTML=
-    blue.map(
-      p=>`
-      <div class="team-player">
-
-        <span>
-          ${
-            p.you
-              ?"⭐ "
-              :""
-          }
-          ${p.name}
-        </span>
-
-        <small>
-          ${p.inst}
-        </small>
-
-      </div>
-      `
-    ).join("");
-
-  $("#redTeamList").innerHTML=
-    red.map(
-      p=>`
-      <div class="team-player">
-
-        <span>
-          ${p.name}
-        </span>
-
-        <small>
-          ${p.inst}
-        </small>
-
-      </div>
-      `
-    ).join("");
-
-  $("#startTeamBattleBtn").onclick=
-    ()=>
-      simulateTeamBattle(
-        size
-      );
+  color:var(--gold2);
 }
 
-function simulateTeamBattle(size){
 
-  const chance=
-    .50+
-    Math.min(
-      .12,
-      finalStats(
-        getInst(
-          battleData.equipped
-        )
-      ).rhythm/1000
-    );
-
-  const win=
-    Math.random()<chance;
-
-  const coins=
-    win
-
-    ?Math.round(
-      (
-        35+
-        size*10
-      )*
-      (
-        size===10
-          ?1.4
-          :1
-      )
-    )
-
-    :10;
-
-  addCoins(coins);
-
-  addXP(
-    win
-      ?Math.min(
-        70,
-        18+
-        size*4
-      )
-      :5
-  );
-
-  toast(
-    `${size}v${size} ${
-      win
-        ?"victory"
-        :"match complete"
-    }: +${coins} Music Coins`
-  );
-
-  $("#teamLobby")
-    .classList
-    .add("hidden");
-}
-
-/* ===========================
+/* =========================================================
    MUSICCRAFT
-=========================== */
+========================================================= */
 
-const craftTypes=[
-  "dirt",
-  "stone",
-  "coal",
-  "iron",
-  "gold",
-  "diamond",
-  "crystal"
-];
+.craft-layout{
+  display:grid;
 
-const craftColors={
-  air:"#112032",
-  dirt:"#76512e",
-  stone:"#6f7882",
-  coal:"#2d3138",
-  iron:"#a7a8a7",
-  gold:"#d6af39",
-  diamond:"#55d7ef",
-  crystal:"#a06aff",
-  water:"#2b6da6",
-  lava:"#ef5c28"
-};
+  grid-template-columns:
+    1fr 300px;
 
-const depthNames=[
-  "Surface",
-  "Underground",
-  "Deep Caves",
-  "Crystal Depths",
-  "Ancient Depths",
-  "Music Core"
-];
-
-function genWorld(){
-
-  const size=140;
-  const w=[];
-
-  for(
-    let y=0;
-    y<size;
-    y++
-  ){
-
-    const row=[];
-
-    for(
-      let x=0;
-      x<size;
-      x++
-    ){
-
-      const r=
-        Math.random();
-
-      let t="dirt";
-
-      if(r<.12)
-        t="stone";
-
-      if(r<.07)
-        t="coal";
-
-      if(r<.045)
-        t="iron";
-
-      if(r<.026)
-        t="gold";
-
-      if(r<.012)
-        t="diamond";
-
-      if(r<.006)
-        t="crystal";
-
-      if(r>.986)
-        t="water";
-
-      if(r>.995)
-        t="lava";
-
-      row.push(t);
-    }
-
-    w.push(row);
-  }
-
-  for(
-    let y=68;
-    y<=72;
-    y++
-  ){
-
-    for(
-      let x=68;
-      x<=72;
-      x++
-    ){
-
-      w[y][x]="air";
-    }
-  }
-
-  craft={
-    size,
-    x:70,
-    y:70,
-    hp:100,
-    depth:0,
-    selected:0,
-
-    inv:
-      Object.fromEntries(
-        craftTypes.map(
-          t=>[t,0]
-        )
-      ),
-
-    world:w
-  };
-
-  save(
-    "musicverseCraft",
-    craft
-  );
+  gap:16px;
 }
 
-if(
-  !craft?.world
-)
-  genWorld();
+#craftCanvas{
+  width:100%;
+  height:auto;
 
-const canvas=
-  $("#craftCanvas");
+  background:#07111b;
 
-const ctx=
-  canvas.getContext(
-    "2d"
-  );
+  border-radius:16px;
 
-const tile=26;
-const viewX=30;
-const viewY=20;
-
-function drawCraft(){
-
-  ctx.clearRect(
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
-
-  const sx=
-    Math.floor(
-      craft.x-
-      viewX/2
-    );
-
-  const sy=
-    Math.floor(
-      craft.y-
-      viewY/2
-    );
-
-  for(
-    let gy=0;
-    gy<viewY;
-    gy++
-  ){
-
-    for(
-      let gx=0;
-      gx<viewX;
-      gx++
-    ){
-
-      const x=
-        sx+gx;
-
-      const y=
-        sy+gy;
-
-      if(
-        x<0 ||
-        y<0 ||
-        x>=craft.size ||
-        y>=craft.size
-      )
-        continue;
-
-      ctx.fillStyle=
-        craftColors[
-          craft.world[y][x]
-        ];
-
-      ctx.fillRect(
-        gx*tile,
-        gy*tile,
-        tile-1,
-        tile-1
-      );
-    }
-  }
-
-  ctx.fillStyle=
-    "#f5d67e";
-
-  ctx.fillRect(
-    (
-      craft.x-sx
-    )*tile+5,
-
-    (
-      craft.y-sy
-    )*tile+5,
-
-    tile-10,
-    tile-10
-  );
-
-  renderCraftUI();
+  border:1px solid var(--line);
 }
 
-function renderCraftUI(){
-
-  $("#depthLabel").textContent=
-    depthNames[
-      craft.depth
-    ];
-
-  $("#craftHp").textContent=
-    craft.hp;
-
-  $("#craftInventory").innerHTML=
-    craftTypes.map(
-      (t,i)=>`
-      <div
-        class="craft-slot ${
-          i===craft.selected
-            ?"active"
-            :""
-        }"
-      >
-
-        <span>
-          ${i+1}. ${t}
-        </span>
-
-        <b>
-          ${craft.inv[t]}
-        </b>
-
-      </div>
-      `
-    ).join("");
-
-  const ms=[
-    {
-      stone:8
-    },
-
-    {
-      coal:6,
-      iron:4
-    },
-
-    {
-      gold:5,
-      diamond:2
-    },
-
-    {
-      diamond:5,
-      crystal:3
-    },
-
-    {
-      crystal:8
-    }
-  ];
-
-  if(
-    craft.depth>=5
-  ){
-
-    $("#missionText").textContent=
-      "You reached the Music Core!";
-
-    $("#missionBtn").disabled=
-      true;
-
-  }else{
-
-    const req=
-      ms[
-        craft.depth
-      ];
-
-    $("#missionText").textContent=
-      "Collect: "+
-      Object.entries(req)
-      .map(
-        ([k,v])=>
-          `${v} ${k}`
-      )
-      .join(", ");
-
-    $("#missionBtn").disabled=
-      !Object.entries(req)
-      .every(
-        ([k,v])=>
-          craft.inv[k]>=v
-      );
-  }
-
-  save(
-    "musicverseCraft",
-    craft
-  );
+.craft-panel{
+  padding:18px;
 }
 
-function moveCraft(
-  dx,
-  dy
-){
+.craft-inventory{
+  display:grid;
 
-  const nx=
-    clamp(
-      craft.x+dx,
-      0,
-      craft.size-1
-    );
+  gap:6px;
 
-  const ny=
-    clamp(
-      craft.y+dy,
-      0,
-      craft.size-1
-    );
-
-  const t=
-    craft.world[ny][nx];
-
-  if(
-    t==="lava"
-  ){
-
-    craft.hp=
-      Math.max(
-        1,
-        craft.hp-10
-      );
-
-    toast(
-      "Lava hurts! -10 HP"
-    );
-
-    return drawCraft();
-  }
-
-  if(
-    t!=="air"
-  )
-    return;
-
-  craft.x=nx;
-  craft.y=ny;
-
-  drawCraft();
+  margin:14px 0;
 }
 
-function craftTile(e){
+.craft-inventory div{
+  display:flex;
 
-  const r=
-    canvas.getBoundingClientRect();
+  justify-content:space-between;
 
-  const gx=
-    Math.floor(
-      (
-        e.clientX-r.left
-      )*
-      (
-        canvas.width/
-        r.width
-      )/
-      tile
-    );
+  padding:8px;
 
-  const gy=
-    Math.floor(
-      (
-        e.clientY-r.top
-      )*
-      (
-        canvas.height/
-        r.height
-      )/
-      tile
-    );
+  background:#081726;
 
-  const sx=
-    Math.floor(
-      craft.x-
-      viewX/2
-    );
+  border-radius:8px;
 
-  const sy=
-    Math.floor(
-      craft.y-
-      viewY/2
-    );
-
-  return[
-    sx+gx,
-    sy+gy
-  ];
+  font-size:10px;
 }
 
-canvas.onclick=e=>{
 
-  const[
-    x,
-    y
-  ]=craftTile(e);
-
-  if(
-    x<0 ||
-    y<0 ||
-    x>=craft.size ||
-    y>=craft.size ||
-    Math.max(
-      Math.abs(
-        x-craft.x
-      ),
-      Math.abs(
-        y-craft.y
-      )
-    )>2
-  )
-    return;
-
-  const t=
-    craft.world[y][x];
-
-  if(
-    [
-      "air",
-      "water",
-      "lava"
-    ].includes(t)
-  )
-    return;
-
-  craft.world[y][x]=
-    "air";
-
-  craft.inv[t]=
-    (
-      craft.inv[t]
-      ||0
-    )+1;
-
-  const reward=
-    t==="crystal"
-      ?6
-
-      :t==="diamond"
-      ?4
-
-      :2;
-
-  addXP(reward);
-  addCoins(reward);
-
-  addMastery(
-    battleData.equipped,
-    reward
-  );
-
-  drawCraft();
-};
-
-canvas.oncontextmenu=e=>{
-
-  e.preventDefault();
-
-  const[
-    x,
-    y
-  ]=craftTile(e);
-
-  if(
-    x<0 ||
-    y<0 ||
-    x>=craft.size ||
-    y>=craft.size ||
-    Math.max(
-      Math.abs(
-        x-craft.x
-      ),
-      Math.abs(
-        y-craft.y
-      )
-    )>2 ||
-    (
-      x===craft.x &&
-      y===craft.y
-    ) ||
-    craft.world[y][x]!=="air"
-  )
-    return;
-
-  const t=
-    craftTypes[
-      craft.selected
-    ];
-
-  if(
-    !craft.inv[t]
-  )
-    return;
-
-  craft.world[y][x]=t;
-
-  craft.inv[t]--;
-
-  drawCraft();
-};
-
-window.addEventListener(
-  "keydown",
-  e=>{
-
-    if(
-      [
-        "INPUT",
-        "SELECT",
-        "TEXTAREA"
-      ].includes(
-        document.activeElement
-        .tagName
-      )
-    )
-      return;
-
-    const m={
-      ArrowUp:[0,-1],
-      w:[0,-1],
-      W:[0,-1],
-
-      ArrowDown:[0,1],
-      s:[0,1],
-      S:[0,1],
-
-      ArrowLeft:[-1,0],
-      a:[-1,0],
-      A:[-1,0],
-
-      ArrowRight:[1,0],
-      d:[1,0],
-      D:[1,0]
-    };
-
-    if(
-      m[e.key]
-    ){
-
-      e.preventDefault();
-
-      moveCraft(
-        ...m[e.key]
-      );
-    }
-
-    if(
-      /^[1-7]$/
-      .test(
-        e.key
-      )
-    ){
-
-      craft.selected=
-        +e.key-1;
-
-      drawCraft();
-    }
-  }
-);
-
-$("#missionBtn").onclick=()=>{
-
-  const ms=[
-    {
-      stone:8
-    },
-
-    {
-      coal:6,
-      iron:4
-    },
-
-    {
-      gold:5,
-      diamond:2
-    },
-
-    {
-      diamond:5,
-      crystal:3
-    },
-
-    {
-      crystal:8
-    }
-  ];
-
-  if(
-    craft.depth>=5
-  )
-    return;
-
-  const req=
-    ms[
-      craft.depth
-    ];
-
-  if(
-    !Object.entries(req)
-    .every(
-      ([k,v])=>
-        craft.inv[k]>=v
-    )
-  )
-    return;
-
-  Object.entries(req)
-  .forEach(
-    ([k,v])=>
-      craft.inv[k]-=v
-  );
-
-  craft.depth++;
-
-  addXP(
-    25+
-    craft.depth*10
-  );
-
-  addCoins(
-    40+
-    craft.depth*10
-  );
-
-  toast(
-    `${depthNames[
-      craft.depth
-    ]} unlocked!`
-  );
-
-  drawCraft();
-};
-
-$("#newWorldBtn").onclick=()=>{
-
-  if(
-    confirm(
-      "Generate a new world?"
-    )
-  ){
-
-    genWorld();
-    drawCraft();
-  }
-};
-
-/* ===========================
+/* =========================================================
    LEADERBOARD
-=========================== */
+========================================================= */
 
-function renderLeaderboard(){
+.podium{
+  display:grid;
 
-  const bots=
-    Array.from(
-      {
-        length:99
-      },
-      ()=>({
-        name:
-          pick(botNames)
-          +
-          rand(1,999),
+  grid-template-columns:
+    repeat(3,1fr);
 
-        level:
-          rand(3,70),
+  gap:12px;
 
-        instrument:
-          pick(
-            instrumentData
-          ).name,
-
-        xp:
-          rand(
-            500,
-            95000
-          )
-      })
-    );
-
-  bots.push({
-    name:
-      profile.playerName
-      ||"You",
-
-    level:
-      profile.level,
-
-    instrument:
-      battleData.equipped,
-
-    xp:
-      profile.totalXpEarned,
-
-    you:true
-  });
-
-  bots.sort(
-    (a,b)=>
-      b.xp-a.xp
-  );
-
-  const rank=
-    bots.findIndex(
-      x=>x.you
-    )+1;
-
-  $("#yourRank").textContent=
-    `#${rank}`;
-
-  $("#podium").innerHTML=
-    [1,0,2]
-    .map(
-      i=>{
-
-        const p=
-          bots[i];
-
-        return`
-        <div class="podium-card">
-
-          <div>
-            ${
-              i===0
-                ?"🥇"
-
-                :i===1
-                ?"🥈"
-
-                :"🥉"
-            }
-          </div>
-
-          <strong>
-            ${p.name}
-          </strong>
-
-          <p>
-            ${p.instrument}
-          </p>
-
-          <b>
-            ${p.xp.toLocaleString()} EXP
-          </b>
-
-        </div>
-        `;
-      }
-    ).join("");
-
-  $("#leaderboardBody").innerHTML=
-    bots.slice(
-      0,
-      100
-    )
-    .map(
-      (p,i)=>`
-      <tr
-        class="${
-          p.you
-            ?"you"
-            :""
-        }"
-      >
-
-        <td>
-          #${i+1}
-        </td>
-
-        <td>
-          ${p.name}
-        </td>
-
-        <td>
-          ${p.level}
-        </td>
-
-        <td>
-          ${p.instrument}
-        </td>
-
-        <td>
-          ${p.xp.toLocaleString()}
-        </td>
-
-      </tr>
-      `
-    ).join("");
+  margin-bottom:16px;
 }
 
-/* ===========================
+.podium>div{
+  padding:18px;
+
+  text-align:center;
+
+  background:#0b1d30;
+
+  border:1px solid var(--line);
+
+  border-radius:14px;
+}
+
+.podium b{
+  display:block;
+
+  color:var(--gold2);
+
+  font-size:20px;
+}
+
+.table-wrap{
+  overflow:auto;
+
+  border:1px solid var(--line);
+
+  border-radius:14px;
+}
+
+table{
+  width:100%;
+
+  border-collapse:collapse;
+
+  background:#081624;
+}
+
+th,
+td{
+  padding:11px 13px;
+
+  border-bottom:
+    1px solid #132b43;
+
+  text-align:left;
+
+  font-size:10px;
+}
+
+th{
+  color:var(--gold);
+
+  font-size:9px;
+}
+
+
+/* =========================================================
    QUIZ
-=========================== */
+========================================================= */
 
-const quiz=[
-  [
-    "Which family does the trumpet belong to?",
-    [
-      "Brass",
-      "Strings",
-      "Keys",
-      "Percussion"
-    ],
-    0
-  ],
-
-  [
-    "Which instrument normally uses a bow?",
-    [
-      "Violin",
-      "Trumpet",
-      "Flute",
-      "Bongos"
-    ],
-    0
-  ],
-
-  [
-    "Which is percussion?",
-    [
-      "Timpani",
-      "Oboe",
-      "Tuba",
-      "Sitar"
-    ],
-    0
-  ],
-
-  [
-    "Which uses keys and bellows?",
-    [
-      "Accordion",
-      "Cello",
-      "Cornet",
-      "Recorder"
-    ],
-    0
-  ],
-
-  [
-    "Which is woodwind?",
-    [
-      "Clarinet",
-      "Trombone",
-      "Bass Guitar",
-      "Organ"
-    ],
-    0
-  ],
-
-  [
-    "Which is mainly plucked?",
-    [
-      "Harp",
-      "Trumpet",
-      "Timpani",
-      "Flute"
-    ],
-    0
-  ],
-
-  [
-    "Which uses drumsticks?",
-    [
-      "Drums",
-      "Violin",
-      "Oboe",
-      "French Horn"
-    ],
-    0
-  ],
-
-  [
-    "Which has a slide?",
-    [
-      "Trombone",
-      "Trumpet",
-      "Clarinet",
-      "Saxophone"
-    ],
-    0
-  ],
-
-  [
-    "Which is a keyboard instrument?",
-    [
-      "Harpsichord",
-      "Cello",
-      "Bassoon",
-      "Tambourine"
-    ],
-    0
-  ],
-
-  [
-    "Which world instrument is bowed?",
-    [
-      "Erhu",
-      "Guzheng",
-      "Kalimba",
-      "Pipa"
-    ],
-    0
-  ]
-];
-
-let qi=0;
-let qs=0;
-let answered=false;
-
-function renderQuiz(){
-
-  const q=
-    quiz[qi];
-
-  $("#quizScore").textContent=
-    `${qs} / ${quiz.length}`;
-
-  $("#quizCard").innerHTML=
-    `
-    <p class="eyebrow">
-      QUESTION ${qi+1}
-      OF ${quiz.length}
-    </p>
-
-    <h3>
-      ${q[0]}
-    </h3>
-
-    <div class="quiz-options">
-
-      ${
-        q[1].map(
-          (o,i)=>`
-          <button
-            class="quiz-option"
-            data-q="${i}"
-          >
-            ${o}
-          </button>
-          `
-        ).join("")
-      }
-
-    </div>
-    `;
-
-  $$("[data-q]")
-  .forEach(
-    b=>b.onclick=()=>
-      answerQuiz(
-        +b.dataset.q
-      )
-  );
+.quiz-card{
+  padding:24px;
 }
 
-function answerQuiz(i){
+.quiz-options{
+  display:grid;
 
-  if(answered)
-    return;
+  grid-template-columns:
+    repeat(2,1fr);
 
-  answered=true;
+  gap:9px;
 
-  const q=
-    quiz[qi];
-
-  const bs=
-    $$("[data-q]");
-
-  bs[q[2]]
-    .classList
-    .add("correct");
-
-  if(
-    i===q[2]
-  ){
-
-    qs++;
-
-    addXP(5);
-    addCoins(5);
-
-  }else{
-
-    bs[i]
-      .classList
-      .add("wrong");
-  }
-
-  setTimeout(
-    ()=>{
-
-      qi++;
-      answered=false;
-
-      if(
-        qi>=quiz.length
-      ){
-
-        $("#quizCard").innerHTML=
-          `
-          <h3>
-            Quiz complete!
-          </h3>
-
-          <p>
-            You scored
-            ${qs}/${quiz.length}.
-          </p>
-
-          <button
-            id="restartQuiz"
-            class="btn primary"
-          >
-            Play again
-          </button>
-          `;
-
-        $("#restartQuiz").onclick=
-          ()=>{
-
-            qi=0;
-            qs=0;
-
-            renderQuiz();
-          };
-
-      }else{
-
-        renderQuiz();
-      }
-    },
-    700
-  );
+  margin-top:16px;
 }
 
-/* ===========================
-   WIRING
-=========================== */
+.quiz-options button{
+  padding:12px;
 
-$("#instrumentSearch").oninput=
-  renderInstruments;
+  border:1px solid var(--line);
 
-$("#battleInstrumentSelect").onchange=
-  e=>{
+  background:#0a1c2d;
 
-    battleData.equipped=
-      e.target.value;
+  color:white;
 
-    persist();
+  border-radius:10px;
+}
 
-    renderInstruments();
+.quiz-options button.correct{
+  background:#1a6746;
+}
 
-    refreshBattle(true);
+.quiz-options button.wrong{
+  background:#742b3a;
+}
 
-    renderInventory();
-  };
 
-$("#newOpponentBtn").onclick=
-  ()=>refreshBattle(true);
+/* =========================================================
+   SETUP
+========================================================= */
 
-$$("#battleModeTabs .mode-btn")
-.forEach(
-  b=>b.onclick=()=>
-    setBattleMode(
-      b.dataset.mode
-    )
-);
+.overlay{
+  position:fixed;
 
-$$(".mp-start")
-.forEach(
-  b=>b.onclick=()=>
-    openLobby(
-      +b.dataset.team
-    )
-);
+  inset:0;
 
-$("#closeLobby").onclick=
-  ()=>
-    $("#teamLobby")
-    .classList
-    .add("hidden");
+  z-index:100;
 
-$("#createRoomBtn").onclick=
-  ()=>{
+  background:rgba(2,7,12,.92);
 
-    $("#roomCode").textContent=
-      `MV-${rand(
-        100000,
-        999999
-      )}`;
+  display:grid;
 
-    toast(
-      "Local room code created. Real invites need backend connection."
-    );
-  };
+  place-items:center;
 
-$$(".gacha-tab")
-.forEach(
-  b=>b.onclick=()=>{
+  padding:20px;
+}
 
-    activeGacha=
-      b.dataset.gacha;
+.setup-card{
+  width:min(820px,95vw);
 
-    $$(".gacha-tab")
-    .forEach(
-      x=>
-        x.classList.toggle(
-          "active",
-          x===b
-        )
-    );
+  padding:28px;
+}
 
-    updateGachaUI();
+.setup-card h1{
+  font-family:
+    "Cormorant Garamond",
+    serif;
+
+  font-size:55px;
+
+  margin:3px 0;
+}
+
+.setup-card>p{
+  color:var(--muted);
+}
+
+.setup-grid{
+  display:grid;
+
+  grid-template-columns:
+    .8fr 1.2fr;
+
+  gap:24px;
+}
+
+.setup-preview{
+  min-height:330px;
+
+  display:grid;
+
+  place-items:center;
+
+  background:#081726;
+
+  border-radius:16px;
+}
+
+.avatar-preview-character{
+  width:160px;
+  height:240px;
+
+  position:relative;
+}
+
+.preview-head{
+  position:absolute;
+
+  width:75px;
+  height:70px;
+
+  left:42px;
+  top:35px;
+
+  background:#dca57b;
+
+  border-radius:14px;
+}
+
+.preview-head i{
+  position:absolute;
+
+  width:8px;
+  height:8px;
+
+  background:#7be0ff;
+
+  border-radius:50%;
+
+  top:33px;
+}
+
+.preview-head i:first-child{
+  left:19px;
+}
+
+.preview-head i:last-child{
+  right:19px;
+}
+
+.preview-hair{
+  position:absolute;
+
+  width:82px;
+  height:28px;
+
+  left:39px;
+  top:26px;
+
+  background:#201915;
+
+  border-radius:
+    16px 16px 5px 5px;
+
+  z-index:2;
+}
+
+.preview-body{
+  position:absolute;
+
+  width:92px;
+  height:90px;
+
+  left:34px;
+  top:110px;
+
+  background:#19345b;
+
+  border-radius:15px;
+}
+
+.preview-arm,
+.preview-leg{
+  position:absolute;
+
+  background:#18324f;
+
+  border-radius:10px;
+}
+
+.preview-arm{
+  width:23px;
+  height:82px;
+
+  top:117px;
+}
+
+.preview-arm.left{
+  left:8px;
+
+  transform:rotate(7deg);
+}
+
+.preview-arm.right{
+  right:8px;
+
+  transform:rotate(-7deg);
+}
+
+.preview-leg{
+  width:28px;
+  height:63px;
+
+  top:190px;
+}
+
+.preview-leg.left{
+  left:44px;
+}
+
+.preview-leg.right{
+  right:44px;
+}
+
+.setup-fields{
+  display:grid;
+
+  gap:10px;
+}
+
+.setup-fields label{
+  display:grid;
+
+  gap:5px;
+
+  font-size:10px;
+
+  color:var(--muted);
+}
+
+.error-text{
+  color:#ff8899;
+
+  font-size:10px;
+}
+
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+.toast{
+  position:fixed;
+
+  right:18px;
+  bottom:18px;
+
+  z-index:120;
+
+  padding:12px 15px;
+
+  background:#10253c;
+
+  color:white;
+
+  border:1px solid var(--line);
+
+  border-radius:12px;
+
+  box-shadow:var(--shadow);
+
+  transform:translateY(20px);
+
+  opacity:0;
+
+  pointer-events:none;
+
+  transition:.25s;
+}
+
+.toast.show{
+  transform:none;
+
+  opacity:1;
+}
+
+footer{
+  text-align:center;
+
+  padding:40px;
+
+  color:#75899e;
+
+  font-size:10px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media(max-width:1050px){
+
+  .instrument-grid{
+    grid-template-columns:
+      repeat(3,1fr);
   }
-);
 
-$("#rollOneBtn").onclick=
-  ()=>rollGacha(1);
-
-$("#rollTenBtn").onclick=
-  ()=>rollGacha(10);
-
-$("#inventoryFilter").onchange=
-  renderInventory;
-
-/* ===========================
-   START GAME
-=========================== */
-
-setupProfile();
-
-updateProfileUI();
-
-renderFamilies();
-
-renderInstruments();
-
-refreshBattle(true);
-
-renderInventory();
-
-drawCraft();
-
-renderLeaderboard();
-
-renderQuiz();
-
-window.addEventListener(
-  "resize",
-  ()=>{
-
-    if(renderer)
-      renderBattleScene();
+  .game-grid{
+    grid-template-columns:
+      repeat(3,1fr);
   }
-);
+
+  .battle-board{
+    grid-template-columns:
+      200px 1fr 200px;
+  }
+
+  .hero{
+    grid-template-columns:1fr;
+  }
+
+  .craft-layout{
+    grid-template-columns:1fr;
+  }
+
+  .topbar nav{
+    display:none;
+  }
+
+}
+
+
+@media(max-width:760px){
+
+  .section{
+    padding:50px 0;
+  }
+
+  .section h2{
+    font-size:34px;
+  }
+
+  .hero-copy h1{
+    font-size:48px;
+  }
+
+  .instrument-grid{
+    grid-template-columns:
+      repeat(2,1fr);
+  }
+
+  .game-grid{
+    grid-template-columns:
+      repeat(2,1fr);
+  }
+
+  .battle-board{
+    grid-template-columns:1fr;
+  }
+
+  .battle-center{
+    order:3;
+  }
+
+  .team-hp-section{
+    grid-template-columns:1fr;
+  }
+
+  .concert-shell{
+    height:410px;
+  }
+
+  .concert-stage{
+    left:2%;
+    right:2%;
+
+    grid-template-columns:
+      1fr 34px 1fr;
+
+    padding:
+      25px 8px 12px;
+  }
+
+  .concert-team-side{
+    grid-template-columns:
+      repeat(5,1fr);
+
+    gap:3px;
+  }
+
+  .concert-player .body{
+    width:27px;
+    height:45px;
+  }
+
+  .concert-player .body:before{
+    width:23px;
+    height:24px;
+
+    top:-25px;
+  }
+
+  .concert-player .body:after{
+    font-size:14px;
+
+    left:4px;
+  }
+
+  .concert-player .name{
+    display:none;
+  }
+
+  .gacha-layout{
+    grid-template-columns:1fr;
+  }
+
+  .setup-grid{
+    grid-template-columns:1fr;
+  }
+
+  .setup-preview{
+    display:none;
+  }
+
+  .career-road{
+    grid-template-columns:
+      repeat(2,1fr);
+  }
+
+}
+
+
+@media(max-width:520px){
+
+  .top-actions span{
+    display:none;
+  }
+
+  .instrument-grid,
+  .game-grid{
+    grid-template-columns:1fr;
+  }
+
+  .section-head{
+    align-items:flex-start;
+
+    flex-direction:column;
+  }
+
+  .search{
+    width:100%;
+
+    min-width:0;
+  }
+
+  .hero-copy h1{
+    font-size:41px;
+  }
+
+  .profile-stats{
+    grid-template-columns:
+      1fr 1fr 1fr;
+  }
+
+  .move-grid{
+    grid-template-columns:1fr;
+  }
+
+  .quiz-options{
+    grid-template-columns:1fr;
+  }
+
+  .concert-shell{
+    height:360px;
+  }
+
+  .concert-stage{
+    bottom:80px;
+
+    height:240px;
+  }
+
+  .stage-curtain{
+    width:40px;
+  }
+
+  .concert-player{
+    height:92px;
+  }
+
+  .concert-player .body{
+    width:20px;
+    height:37px;
+  }
+
+  .concert-player .body:before{
+    width:18px;
+    height:19px;
+
+    top:-20px;
+  }
+
+  .concert-player .body:after{
+    font-size:11px;
+
+    left:2px;
+    top:12px;
+  }
+
+}
