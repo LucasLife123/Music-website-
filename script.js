@@ -1,8133 +1,5401 @@
-import * as THREE from
-    "https://unpkg.com/three@0.164.1/build/three.module.js";
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.164.1/+esm";
 
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const load=(k,f)=>{try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}};
+const slug=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"");
 
-/* =========================================================
-   HELPERS
-========================================================= */
+const families=["All","Strings","Keys","Percussion","Brass","Woodwind","World"];
 
-const $ =
-    selector =>
-        document.querySelector(selector);
-
-
-const $$ =
-    selector =>
-        [...document.querySelectorAll(selector)];
-
-
-const randomItem =
-    array =>
-        array[
-            Math.floor(
-                Math.random() *
-                array.length
-            )
-        ];
-
-
-const randomNumber =
-    (min,max) =>
-        Math.floor(
-            Math.random() *
-            (max-min+1)
-        ) + min;
-
-
-const delay =
-    ms =>
-        new Promise(
-            resolve =>
-                setTimeout(resolve,ms)
-        );
-
-
-
-/* =========================================================
-   INSTRUMENTS
-========================================================= */
-
-const instruments = [
-
-{
-    name:"Guitar",
-    icon:"🎸",
-    category:"string",
-    family:"String",
-    description:"A versatile plucked string instrument.",
-    frequency:220
-},
-
-{
-    name:"Ukulele",
-    icon:"🎸",
-    category:"string",
-    family:"String",
-    description:"A small four-string instrument with a bright tone.",
-    frequency:392
-},
-
-{
-    name:"Piano",
-    icon:"🎹",
-    category:"keyboard",
-    family:"Keyboard",
-    description:"A keyboard instrument using hammers and strings.",
-    frequency:440
-},
-
-{
-    name:"Flute",
-    icon:"🪈",
-    category:"woodwind",
-    family:"Woodwind",
-    description:"A light woodwind played by blowing across an opening.",
-    frequency:698.46
-},
-
-{
-    name:"Drums",
-    icon:"🥁",
-    category:"percussion",
-    family:"Percussion",
-    description:"A family of instruments built around rhythm.",
-    drum:true
-},
-
-{
-    name:"Clarinet",
-    icon:"🎶",
-    category:"woodwind",
-    family:"Woodwind",
-    description:"A single-reed woodwind with a flexible sound.",
-    frequency:293.66
-},
-
-{
-    name:"Trumpet",
-    icon:"🎺",
-    category:"brass",
-    family:"Brass",
-    description:"A bright and powerful brass instrument.",
-    frequency:523.25
-},
-
-{
-    name:"Violin",
-    icon:"🎻",
-    category:"string",
-    family:"String",
-    description:"A bowed string instrument with an expressive sound.",
-    frequency:659.25
-},
-
-{
-    name:"Saxophone",
-    icon:"🎷",
-    category:"woodwind",
-    family:"Woodwind",
-    description:"A reed instrument famous for jazz and pop.",
-    frequency:369.99
-},
-
-{
-    name:"Cello",
-    icon:"🎻",
-    category:"string",
-    family:"String",
-    description:"A large bowed instrument with a deep tone.",
-    frequency:196
-},
-
-{
-    name:"Xylophone",
-    icon:"🎼",
-    category:"percussion",
-    family:"Percussion",
-    description:"Tuned bars struck with mallets.",
-    frequency:783.99
-},
-
-{
-    name:"Trombone",
-    icon:"🎺",
-    category:"brass",
-    family:"Brass",
-    description:"A brass instrument famous for its slide.",
-    frequency:233.08
-},
-
-{
-    name:"Synthesizer",
-    icon:"🎛️",
-    category:"electronic",
-    family:"Electronic",
-    description:"Creates sounds through electronic synthesis.",
-    frequency:329.63
-},
-
-{
-    name:"French Horn",
-    icon:"📯",
-    category:"brass",
-    family:"Brass",
-    description:"A warm coiled brass instrument.",
-    frequency:349.23
-},
-
-{
-    name:"Oboe",
-    icon:"🪈",
-    category:"woodwind",
-    family:"Woodwind",
-    description:"A focused double-reed instrument.",
-    frequency:466.16
-},
-
-{
-    name:"Digital Piano",
-    icon:"🎹",
-    category:"electronic",
-    family:"Electronic",
-    description:"An electronic instrument designed to imitate a piano.",
-    frequency:440
-},
-
-{
-    name:"Organ",
-    icon:"🎹",
-    category:"keyboard",
-    family:"Keyboard",
-    description:"A keyboard instrument known for sustained tones.",
-    frequency:261.63
-},
-
-{
-    name:"Drum Machine",
-    icon:"🎛️",
-    category:"electronic",
-    family:"Electronic",
-    description:"Creates programmed electronic rhythms.",
-    drum:true
-}
-
+const rawInstruments=[
+["Guitar","🎸","Strings",78,58,72,76,"Balanced attacker","strum"],
+["Ukulele","🪕","Strings",86,38,70,82,"Fast glass cannon","strum"],
+["Piano","🎹","Keys",62,88,92,70,"Defensive powerhouse","keys"],
+["Flute","🪈","Woodwind",58,48,96,82,"Melody specialist","wind"],
+["Drums","🥁","Percussion",92,72,38,96,"Heavy rhythm attacker","drums"],
+["Clarinet","🎶","Woodwind",60,64,88,72,"Balanced melody","wind"],
+["Trumpet","🎺","Brass",88,54,68,74,"Burst damage","brass"],
+["Violin","🎻","Strings",72,52,98,84,"High-skill melody","bow"],
+["Saxophone","🎷","Woodwind",76,62,88,78,"Versatile","wind"],
+["Cello","🎻","Strings",70,84,94,58,"Tanky melody","bow"],
+["Xylophone","🪇","Percussion",68,50,76,92,"Combo specialist","mallet"],
+["Trombone","🎺","Brass",84,70,62,64,"Heavy brass","brass"],
+["Synthesizer","🎛️","Keys",74,58,90,86,"Effects specialist","keys"],
+["French Horn","📯","Brass",72,82,86,58,"Defensive brass","brass"],
+["Oboe","🎶","Woodwind",64,56,94,68,"Precision melody","wind"],
+["Digital Piano","🎹","Keys",68,78,88,78,"Balanced keyboard","keys"],
+["Organ","🎹","Keys",76,92,90,48,"Super tank","keys"],
+["Drum Machine","🥁","Percussion",82,54,58,100,"Rhythm machine","pads"],
+["Electric Guitar","⚡","Strings",94,48,68,88,"Aggressive attacker","strum"],
+["Bass Guitar","🎸","Strings",86,76,54,90,"Heavy groove","pluck"],
+["Harp","🪉","Strings",52,64,100,72,"Healing support","pluck"],
+["Banjo","🪕","Strings",82,44,64,94,"Rapid combo","pluck"],
+["Mandolin","🪕","Strings",80,46,78,90,"Fast melodic attacker","pluck"],
+["Double Bass","🎻","Strings",82,90,72,54,"Massive tank","bow"],
+["Accordion","🪗","Keys",72,74,82,78,"All-rounder","bellows"],
+["Keytar","🎹","Keys",86,46,76,92,"Mobile attacker","keys"],
+["Harpsichord","🎹","Keys",70,60,92,80,"Precision keys","keys"],
+["Marimba","🥁","Percussion",66,58,84,94,"Melody/rhythm hybrid","mallet"],
+["Timpani","🥁","Percussion",90,86,42,72,"Heavy percussion","drums"],
+["Bongos","🪘","Percussion",78,42,54,98,"Extremely fast","drums"],
+["Congas","🪘","Percussion",82,58,50,94,"Rhythm attacker","drums"],
+["Tambourine","🪇","Percussion",70,34,58,100,"Fastest support","shake"],
+["Steel Pan","🥁","Percussion",68,56,86,88,"Melodic percussion","mallet"],
+["Tuba","🎺","Brass",90,94,54,38,"Super-heavy tank","brass"],
+["Euphonium","🎺","Brass",76,84,78,54,"Balanced tank","brass"],
+["Cornet","🎺","Brass",84,58,74,76,"Fast brass","brass"],
+["Piccolo","🪈","Woodwind",66,32,96,92,"Fragile speed specialist","wind"],
+["Bassoon","🎶","Woodwind",68,86,84,48,"Woodwind tank","wind"],
+["Recorder","🪈","Woodwind",70,44,78,84,"Beginner all-rounder","wind"],
+["Erhu","🐉","World",74,54,98,82,"Melodic bowed specialist","bow"],
+["Guzheng","🌸","World",78,62,96,88,"Combo melody","pluck"],
+["Pipa","🌙","World",84,50,88,92,"Rapid plucking","pluck"],
+["Kalimba","✨","World",58,60,90,86,"Healing support","pluck"],
+["Sitar","🌌","World",76,64,96,80,"Resonance specialist","pluck"],
+["Shamisen","🌸","World",88,48,74,92,"Precision attacker","pluck"]
 ];
 
-
-const getInstrument =
-    name =>
-        instruments.find(
-            item =>
-                item.name === name
-        );
-
-
-
-/* =========================================================
-   PRICES
-========================================================= */
-
-const instrumentPrices = {
-
-    Guitar:0,
-    Ukulele:100,
-    Piano:250,
-    Flute:450,
-    Drums:700,
-    Clarinet:1000,
-    Trumpet:1350,
-    Violin:1750,
-    Saxophone:2200,
-    Cello:2700,
-    Xylophone:3250,
-    Trombone:3850,
-    Synthesizer:4500,
-    "French Horn":5200,
-    Oboe:6000,
-    "Digital Piano":6900,
-    Organ:7900,
-    "Drum Machine":9000
-
-};
-
-
-
-/* =========================================================
-   AVATAR PRESETS
-========================================================= */
-
-const avatarPresets = [
-
-{
-    id:"hero",
-    name:"Hero",
-    badge:"H",
-    bodyScale:1,
-    headScale:1
-},
-
-{
-    id:"swift",
-    name:"Swift",
-    badge:"S",
-    bodyScale:.9,
-    headScale:.95
-},
-
-{
-    id:"power",
-    name:"Power",
-    badge:"P",
-    bodyScale:1.12,
-    headScale:1
-},
-
-{
-    id:"star",
-    name:"Star",
-    badge:"★",
-    bodyScale:.97,
-    headScale:1.06
-},
-
-{
-    id:"neo",
-    name:"Neo",
-    badge:"N",
-    bodyScale:1.03,
-    headScale:.95
-},
-
-{
-    id:"legend",
-    name:"Legend",
-    badge:"L",
-    bodyScale:1.08,
-    headScale:1.03
-}
-
-];
-
-
-
-/* =========================================================
-   PROFILE
-========================================================= */
-
-function freshProfile() {
-
-    return {
-
-        playerName:"",
-
-        avatar:{
-
-            preset:"hero",
-
-            skin:"#dca57b",
-
-            hair:"#201915",
-
-            outfit:"#19345b"
-
-        },
-
-        level:1,
-
-        xp:0,
-
-        totalXpEarned:0,
-
-        spendableXp:0,
-
-        highestLevel:1
-
-    };
-
-}
-
-
-let profile =
-    freshProfile();
-
-
-try {
-
-    const saved =
-        JSON.parse(
-            localStorage.getItem(
-                "musicverseProfile"
-            )
-        );
-
-
-    if (saved) {
-
-        profile = {
-
-            ...profile,
-
-            ...saved,
-
-            avatar:{
-
-                ...profile.avatar,
-
-                ...(
-                    typeof saved.avatar ===
-                    "object"
-
-                    ? saved.avatar
-
-                    : {}
-                )
-
-            }
-
-        };
-
-    }
-
-}
-catch(error) {
-
-    console.warn(
-        "Profile load failed.",
-        error
-    );
-
-}
-
-
-if (
-    typeof profile.spendableXp !==
-    "number"
-) {
-
-    profile.spendableXp =
-        profile.totalXpEarned || 0;
-
-}
-
-
-function saveProfile() {
-
-    localStorage.setItem(
-
-        "musicverseProfile",
-
-        JSON.stringify(
-            profile
-        )
-
-    );
-
-}
-
-
-
-/* =========================================================
-   BATTLE DATA
-========================================================= */
-
-const emptyUpgrades =
-    () => ({
-
-        power:0,
-        melody:0,
-        rhythm:0,
-        defense:0
-
-    });
-
-
-function freshBattleData() {
-
-    return {
-
-        instrument:"Guitar",
-
-        ownedInstruments:[
-            "Guitar"
-        ],
-
-        wins:0,
-
-        losses:0,
-
-        instrumentXP:{},
-
-        instrumentUpgrades:{}
-
-    };
-
-}
-
-
-let battleData =
-    freshBattleData();
-
-
-try {
-
-    const saved =
-        JSON.parse(
-            localStorage.getItem(
-                "musicverseBattle"
-            )
-        );
-
-
-    if (saved) {
-
-        battleData = {
-
-            ...battleData,
-
-            ...saved,
-
-            instrumentXP:{
-                ...(saved.instrumentXP || {})
-            },
-
-            instrumentUpgrades:{
-                ...(saved.instrumentUpgrades || {})
-            }
-
-        };
-
-    }
-
-}
-catch(error) {}
-
-
-if (
-    !Array.isArray(
-        battleData.ownedInstruments
-    )
-) {
-
-    battleData.ownedInstruments =
-        ["Guitar"];
-
-}
-
-
-if (
-    !battleData.ownedInstruments.includes(
-        "Guitar"
-    )
-) {
-
-    battleData.ownedInstruments.unshift(
-        "Guitar"
-    );
-
-}
-
-
-if (
-    !battleData.ownedInstruments.includes(
-        battleData.instrument
-    )
-) {
-
-    battleData.instrument =
-        "Guitar";
-
-}
-
-
-instruments.forEach(
-    instrument => {
-
-        if (
-            typeof battleData.instrumentXP[
-                instrument.name
-            ] !==
-            "number"
-        ) {
-
-            battleData.instrumentXP[
-                instrument.name
-            ] = 0;
-
-        }
-
-
-        if (
-            !battleData.instrumentUpgrades[
-                instrument.name
-            ]
-        ) {
-
-            battleData.instrumentUpgrades[
-                instrument.name
-            ] =
-                emptyUpgrades();
-
-        }
-
-    }
+const instrumentData=rawInstruments.map(
+  ([name,icon,family,attack,defense,melody,rhythm,style,play],i)=>({
+    name,
+    icon,
+    family,
+    attack,
+    defense,
+    melody,
+    rhythm,
+    style,
+    play,
+    price:i===0?0:220+i*95
+  })
 );
 
+const moveSets={
+  strum:[
+    ["Power Strum","Heavy soundwave",1.06,"attack"],
+    ["Rapid Riff","Fast combo",.80,"rhythm"],
+    ["Perfect Chord","Shielding chord",.62,"shield"],
+    ["Dragon Solo","Cinematic ultimate",1.88,"ultimate"]
+  ],
+  keys:[
+    ["Power Chord","Heavy chord",1.00,"attack"],
+    ["Rapid Keys","Fast run",.82,"rhythm"],
+    ["Sustain Shield","Defensive harmony",.62,"shield"],
+    ["Grand Crescendo","Massive finale",1.82,"ultimate"]
+  ],
+  drums:[
+    ["Power Beat","Heavy beat",1.10,"attack"],
+    ["Drum Roll","Rapid combo",.84,"rhythm"],
+    ["Rhythm Barrier","Beat shield",.62,"shield"],
+    ["Thunder Beat","Lightning ultimate",1.90,"ultimate"]
+  ],
+  wind:[
+    ["Focused Note","Precise note",.94,"melody"],
+    ["Rapid Scale","Fast run",.82,"rhythm"],
+    ["Breath Guard","Heal with melody",.58,"heal"],
+    ["Cyclone Symphony","Wind ultimate",1.78,"ultimate"]
+  ],
+  brass:[
+    ["Brass Blast","Direct blast",1.06,"attack"],
+    ["Fanfare Rush","Fast phrase",.82,"rhythm"],
+    ["Royal Guard","Protective resonance",.62,"shield"],
+    ["Solar Fanfare","Brass ultimate",1.86,"ultimate"]
+  ],
+  bow:[
+    ["Power Bow","Strong bow stroke",.98,"melody"],
+    ["Rapid Bow","Fast bow combo",.82,"rhythm"],
+    ["Harmony Strings","Shielding phrase",.62,"shield"],
+    ["Phoenix Symphony","String ultimate",1.86,"ultimate"]
+  ],
+  mallet:[
+    ["Mallet Strike","Focused strike",.98,"attack"],
+    ["Scale Rush","Rapid scale",.82,"rhythm"],
+    ["Resonance","Protective ring",.60,"shield"],
+    ["Rainbow Cascade","Mallet ultimate",1.80,"ultimate"]
+  ],
+  pads:[
+    ["Beat Drop","Heavy pad",1.02,"attack"],
+    ["Pad Rush","Fast sequence",.84,"rhythm"],
+    ["Bass Sequence","Build shield",.60,"shield"],
+    ["Mega Beat Drop","Electronic ultimate",1.90,"ultimate"]
+  ],
+  pluck:[
+    ["Crystal Pluck","Focused pluck",.94,"melody"],
+    ["Finger Rush","Rapid plucking",.82,"rhythm"],
+    ["Resonance","Harmony shield",.60,"shield"],
+    ["Starlight Cascade","Plucked ultimate",1.82,"ultimate"]
+  ],
+  bellows:[
+    ["Squeeze Beat","Bellows attack",.98,"attack"],
+    ["Polka Rush","Fast combo",.82,"rhythm"],
+    ["Bellows Guard","Defensive squeeze",.60,"shield"],
+    ["Festival Frenzy","Accordion ultimate",1.80,"ultimate"]
+  ],
+  shake:[
+    ["Rhythm Shake","Fast shake",.92,"rhythm"],
+    ["Jingle Rush","Multi-hit burst",.80,"rhythm"],
+    ["Tempo Guard","Protective tempo",.58,"shield"],
+    ["Carnival Storm","Rhythm ultimate",1.78,"ultimate"]
+  ]
+};
 
-function saveBattleData() {
+const rarities={
+  common:{
+    label:"COMMON",
+    weight:45,
+    color:"#aab5c0",
+    dust:8
+  },
+  uncommon:{
+    label:"UNCOMMON",
+    weight:28,
+    color:"#54d88a",
+    dust:15
+  },
+  rare:{
+    label:"RARE",
+    weight:16,
+    color:"#5cafff",
+    dust:30
+  },
+  epic:{
+    label:"EPIC",
+    weight:8,
+    color:"#bd7cff",
+    dust:60
+  },
+  legendary:{
+    label:"LEGENDARY",
+    weight:2.5,
+    color:"#ffd65a",
+    dust:120
+  },
+  mythic:{
+    label:"MYTHIC",
+    weight:.5,
+    color:"#ff7fe1",
+    dust:260
+  }
+};
 
-    localStorage.setItem(
-
-        "musicverseBattle",
-
-        JSON.stringify(
-            battleData
-        )
-
-    );
-
-}
-
-
-
-/* =========================================================
-   TROPHIES
-========================================================= */
-
-const TROPHY_TIERS = [
-
-{
-    xp:10000,
-    name:"Bronze",
-    title:"Bronze Master",
-    icon:"🥉"
-},
-
-{
-    xp:20000,
-    name:"Silver",
-    title:"Silver Master",
-    icon:"🥈"
-},
-
-{
-    xp:30000,
-    name:"Gold",
-    title:"Gold Master",
-    icon:"🥇"
-},
-
-{
-    xp:40000,
-    name:"Diamond",
-    title:"Diamond Master",
-    icon:"💎"
-},
-
-{
-    xp:50000,
-    name:"Grand Master",
-    title:"Grand Master",
-    icon:"👑🏆"
-}
-
+const rarityOrder=[
+  "common",
+  "uncommon",
+  "rare",
+  "epic",
+  "legendary",
+  "mythic"
 ];
 
+const bonus=(text,mods)=>({text,mods});
 
+const accessoryPool=[
+  [
+    "black_cap",
+    "Black Cap",
+    "head",
+    "common",
+    bonus("+1% Defense",{defense:1})
+  ],
+  [
+    "round_glasses",
+    "Round Glasses",
+    "face",
+    "common",
+    bonus("+1% Melody",{melody:1})
+  ],
+  [
+    "studio_headphones",
+    "Studio Headphones",
+    "head",
+    "uncommon",
+    bonus("+2% Rhythm",{rhythm:2})
+  ],
+  [
+    "gold_chain",
+    "Gold Chain",
+    "neck",
+    "rare",
+    bonus("+3% Attack",{attack:3})
+  ],
+  [
+    "star_glasses",
+    "Star Glasses",
+    "face",
+    "rare",
+    bonus("+3% Melody",{melody:3})
+  ],
+  [
+    "cyber_visor",
+    "Cyber Visor",
+    "face",
+    "epic",
+    bonus("+4% Rhythm",{rhythm:4})
+  ],
+  [
+    "angel_wings",
+    "Angel Wings",
+    "back",
+    "legendary",
+    bonus("+5% Defense",{defense:5})
+  ],
+  [
+    "royal_crown",
+    "Royal Crown",
+    "head",
+    "legendary",
+    bonus("+5% Attack",{attack:5})
+  ],
+  [
+    "musicverse_crown",
+    "MusicVerse Crown",
+    "head",
+    "mythic",
+    bonus("+3% all stats",{
+      attack:3,
+      defense:3,
+      melody:3,
+      rhythm:3
+    })
+  ],
+  [
+    "neon_sneakers",
+    "Neon Sneakers",
+    "shoes",
+    "rare",
+    bonus("+3% Rhythm",{rhythm:3})
+  ],
+  [
+    "royal_jacket",
+    "Royal Music Jacket",
+    "clothing",
+    "epic",
+    bonus("+2% Attack +2% Defense",{
+      attack:2,
+      defense:2
+    })
+  ],
+  [
+    "golden_cape",
+    "Golden Cape",
+    "back",
+    "legendary",
+    bonus("+3% Melody +3% Defense",{
+      melody:3,
+      defense:3
+    })
+  ]
+].map(
+  ([id,name,slot,rarity,ability])=>({
+    id,
+    name,
+    slot,
+    rarity,
+    ability,
+    type:"accessory",
+    icon:"👑"
+  })
+);
 
-/* =========================================================
-   BASE STATS
-========================================================= */
+const petPool=[
+  [
+    "music_cat",
+    "Music Cat",
+    "common",
+    "🐱",
+    bonus("+2% Melody",{melody:2})
+  ],
+  [
+    "beat_puppy",
+    "Beat Puppy",
+    "common",
+    "🐶",
+    bonus("+2% Rhythm",{rhythm:2})
+  ],
+  [
+    "mini_robot",
+    "Mini Robot",
+    "rare",
+    "🤖",
+    bonus("+3% Defense",{defense:3})
+  ],
+  [
+    "neon_fox",
+    "Neon Fox",
+    "rare",
+    "🦊",
+    bonus("+3% Attack",{attack:3})
+  ],
+  [
+    "music_ghost",
+    "Music Ghost",
+    "epic",
+    "👻",
+    bonus("+4% Melody",{melody:4})
+  ],
+  [
+    "baby_dragon",
+    "Baby Dragon",
+    "epic",
+    "🐲",
+    bonus("+4% Attack",{attack:4})
+  ],
+  [
+    "crystal_unicorn",
+    "Crystal Unicorn",
+    "legendary",
+    "🦄",
+    bonus("+5% Melody",{melody:5})
+  ],
+  [
+    "thunder_wolf",
+    "Thunder Wolf",
+    "legendary",
+    "🐺",
+    bonus("+5% Rhythm",{rhythm:5})
+  ],
+  [
+    "phoenix",
+    "Phoenix",
+    "legendary",
+    "🔥",
+    bonus("Phoenix Guard: +5% Defense",{defense:5})
+  ],
+  [
+    "celestial_dragon",
+    "Celestial Dragon",
+    "mythic",
+    "🐉",
+    bonus("+5% Attack +3% Defense",{
+      attack:5,
+      defense:3
+    })
+  ],
+  [
+    "cosmic_owl",
+    "Cosmic Owl",
+    "mythic",
+    "🦉",
+    bonus("+5% Melody +3% Rhythm",{
+      melody:5,
+      rhythm:3
+    })
+  ],
+  [
+    "musicverse_spirit",
+    "MusicVerse Spirit",
+    "mythic",
+    "🎼",
+    bonus("+3% all stats",{
+      attack:3,
+      defense:3,
+      melody:3,
+      rhythm:3
+    })
+  ]
+].map(
+  ([id,name,rarity,icon,ability])=>({
+    id,
+    name,
+    rarity,
+    icon,
+    ability,
+    type:"pet",
+    slot:"pet"
+  })
+);
 
-const baseStats = {
+const auraPool=[
+  [
+    "music_notes",
+    "Musical Notes",
+    "common",
+    "🎵",
+    bonus("+2% Melody",{melody:2})
+  ],
+  [
+    "rhythm_pulse",
+    "Rhythm Pulse",
+    "uncommon",
+    "💨",
+    bonus("+2% Rhythm",{rhythm:2})
+  ],
+  [
+    "flame_aura",
+    "Flame Aura",
+    "rare",
+    "🔥",
+    bonus("+3% Attack",{attack:3})
+  ],
+  [
+    "frost_aura",
+    "Frost Aura",
+    "rare",
+    "❄️",
+    bonus("+3% Defense",{defense:3})
+  ],
+  [
+    "lightning_aura",
+    "Lightning Aura",
+    "epic",
+    "⚡",
+    bonus("+4% Rhythm",{rhythm:4})
+  ],
+  [
+    "sakura_aura",
+    "Sakura Aura",
+    "epic",
+    "🌸",
+    bonus("+4% Melody",{melody:4})
+  ],
+  [
+    "celestial_aura",
+    "Celestial Aura",
+    "legendary",
+    "👼",
+    bonus("+5% Defense",{defense:5})
+  ],
+  [
+    "dragon_aura",
+    "Dragon Aura",
+    "legendary",
+    "🐉",
+    bonus("+5% Attack",{attack:5})
+  ],
+  [
+    "galaxy_aura",
+    "Galaxy Aura",
+    "mythic",
+    "🌌",
+    bonus("+5% Melody +3% Rhythm",{
+      melody:5,
+      rhythm:3
+    })
+  ],
+  [
+    "rainbow_symphony",
+    "Rainbow Symphony",
+    "mythic",
+    "🌈",
+    bonus("+3% all stats",{
+      attack:3,
+      defense:3,
+      melody:3,
+      rhythm:3
+    })
+  ],
+  [
+    "void_aura",
+    "Void Aura",
+    "mythic",
+    "🕳️",
+    bonus("+5% Attack +3% Defense",{
+      attack:5,
+      defense:3
+    })
+  ]
+].map(
+  ([id,name,rarity,icon,ability])=>({
+    id,
+    name,
+    rarity,
+    icon,
+    ability,
+    type:"aura",
+    slot:"aura"
+  })
+);
 
-    Guitar:[68,78,72,58],
+const skinThemes=[
+  [
+    "sakura",
+    "Sakura",
+    "rare",
+    "🌸",
+    bonus("+2% Melody",{melody:2}),
+    "#f4aac9",
+    "#6f3154"
+  ],
+  [
+    "thunder",
+    "Thunder",
+    "epic",
+    "⚡",
+    bonus("+3% Rhythm",{rhythm:3}),
+    "#eed34e",
+    "#18203a"
+  ],
+  [
+    "phoenix",
+    "Phoenix",
+    "legendary",
+    "🔥",
+    bonus("+4% Attack",{attack:4}),
+    "#ff7433",
+    "#7c1717"
+  ],
+  [
+    "celestial",
+    "Celestial",
+    "legendary",
+    "✨",
+    bonus("+4% Melody",{melody:4}),
+    "#cfe8ff",
+    "#775f9e"
+  ],
+  [
+    "void",
+    "Cosmic Void",
+    "mythic",
+    "🌌",
+    bonus("+3% Attack +3% Rhythm",{
+      attack:3,
+      rhythm:3
+    }),
+    "#5d45a7",
+    "#130b29"
+  ]
+];
 
-    Ukulele:[45,72,70,48],
+const skinPool=instrumentData.flatMap(inst=>
+  skinThemes.map(
+    ([key,label,rarity,icon,ability,primary,secondary])=>({
+      id:`skin_${slug(inst.name)}_${key}`,
+      name:`${label} ${inst.name}`,
+      instrument:inst.name,
+      rarity,
+      icon,
+      ability,
+      primary,
+      secondary,
+      type:"skin",
+      slot:"skin"
+    })
+  )
+);
 
-    Piano:[74,90,82,72],
+const allCollectibles=[
+  ...accessoryPool,
+  ...petPool,
+  ...auraPool,
+  ...skinPool
+];
 
-    Flute:[50,88,62,52],
+const defaultProfile={
+  playerName:"",
+  level:1,
+  xp:0,
+  totalXpEarned:0,
+  highestLevel:1,
+  musicCoins:1200,
+  starDust:0,
 
-    Drums:[94,38,98,78],
+  avatar:{
+    preset:"hero",
+    skin:"#dca57b",
+    hairColor:"#201915",
+    outfit:"#19345b"
+  },
 
-    Clarinet:[58,84,68,60],
+  owned:{
+    accessory:[],
+    pet:[],
+    aura:[],
+    skin:[]
+  },
 
-    Trumpet:[90,76,74,68],
+  equipped:{
+    head:null,
+    face:null,
+    neck:null,
+    back:null,
+    shoes:null,
+    clothing:null,
+    pet:null,
+    aura:null,
+    skins:{}
+  },
 
-    Violin:[62,92,65,55],
-
-    Saxophone:[74,84,82,62],
-
-    Cello:[76,85,58,72],
-
-    Xylophone:[58,82,86,50],
-
-    Trombone:[86,72,75,76],
-
-    Synthesizer:[82,86,88,65],
-
-    "French Horn":[82,84,62,82],
-
-    Oboe:[60,88,58,64],
-
-    "Digital Piano":[70,86,78,68],
-
-    Organ:[88,82,58,86],
-
-    "Drum Machine":[84,46,96,70]
-
+  gacha:{
+    accessory:{
+      legendary:0,
+      mythic:0
+    },
+    pet:{
+      legendary:0,
+      mythic:0
+    },
+    aura:{
+      legendary:0,
+      mythic:0
+    },
+    skin:{
+      legendary:0,
+      mythic:0
+    }
+  }
 };
 
-
-
-/* =========================================================
-   SPECIAL MOVES
-========================================================= */
-
-const specialMoves = {
-
-Guitar:{
-    name:"Power Chord",
-    icon:"⚡🎸",
-    description:"A crushing chord powered by raw strength.",
-    chance:.32,
-    stat:"POWER",
-    effect:s => s.power*.75 + randomNumber(18,30)
-},
-
-Ukulele:{
-    name:"Island Groove",
-    icon:"🌴🎸",
-    description:"A joyful rhythm combo.",
-    chance:.38,
-    stat:"RHYTHM",
-    effect:s => s.rhythm*.78 + randomNumber(12,25)
-},
-
-Piano:{
-    name:"Grand Crescendo",
-    icon:"🌟🎹",
-    description:"All stats combine into one grand finale.",
-    chance:.30,
-    stat:"POWER",
-    effect:s =>
-        (
-            s.power +
-            s.melody +
-            s.rhythm +
-            s.defense
-        )*.20 +
-        randomNumber(15,25)
-},
-
-Flute:{
-    name:"Whirlwind Melody",
-    icon:"🌪️🪈",
-    description:"A swirling wave of rapid notes.",
-    chance:.36,
-    stat:"MELODY",
-    effect:s =>
-        s.melody*.72 +
-        s.rhythm*.22 +
-        randomNumber(12,22)
-},
-
-Drums:{
-    name:"Thunder Beat",
-    icon:"⚡🥁",
-    description:"An earth-shaking rhythm attack.",
-    chance:.31,
-    stat:"RHYTHM",
-    effect:s =>
-        s.rhythm*.92 +
-        randomNumber(18,30)
-},
-
-Clarinet:{
-    name:"Reed Rush",
-    icon:"💨🎶",
-    description:"A rapid melody and rhythm combination.",
-    chance:.35,
-    stat:"MELODY",
-    effect:s =>
-        s.melody*.48 +
-        s.rhythm*.42 +
-        randomNumber(12,24)
-},
-
-Trumpet:{
-    name:"Brass Burst",
-    icon:"💥🎺",
-    description:"A devastating blast of brass power.",
-    chance:.30,
-    stat:"POWER",
-    effect:s =>
-        s.power*.9 +
-        randomNumber(20,32)
-},
-
-Violin:{
-    name:"Virtuoso Solo",
-    icon:"✨🎻",
-    description:"A brilliant solo powered by Melody.",
-    chance:.34,
-    stat:"MELODY",
-    effect:s =>
-        s.melody*.85 +
-        randomNumber(15,28)
-},
-
-Saxophone:{
-    name:"Jazz Improvisation",
-    icon:"🔥🎷",
-    description:"An unpredictable jazz attack.",
-    chance:.36,
-    stat:"POWER",
-    effect:s =>
-        randomItem(
-            [
-                s.power,
-                s.melody,
-                s.rhythm,
-                s.defense
-            ]
-        )*.8 +
-        randomNumber(15,35)
-},
-
-Cello:{
-    name:"Deep Resonance",
-    icon:"🌊🎻",
-    description:"Deep tones combine Melody and Defense.",
-    chance:.33,
-    stat:"DEFENSE",
-    effect:s =>
-        s.melody*.42 +
-        s.defense*.46 +
-        randomNumber(12,22)
-},
-
-Xylophone:{
-    name:"Crystal Cascade",
-    icon:"💎🎼",
-    description:"A sparkling Melody and Rhythm attack.",
-    chance:.37,
-    stat:"RHYTHM",
-    effect:s =>
-        s.melody*.45 +
-        s.rhythm*.45 +
-        randomNumber(13,24)
-},
-
-Trombone:{
-    name:"Slide Strike",
-    icon:"⚔️🎺",
-    description:"A powerful sliding brass attack.",
-    chance:.34,
-    stat:"POWER",
-    effect:s =>
-        s.power*.5 +
-        s.rhythm*.4 +
-        randomNumber(14,24)
-},
-
-Synthesizer:{
-    name:"Digital Overdrive",
-    icon:"⚡🎛️",
-    description:"Supercharges a random combat stat.",
-    chance:.35,
-    stat:"POWER",
-    effect:s =>
-        randomItem(
-            [
-                s.power,
-                s.melody,
-                s.rhythm,
-                s.defense
-            ]
-        )*.95 +
-        randomNumber(15,28)
-},
-
-"French Horn":{
-    name:"Royal Fanfare",
-    icon:"👑📯",
-    description:"A majestic Melody and Defense attack.",
-    chance:.32,
-    stat:"DEFENSE",
-    effect:s =>
-        s.melody*.42 +
-        s.defense*.52 +
-        randomNumber(12,22)
-},
-
-Oboe:{
-    name:"Piercing Note",
-    icon:"🎯🪈",
-    description:"A focused note that cuts through defense.",
-    chance:.31,
-    stat:"MELODY",
-    effect:(s,e) =>
-        s.melody*.55 +
-        e.defense*.3 +
-        randomNumber(15,25)
-},
-
-"Digital Piano":{
-    name:"Electric Arpeggio",
-    icon:"⚡🎹",
-    description:"Rapid electronic notes flood the arena.",
-    chance:.36,
-    stat:"MELODY",
-    effect:s =>
-        s.melody*.55 +
-        s.rhythm*.35 +
-        randomNumber(12,24)
-},
-
-Organ:{
-    name:"Cathedral Blast",
-    icon:"⛪🎹",
-    description:"Massive sustained tones shake the arena.",
-    chance:.29,
-    stat:"DEFENSE",
-    effect:s =>
-        s.power*.45 +
-        s.defense*.5 +
-        randomNumber(15,25)
-},
-
-"Drum Machine":{
-    name:"Beat Drop",
-    icon:"💣🎛️",
-    description:"A devastating electronic rhythm attack.",
-    chance:.32,
-    stat:"RHYTHM",
-    effect:s =>
-        s.rhythm*.62 +
-        s.power*.38 +
-        randomNumber(18,30)
-}
-
+let profile={
+  ...defaultProfile,
+  ...load("musicverseProfile",{})
 };
 
+profile.avatar={
+  ...defaultProfile.avatar,
+  ...(profile.avatar||{})
+};
 
+profile.owned={
+  ...defaultProfile.owned,
+  ...(profile.owned||{})
+};
 
-/* =========================================================
-   AUDIO
-========================================================= */
+profile.equipped={
+  ...defaultProfile.equipped,
+  ...(profile.equipped||{})
+};
 
-let audioContext;
+profile.equipped.skins={
+  ...(profile.equipped.skins||{})
+};
 
+profile.gacha={
+  ...defaultProfile.gacha,
+  ...(profile.gacha||{})
+};
 
-function audio() {
-
-    if (!audioContext) {
-
-        const AudioContext =
-            window.AudioContext ||
-            window.webkitAudioContext;
-
-
-        if (!AudioContext) return null;
-
-
-        audioContext =
-            new AudioContext();
-
-    }
-
-
-    if (
-        audioContext.state ===
-        "suspended"
-    ) {
-
-        audioContext.resume();
-
-    }
-
-
-    return audioContext;
-
+for(const k of ["accessory","pet","aura","skin"]){
+  profile.gacha[k]={
+    ...defaultProfile.gacha[k],
+    ...(profile.gacha[k]||{})
+  };
 }
 
+const defaultBattleData={
+  wins:0,
+  losses:0,
+  equipped:"Guitar",
+  owned:["Guitar"],
+  mastery:{},
+  energy:0,
+  demoRP:0,
+  onlineRP:0,
+  streak:0,
+  demoWins:0,
+  demoLosses:0
+};
 
-function tone(
-    frequency,
-    duration=.25,
-    type="triangle",
-    volume=.08
-) {
+let battleData={
+  ...defaultBattleData,
+  ...load("musicverseBattle",{})
+};
 
-    const ctx =
-        audio();
+battleData.owned=[
+  ...new Set(
+    battleData.owned||["Guitar"]
+  )
+];
 
+battleData.mastery||={};
 
-    if (!ctx) return;
+let craft=load(
+  "musicverseCraft",
+  null
+);
 
+let activeFamily="All";
+let battleMode="practice";
+let activeGacha="accessory";
 
-    const oscillator =
-        ctx.createOscillator();
+let battle={
+  playerHp:100,
+  enemyHp:100,
+  playerMax:100,
+  enemyMax:100,
+  enemy:null,
+  turnLocked:false,
+  playerShield:0,
+  enemyShield:0
+};
 
+let pendingTiming=null;
+let timingRAF=null;
+let timingStart=0;
 
-    const gain =
-        ctx.createGain();
+function persist(){
+  save(
+    "musicverseProfile",
+    profile
+  );
 
-
-    const now =
-        ctx.currentTime;
-
-
-    oscillator.frequency.value =
-        frequency;
-
-
-    oscillator.type =
-        type;
-
-
-    gain.gain.setValueAtTime(
-        .001,
-        now
-    );
-
-
-    gain.gain.exponentialRampToValueAtTime(
-        volume,
-        now+.02
-    );
-
-
-    gain.gain.exponentialRampToValueAtTime(
-        .001,
-        now+duration
-    );
-
-
-    oscillator.connect(
-        gain
-    );
-
-
-    gain.connect(
-        ctx.destination
-    );
-
-
-    oscillator.start();
-
-
-    oscillator.stop(
-        now+duration+.05
-    );
-
+  save(
+    "musicverseBattle",
+    battleData
+  );
 }
 
+function toast(m){
+  const e=$("#toast");
 
-function playInstrumentSound(
-    instrument
-) {
+  e.textContent=m;
+  e.classList.add("show");
 
-    if (
-        instrument.drum
-    ) {
-
-        tone(
-            90,
-            .14,
-            "sine",
-            .12
-        );
-
-
-        setTimeout(
-            () =>
-                tone(
-                    210,
-                    .12,
-                    "square",
-                    .08
-                ),
-            120
-        );
-
-
-        return;
-
-    }
-
-
-    tone(
-        instrument.frequency || 440,
-        .5,
-        "triangle",
-        .1
-    );
-
+  setTimeout(
+    ()=>e.classList.remove("show"),
+    2100
+  );
 }
 
+function addXP(n){
 
+  if(n>0){
 
-/* =========================================================
-   THREE HELPERS
-========================================================= */
+    profile.totalXpEarned+=n;
+    profile.xp+=n;
 
-function material(
-    color,
-    metalness=.05,
-    roughness=.65
-) {
+    while(profile.xp>=100){
 
-    return new THREE.MeshStandardMaterial({
+      profile.xp-=100;
+      profile.level++;
 
-        color:new THREE.Color(color),
+      profile.highestLevel=Math.max(
+        profile.highestLevel,
+        profile.level
+      );
 
-        metalness,
+      profile.musicCoins+=75;
 
-        roughness
+      toast(
+        `Level up! Level ${profile.level} +75 Music Coins`
+      );
+    }
 
-    });
+  }else{
 
+    profile.xp+=n;
+
+    while(
+      profile.xp<0 &&
+      profile.level>1
+    ){
+
+      profile.level--;
+      profile.xp+=100;
+    }
+
+    profile.xp=Math.max(
+      0,
+      profile.xp
+    );
+  }
+
+  persist();
+  updateProfileUI();
 }
 
+function addCoins(n){
 
-function mesh(
-    geometry,
-    color
-) {
+  profile.musicCoins=Math.max(
+    0,
+    profile.musicCoins+n
+  );
 
-    const object =
-        new THREE.Mesh(
-            geometry,
-            material(color)
-        );
-
-
-    object.castShadow =
-        true;
-
-
-    object.receiveShadow =
-        true;
-
-
-    return object;
-
+  persist();
+  updateProfileUI();
 }
 
+function addMastery(name,n){
 
+  battleData.mastery[name]=
+    (battleData.mastery[name]||0)+n;
 
-/* =========================================================
-   INSTRUMENT 3D MODELS
-========================================================= */
-
-function createInstrument3D(name) {
-
-    const group =
-        new THREE.Group();
-
-
-    const gold =
-        "#d3a85d";
-
-
-    const wood =
-        "#9f542b";
-
-
-    const dark =
-        "#2b1c14";
-
-
-    if (
-        [
-            "Guitar",
-            "Ukulele"
-        ].includes(name)
-    ) {
-
-        const body =
-            mesh(
-                new THREE.BoxGeometry(
-                    name === "Ukulele"
-                    ? .38
-                    : .48,
-                    name === "Ukulele"
-                    ? .55
-                    : .7,
-                    .18
-                ),
-                wood
-            );
-
-
-        body.position.y =
-            -.05;
-
-
-        const neck =
-            mesh(
-                new THREE.BoxGeometry(
-                    .09,
-                    .65,
-                    .08
-                ),
-                dark
-            );
-
-
-        neck.position.y =
-            .55;
-
-
-        const head =
-            mesh(
-                new THREE.BoxGeometry(
-                    .16,
-                    .16,
-                    .09
-                ),
-                dark
-            );
-
-
-        head.position.y =
-            .92;
-
-
-        group.add(
-            body,
-            neck,
-            head
-        );
-
-    }
-
-    else if (
-        [
-            "Violin",
-            "Cello"
-        ].includes(name)
-    ) {
-
-        const body =
-            mesh(
-                new THREE.BoxGeometry(
-                    name === "Cello"
-                    ? .48
-                    : .33,
-                    name === "Cello"
-                    ? .7
-                    : .5,
-                    .16
-                ),
-                "#8e4b2c"
-            );
-
-
-        const neck =
-            mesh(
-                new THREE.BoxGeometry(
-                    .07,
-                    .62,
-                    .07
-                ),
-                dark
-            );
-
-
-        neck.position.y =
-            .52;
-
-
-        group.add(
-            body,
-            neck
-        );
-
-    }
-
-    else if (
-        [
-            "Trumpet",
-            "Trombone",
-            "French Horn",
-            "Saxophone",
-            "Flute",
-            "Clarinet",
-            "Oboe"
-        ].includes(name)
-    ) {
-
-        const tube =
-            mesh(
-                new THREE.BoxGeometry(
-                    .75,
-                    .08,
-                    .08
-                ),
-                gold
-            );
-
-
-        const bell =
-            mesh(
-                new THREE.BoxGeometry(
-                    .2,
-                    .23,
-                    .2
-                ),
-                gold
-            );
-
-
-        bell.position.x =
-            .44;
-
-
-        group.add(
-            tube,
-            bell
-        );
-
-    }
-
-    else if (
-        [
-            "Piano",
-            "Digital Piano",
-            "Organ",
-            "Synthesizer"
-        ].includes(name)
-    ) {
-
-        const keyboard =
-            mesh(
-                new THREE.BoxGeometry(
-                    .8,
-                    .2,
-                    .36
-                ),
-                "#20242c"
-            );
-
-
-        const keys =
-            mesh(
-                new THREE.BoxGeometry(
-                    .68,
-                    .04,
-                    .26
-                ),
-                "#efefea"
-            );
-
-
-        keys.position.y =
-            .12;
-
-
-        group.add(
-            keyboard,
-            keys
-        );
-
-    }
-
-    else if (
-        [
-            "Drums",
-            "Drum Machine"
-        ].includes(name)
-    ) {
-
-        const drum =
-            mesh(
-                new THREE.BoxGeometry(
-                    .52,
-                    .44,
-                    .4
-                ),
-                "#822b37"
-            );
-
-
-        group.add(
-            drum
-        );
-
-    }
-
-    else {
-
-        const bars =
-            mesh(
-                new THREE.BoxGeometry(
-                    .75,
-                    .16,
-                    .28
-                ),
-                "#705e9a"
-            );
-
-
-        group.add(
-            bars
-        );
-
-    }
-
-
-    group.scale.setScalar(
-        .9
-    );
-
-
-    return group;
-
+  persist();
 }
 
+function masteryTier(x){
 
+  return x>=50000
+    ?"👑 Grand Master"
 
-/* =========================================================
-   BLOCKY ROBLOX-INSPIRED AVATAR
-========================================================= */
+    :x>=40000
+    ?"💎 Diamond Master"
 
-function createAvatar3D(
-    config,
-    instrumentName
-) {
+    :x>=30000
+    ?"🥇 Gold Master"
 
-    const preset =
-        avatarPresets.find(
-            item =>
-                item.id ===
-                config.preset
-        ) ||
-        avatarPresets[0];
+    :x>=20000
+    ?"🥈 Silver Master"
 
+    :x>=10000
+    ?"🥉 Bronze Master"
 
-    const root =
-        new THREE.Group();
-
-
-    root.userData = {
-
-        state:"idle",
-
-        phase:
-            Math.random() *
-            Math.PI*2,
-
-        baseY:0,
-
-        baseRotationY:0
-
-    };
-
-
-    /* TORSO */
-
-    const torso =
-        mesh(
-            new THREE.BoxGeometry(
-                .9*preset.bodyScale,
-                1.1,
-                .48*preset.bodyScale
-            ),
-            config.outfit
-        );
-
-
-    torso.position.y =
-        1.55;
-
-
-    /* WAIST */
-
-    const waist =
-        mesh(
-            new THREE.BoxGeometry(
-                .7,
-                .38,
-                .4
-            ),
-            "#252b38"
-        );
-
-
-    waist.position.y =
-        .82;
-
-
-    /* BLOCKY HEAD */
-
-    const head =
-        mesh(
-            new THREE.BoxGeometry(
-                .68*preset.headScale,
-                .68*preset.headScale,
-                .68*preset.headScale
-            ),
-            config.skin
-        );
-
-
-    head.position.y =
-        2.48;
-
-
-    /* HAIR */
-
-    const hair =
-        mesh(
-            new THREE.BoxGeometry(
-                .72*preset.headScale,
-                .22,
-                .72*preset.headScale
-            ),
-            config.hair
-        );
-
-
-    hair.position.y =
-        2.84;
-
-
-    /* EYES */
-
-    const eyeMaterial =
-        material(
-            "#101010"
-        );
-
-
-    const leftEye =
-        new THREE.Mesh(
-            new THREE.BoxGeometry(
-                .07,
-                .085,
-                .035
-            ),
-            eyeMaterial
-        );
-
-
-    leftEye.position.set(
-        -.14,
-        2.5,
-        .355
-    );
-
-
-    const rightEye =
-        leftEye.clone();
-
-
-    rightEye.position.x =
-        .14;
-
-
-    /* SMILE */
-
-    const smile =
-        new THREE.Mesh(
-            new THREE.BoxGeometry(
-                .2,
-                .035,
-                .035
-            ),
-            material(
-                "#43211d"
-            )
-        );
-
-
-    smile.position.set(
-        0,
-        2.34,
-        .355
-    );
-
-
-    /* ARMS */
-
-    const leftArm =
-        mesh(
-            new THREE.BoxGeometry(
-                .28,
-                .92,
-                .28
-            ),
-            config.outfit
-        );
-
-
-    const rightArm =
-        mesh(
-            new THREE.BoxGeometry(
-                .28,
-                .92,
-                .28
-            ),
-            config.outfit
-        );
-
-
-    leftArm.position.set(
-        -.64,
-        1.52,
-        0
-    );
-
-
-    rightArm.position.set(
-        .64,
-        1.52,
-        0
-    );
-
-
-    /* HANDS */
-
-    const leftHand =
-        mesh(
-            new THREE.BoxGeometry(
-                .27,
-                .27,
-                .27
-            ),
-            config.skin
-        );
-
-
-    const rightHand =
-        mesh(
-            new THREE.BoxGeometry(
-                .27,
-                .27,
-                .27
-            ),
-            config.skin
-        );
-
-
-    leftHand.position.y =
-        -.58;
-
-
-    rightHand.position.y =
-        -.58;
-
-
-    leftArm.add(
-        leftHand
-    );
-
-
-    rightArm.add(
-        rightHand
-    );
-
-
-    /* LEGS */
-
-    const leftLeg =
-        mesh(
-            new THREE.BoxGeometry(
-                .32,
-                1,
-                .34
-            ),
-            "#252b38"
-        );
-
-
-    const rightLeg =
-        mesh(
-            new THREE.BoxGeometry(
-                .32,
-                1,
-                .34
-            ),
-            "#252b38"
-        );
-
-
-    leftLeg.position.set(
-        -.22,
-        .16,
-        0
-    );
-
-
-    rightLeg.position.set(
-        .22,
-        .16,
-        0
-    );
-
-
-    /* SHOES */
-
-    const leftShoe =
-        mesh(
-            new THREE.BoxGeometry(
-                .34,
-                .18,
-                .46
-            ),
-            "#141820"
-        );
-
-
-    const rightShoe =
-        mesh(
-            new THREE.BoxGeometry(
-                .34,
-                .18,
-                .46
-            ),
-            "#141820"
-        );
-
-
-    leftShoe.position.set(
-        0,
-        -.53,
-        .05
-    );
-
-
-    rightShoe.position.set(
-        0,
-        -.53,
-        .05
-    );
-
-
-    leftLeg.add(
-        leftShoe
-    );
-
-
-    rightLeg.add(
-        rightShoe
-    );
-
-
-    root.add(
-        torso,
-        waist,
-        head,
-        hair,
-        leftEye,
-        rightEye,
-        smile,
-        leftArm,
-        rightArm,
-        leftLeg,
-        rightLeg
-    );
-
-
-    root.userData.torso =
-        torso;
-
-
-    root.userData.head =
-        head;
-
-
-    root.userData.leftArm =
-        leftArm;
-
-
-    root.userData.rightArm =
-        rightArm;
-
-
-    root.userData.leftLeg =
-        leftLeg;
-
-
-    root.userData.rightLeg =
-        rightLeg;
-
-
-    const instrument =
-        createInstrument3D(
-            instrumentName
-        );
-
-
-    instrument.position.set(
-        0,
-        1.28,
-        .48
-    );
-
-
-    instrument.rotation.z =
-        -.18;
-
-
-    root.add(
-        instrument
-    );
-
-
-    root.userData.instrument =
-        instrument;
-
-
-    return root;
-
+    :"Beginner";
 }
 
+function getInst(n){
 
-
-/* =========================================================
-   AVATAR ANIMATION LOOP
-========================================================= */
-
-function resetAvatarPose(
-    avatar
-) {
-
-    if (!avatar) return;
-
-
-    const {
-        leftArm,
-        rightArm,
-        leftLeg,
-        rightLeg,
-        head,
-        torso,
-        instrument
-    } = avatar.userData;
-
-
-    leftArm.rotation.set(
-        0,
-        0,
-        0
-    );
-
-
-    rightArm.rotation.set(
-        0,
-        0,
-        0
-    );
-
-
-    leftLeg.rotation.set(
-        0,
-        0,
-        0
-    );
-
-
-    rightLeg.rotation.set(
-        0,
-        0,
-        0
-    );
-
-
-    head.rotation.set(
-        0,
-        0,
-        0
-    );
-
-
-    torso.rotation.set(
-        0,
-        0,
-        0
-    );
-
-
-    instrument.rotation.z =
-        -.18;
-
+  return instrumentData.find(
+    x=>x.name===n
+  )||instrumentData[0];
 }
 
+function rankName(rp){
 
+  if(rp>=4000)
+    return"🌌 MusicVerse Legend";
 
-function animateAvatar(
-    avatar,
-    time
-) {
+  if(rp>=3000)
+    return"👑 Master";
 
-    if (!avatar) return;
+  if(rp>=2600)
+    return"💎 Diamond I";
 
+  if(rp>=2300)
+    return"💎 Diamond II";
 
-    const state =
-        avatar.userData.state;
+  if(rp>=2000)
+    return"💎 Diamond III";
 
+  if(rp>=1800)
+    return"🥇 Gold I";
 
-    const t =
-        time*.001 +
-        avatar.userData.phase;
+  if(rp>=1600)
+    return"🥇 Gold II";
 
+  if(rp>=1400)
+    return"🥇 Gold III";
 
-    const {
-        leftArm,
-        rightArm,
-        leftLeg,
-        rightLeg,
-        torso,
-        head,
-        instrument
-    } = avatar.userData;
+  if(rp>=1200)
+    return"🥈 Silver I";
 
+  if(rp>=1000)
+    return"🥈 Silver II";
 
-    if (
-        state === "idle"
-    ) {
+  if(rp>=800)
+    return"🥈 Silver III";
 
-        avatar.position.y =
+  if(rp>=600)
+    return"🥉 Bronze I";
 
-            avatar.userData.baseY +
+  if(rp>=400)
+    return"🥉 Bronze II";
 
-            Math.abs(
-                Math.sin(
-                    t*2.2
-                )
-            )*.045;
-
-
-        torso.rotation.z =
-            Math.sin(
-                t*1.6
-            )*.018;
-
-
-        head.rotation.y =
-            Math.sin(
-                t*1.15
-            )*.08;
-
-
-        leftArm.rotation.x =
-            Math.sin(
-                t*2
-            )*.07;
-
-
-        rightArm.rotation.x =
-            -Math.sin(
-                t*2
-            )*.07;
-
-    }
-
-
-    if (
-        state === "attack"
-    ) {
-
-        leftArm.rotation.x =
-            Math.sin(
-                t*14
-            )*.8;
-
-
-        rightArm.rotation.x =
-            -Math.sin(
-                t*14
-            )*.8;
-
-
-        leftLeg.rotation.x =
-            -Math.sin(
-                t*14
-            )*.6;
-
-
-        rightLeg.rotation.x =
-            Math.sin(
-                t*14
-            )*.6;
-
-
-        torso.rotation.z =
-            Math.sin(
-                t*14
-            )*.05;
-
-    }
-
-
-    if (
-        state === "perform"
-    ) {
-
-        leftArm.rotation.z =
-
-            -.62 +
-
-            Math.sin(
-                t*14
-            )*.22;
-
-
-        rightArm.rotation.z =
-
-            .62 -
-
-            Math.sin(
-                t*14
-            )*.22;
-
-
-        leftArm.rotation.x =
-            -.35;
-
-
-        rightArm.rotation.x =
-            -.35;
-
-
-        head.rotation.z =
-            Math.sin(
-                t*5
-            )*.08;
-
-
-        torso.rotation.z =
-            Math.sin(
-                t*5
-            )*.045;
-
-
-        instrument.rotation.z =
-
-            -.18 +
-
-            Math.sin(
-                t*11
-            )*.13;
-
-    }
-
-
-    if (
-        state === "hit"
-    ) {
-
-        torso.rotation.z =
-            Math.sin(
-                t*26
-            )*.14;
-
-
-        head.rotation.z =
-            Math.sin(
-                t*28
-            )*.18;
-
-
-        leftArm.rotation.z =
-            -.45;
-
-
-        rightArm.rotation.z =
-            .45;
-
-    }
-
-
-    if (
-        state === "victory"
-    ) {
-
-        leftArm.rotation.z =
-            -2.25;
-
-
-        rightArm.rotation.z =
-            2.25;
-
-
-        avatar.position.y =
-
-            avatar.userData.baseY +
-
-            Math.abs(
-                Math.sin(
-                    t*7
-                )
-            )*.16;
-
-    }
-
+  return"🥉 Bronze III";
 }
 
+function cosmeticMods(){
 
+  const mods={
+    attack:0,
+    defense:0,
+    melody:0,
+    rhythm:0
+  };
 
-/* =========================================================
-   BATTLE SCENE
-========================================================= */
-
-const battleContainer =
-    $("#battle3D");
-
-
-let battleScene;
-
-let battleRenderer;
-
-let battleCamera;
-
-let playerAvatar3D;
-
-let cpuAvatar3D;
-
-let battleParticles =
-    [];
-
-
-function createBattleScene() {
-
-    battleScene =
-        new THREE.Scene();
-
-
-    battleScene.background =
-        null;
-
-
-    battleCamera =
-        new THREE.PerspectiveCamera(
-            43,
-            battleContainer.clientWidth /
-            battleContainer.clientHeight,
-            .1,
-            100
-        );
-
-
-    battleCamera.position.set(
-        0,
-        3.05,
-        8.3
+  const ids=
+    Object.values(profile.equipped)
+    .filter(
+      v=>typeof v==="string"
     );
 
-
-    battleCamera.lookAt(
-        0,
-        1.2,
-        0
-    );
-
-
-    battleRenderer =
-        new THREE.WebGLRenderer({
-
-            antialias:true,
-
-            alpha:true
-
-        });
-
-
-    battleRenderer.setPixelRatio(
-        Math.min(
-            window.devicePixelRatio,
-            2
-        )
-    );
-
-
-    battleRenderer.setSize(
-        battleContainer.clientWidth,
-        battleContainer.clientHeight
-    );
-
-
-    battleRenderer.shadowMap.enabled =
-        true;
-
-
-    battleContainer.appendChild(
-        battleRenderer.domElement
-    );
-
-
-    const hemi =
-        new THREE.HemisphereLight(
-            "#d8eeff",
-            "#223016",
-            2.5
-        );
-
-
-    battleScene.add(
-        hemi
-    );
-
-
-    const sunlight =
-        new THREE.DirectionalLight(
-            "#fff0c6",
-            3.4
-        );
-
-
-    sunlight.position.set(
-        4,
-        7,
-        5
-    );
-
-
-    sunlight.castShadow =
-        true;
-
-
-    battleScene.add(
-        sunlight
-    );
-
-
-    /* BLOCKY GROUND */
-
-    const floor =
-        mesh(
-            new THREE.BoxGeometry(
-                11,
-                .28,
-                6
-            ),
-            "#5d8848"
-        );
-
-
-    floor.position.y =
-        -.71;
-
-
-    floor.receiveShadow =
-        true;
-
-
-    battleScene.add(
-        floor
-    );
-
-
-    /* STAGE */
-
-    const stage =
-        mesh(
-            new THREE.BoxGeometry(
-                7.5,
-                .28,
-                3.6
-            ),
-            "#3d5268"
-        );
-
-
-    stage.position.y =
-        -.49;
-
-
-    battleScene.add(
-        stage
-    );
-
-
-    /* BLOCKS AROUND ARENA */
-
-    for (
-        let i=-5;
-        i<=5;
-        i++
-    ) {
-
-        if (
-            Math.abs(i) < 3
-        ) continue;
-
-
-        const cube =
-            mesh(
-                new THREE.BoxGeometry(
-                    .7,
-                    .7,
-                    .7
-                ),
-                i%2===0
-                ? "#698f55"
-                : "#7b9862"
-            );
-
-
-        cube.position.set(
-            i,
-            -.22,
-            -2
-        );
-
-
-        battleScene.add(
-            cube
-        );
-
-    }
-
-
-    rebuildPlayerAvatar();
-
-    rebuildCPUAvatar(null);
-
-
-    battleLoop();
-
-}
-
-
-
-function removeObject(
-    object
-) {
-
-    if (!object) return;
-
-
-    battleScene.remove(
-        object
-    );
-
-}
-
-
-
-function rebuildPlayerAvatar() {
-
-    if (!battleScene) return;
-
-
-    removeObject(
-        playerAvatar3D
-    );
-
-
-    playerAvatar3D =
-        createAvatar3D(
-
-            profile.avatar,
-
-            battleData.instrument
-
-        );
-
-
-    playerAvatar3D.position.set(
-        -2,
-        -.42,
-        0
-    );
-
-
-    playerAvatar3D.rotation.y =
-        .25;
-
-
-    playerAvatar3D.userData.baseY =
-        -.42;
-
-
-    playerAvatar3D.userData.baseRotationY =
-        .25;
-
-
-    battleScene.add(
-        playerAvatar3D
-    );
-
-}
-
-
-
-function randomCPUAvatarConfig() {
-
-    return {
-
-        preset:
-            randomItem(
-                avatarPresets
-            ).id,
-
-        skin:
-            randomItem([
-                "#f2c7a5",
-                "#dca57b",
-                "#b97850",
-                "#895638",
-                "#5d3828"
-            ]),
-
-        hair:
-            randomItem([
-                "#201915",
-                "#5b3526",
-                "#d0a05a",
-                "#8b2635",
-                "#503d74"
-            ]),
-
-        outfit:
-            randomItem([
-                "#19345b",
-                "#7a2534",
-                "#264f45",
-                "#654483",
-                "#4c4f58",
-                "#c59a51"
-            ])
-
-    };
-
-}
-
-
-
-function rebuildCPUAvatar(
-    cpu
-) {
-
-    if (!battleScene) return;
-
-
-    removeObject(
-        cpuAvatar3D
-    );
-
-
-    const instrumentName =
-        cpu
-        ? cpu.instrument.name
-        : "Saxophone";
-
-
-    cpuAvatar3D =
-        createAvatar3D(
-
-            cpu
-            ? cpu.avatar
-            : randomCPUAvatarConfig(),
-
-            instrumentName
-
-        );
-
-
-    cpuAvatar3D.position.set(
-        2,
-        -.42,
-        0
-    );
-
-
-    cpuAvatar3D.rotation.y =
-        -.25;
-
-
-    cpuAvatar3D.userData.baseY =
-        -.42;
-
-
-    cpuAvatar3D.userData.baseRotationY =
-        -.25;
-
-
-    battleScene.add(
-        cpuAvatar3D
-    );
-
-
-    cpuAvatar3D.visible =
-        Boolean(cpu);
-
-}
-
-
-
-/* =========================================================
-   PARTICLES
-========================================================= */
-
-function createParticles(
-    position,
-    color,
-    amount=24
-) {
-
-    for (
-        let i=0;
-        i<amount;
-        i++
-    ) {
-
-        const particle =
-            mesh(
-                new THREE.BoxGeometry(
-                    .07,
-                    .07,
-                    .07
-                ),
-                color
-            );
-
-
-        particle.position.copy(
-            position
-        );
-
-
-        particle.userData.velocity =
-            new THREE.Vector3(
-
-                (
-                    Math.random()-.5
-                )*.12,
-
-                Math.random()*.1+.03,
-
-                (
-                    Math.random()-.5
-                )*.12
-
-            );
-
-
-        particle.userData.life =
-            1;
-
-
-        battleScene.add(
-            particle
-        );
-
-
-        battleParticles.push(
-            particle
-        );
-
-    }
-
-}
-
-
-
-function updateParticles() {
-
-    battleParticles.forEach(
-        particle => {
-
-            particle.position.add(
-                particle.userData.velocity
-            );
-
-
-            particle.userData.velocity.y -=
-                .002;
-
-
-            particle.rotation.x +=
-                .1;
-
-
-            particle.rotation.y +=
-                .12;
-
-
-            particle.userData.life -=
-                .025;
-
-
-            particle.scale.setScalar(
-                Math.max(
-                    .01,
-                    particle.userData.life
-                )
-            );
-
-        }
-    );
-
-
-    battleParticles =
-        battleParticles.filter(
-            particle => {
-
-                if (
-                    particle.userData.life <= 0
-                ) {
-
-                    battleScene.remove(
-                        particle
-                    );
-
-
-                    return false;
-
-                }
-
-
-                return true;
-
-            }
-        );
-
-}
-
-
-
-/* =========================================================
-   CAMERA SHAKE
-========================================================= */
-
-let cameraShake =
-    0;
-
-
-function triggerCameraShake(
-    amount=.12
-) {
-
-    cameraShake =
-        amount;
-
-}
-
-
-
-function battleLoop(
-    time=0
-) {
-
-    requestAnimationFrame(
-        battleLoop
-    );
-
-
-    animateAvatar(
-        playerAvatar3D,
-        time
-    );
-
-
-    animateAvatar(
-        cpuAvatar3D,
-        time
-    );
-
-
-    updateParticles();
-
-
-    if (
-        cameraShake > .001
-    ) {
-
-        battleCamera.position.x +=
-            (
-                Math.random()-.5
-            )*cameraShake;
-
-
-        battleCamera.position.y +=
-            (
-                Math.random()-.5
-            )*cameraShake;
-
-
-        cameraShake *=
-            .82;
-
-    }
-
-
-    battleRenderer.render(
-        battleScene,
-        battleCamera
-    );
-
-}
-
-
-
-/* =========================================================
-   ROBLOX-INSPIRED ATTACK
-========================================================= */
-
-async function avatarAttack(
-    attacker,
-    defender
-) {
-
-    if (
-        !attacker ||
-        !defender
-    ) return;
-
-
-    resetAvatarPose(
-        attacker
-    );
-
-
-    attacker.userData.state =
-        "attack";
-
-
-    const startX =
-        attacker.position.x;
-
-
-    const startY =
-        attacker.userData.baseY;
-
-
-    const direction =
-        startX < 0
-        ? 1
-        : -1;
-
-
-    /* RUN */
-
-    for (
-        let i=0;
-        i<10;
-        i++
-    ) {
-
-        attacker.position.x +=
-            direction*.095;
-
-
-        attacker.position.y =
-
-            startY +
-
-            Math.abs(
-                Math.sin(
-                    i*.9
-                )
-            )*.08;
-
-
-        await delay(
-            20
-        );
-
-    }
-
-
-    /* JUMP */
-
-    for (
-        let i=0;
-        i<5;
-        i++
-    ) {
-
-        attacker.position.y +=
-            .09;
-
-
-        attacker.rotation.z +=
-            direction*.025;
-
-
-        await delay(
-            20
-        );
-
-    }
-
-
-    /* IMPACT */
-
-    createParticles(
-
-        defender.position
-        .clone()
-        .add(
-            new THREE.Vector3(
-                0,
-                1.3,
-                .2
-            )
-        ),
-
-        "#f2cb70",
-
-        25
-
-    );
-
-
-    triggerCameraShake(
-        .15
-    );
-
-
-    await avatarHit(
-        defender
-    );
-
-
-    /* LAND */
-
-    for (
-        let i=0;
-        i<5;
-        i++
-    ) {
-
-        attacker.position.y -=
-            .09;
-
-
-        attacker.rotation.z -=
-            direction*.025;
-
-
-        await delay(
-            20
-        );
-
-    }
-
-
-    /* RETURN */
-
-    for (
-        let i=0;
-        i<10;
-        i++
-    ) {
-
-        attacker.position.x -=
-            direction*.095;
-
-
-        await delay(
-            18
-        );
-
-    }
-
-
-    attacker.position.x =
-        startX;
-
-
-    attacker.position.y =
-        startY;
-
-
-    attacker.rotation.z =
-        0;
-
-
-    attacker.userData.state =
-        "idle";
-
-
-    resetAvatarPose(
-        attacker
-    );
-
-}
-
-
-
-/* =========================================================
-   HIT REACTION
-========================================================= */
-
-async function avatarHit(
-    avatar
-) {
-
-    if (!avatar) return;
-
-
-    resetAvatarPose(
-        avatar
-    );
-
-
-    avatar.userData.state =
-        "hit";
-
-
-    const startX =
-        avatar.position.x;
-
-
-    const startY =
-        avatar.userData.baseY;
-
-
-    const knock =
-        startX > 0
-        ? .20
-        : -.20;
-
-
-    for (
-        let i=0;
-        i<5;
-        i++
-    ) {
-
-        avatar.position.x +=
-            knock;
-
-
-        avatar.position.y +=
-            .04;
-
-
-        avatar.rotation.z +=
-            knock*.2;
-
-
-        await delay(
-            24
-        );
-
-    }
-
-
-    for (
-        let i=0;
-        i<5;
-        i++
-    ) {
-
-        avatar.position.x -=
-            knock;
-
-
-        avatar.position.y -=
-            .04;
-
-
-        avatar.rotation.z -=
-            knock*.2;
-
-
-        await delay(
-            24
-        );
-
-    }
-
-
-    avatar.position.x =
-        startX;
-
-
-    avatar.position.y =
-        startY;
-
-
-    avatar.rotation.z =
-        0;
-
-
-    avatar.userData.state =
-        "idle";
-
-
-    resetAvatarPose(
-        avatar
-    );
-
-}
-
-
-
-/* =========================================================
-   VICTORY EMOTE
-========================================================= */
-
-async function avatarVictory(
-    avatar
-) {
-
-    if (!avatar) return;
-
-
-    resetAvatarPose(
-        avatar
-    );
-
-
-    avatar.userData.state =
-        "victory";
-
-
-    const baseY =
-        avatar.userData.baseY;
-
-
-    const baseRotation =
-        avatar.userData.baseRotationY;
-
-
-    /* DOUBLE JUMP */
-
-    for (
-        let jump=0;
-        jump<2;
-        jump++
-    ) {
-
-        for (
-            let i=0;
-            i<7;
-            i++
-        ) {
-
-            avatar.position.y +=
-                .09;
-
-
-            await delay(
-                24
-            );
-
-        }
-
-
-        for (
-            let i=0;
-            i<7;
-            i++
-        ) {
-
-            avatar.position.y -=
-                .09;
-
-
-            await delay(
-                24
-            );
-
-        }
-
-    }
-
-
-    /* SPIN */
-
-    for (
-        let i=0;
-        i<22;
-        i++
-    ) {
-
-        avatar.rotation.y +=
-            Math.PI/11;
-
-
-        await delay(
-            20
-        );
-
-    }
-
-
-    createParticles(
-
-        avatar.position
-        .clone()
-        .add(
-            new THREE.Vector3(
-                0,
-                1.5,
-                .1
-            )
-        ),
-
-        "#ffe07a",
-
-        35
-
-    );
-
-
-    avatar.position.y =
-        baseY;
-
-
-    avatar.rotation.y =
-        baseRotation;
-
-
-    avatar.userData.state =
-        "idle";
-
-
-    resetAvatarPose(
-        avatar
-    );
-
-}
-
-
-
-/* =========================================================
-   SPECIAL MOVE
-========================================================= */
-
-async function avatarSpecial(
-    attacker,
-    defender,
-    special,
-    side
-) {
-
-    if (
-        !attacker ||
-        !defender
-    ) return;
-
-
-    resetAvatarPose(
-        attacker
-    );
-
-
-    attacker.userData.state =
-        "perform";
-
-
-    const originalCamera =
-        battleCamera.position.clone();
-
-
-    const originalLook = {
-        x:0,
-        y:1.2,
-        z:0
-    };
-
-
-    const targetX =
-        side === "player"
-        ? -1.6
-        : 1.6;
-
-
-    /* CAMERA SNAP ZOOM */
-
-    for (
-        let i=0;
-        i<10;
-        i++
-    ) {
-
-        battleCamera.position.x +=
-
-            (
-                targetX -
-                battleCamera.position.x
-            )*.18;
-
-
-        battleCamera.position.z -=
-            .1;
-
-
-        battleCamera.lookAt(
-            attacker.position.x,
-            1.4,
-            0
-        );
-
-
-        await delay(
-            16
-        );
-
-    }
-
-
-    showSpecialBanner(
-        side,
-        special
-    );
-
-
-    /* CHARGE */
-
-    const startY =
-        attacker.userData.baseY;
-
-
-    for (
-        let i=0;
-        i<6;
-        i++
-    ) {
-
-        attacker.position.y +=
-            .07;
-
-
-        attacker.rotation.y +=
-
-            side === "player"
-            ? .12
-            : -.12;
-
-
-        await delay(
-            22
-        );
-
-    }
-
-
-    const colour =
-
-        special.stat === "POWER"
-        ? "#ff9c4c"
-
-        : special.stat === "MELODY"
-        ? "#a987ff"
-
-        : special.stat === "RHYTHM"
-        ? "#4fe4d4"
-
-        : "#69a8ff";
-
-
-    createParticles(
-
-        attacker.position
-        .clone()
-        .add(
-            new THREE.Vector3(
-                0,
-                1.4,
-                .3
-            )
-        ),
-
-        colour,
-
-        55
-
-    );
-
-
-    /* FAST SPIN */
-
-    for (
-        let i=0;
-        i<16;
-        i++
-    ) {
-
-        attacker.rotation.y +=
-
-            side === "player"
-            ? .35
-            : -.35;
-
-
-        await delay(
-            18
-        );
-
-    }
-
-
-    /* DASH */
-
-    const direction =
-        attacker.position.x < 0
-        ? 1
-        : -1;
-
-
-    const startX =
-        attacker.position.x;
-
-
-    for (
-        let i=0;
-        i<8;
-        i++
-    ) {
-
-        attacker.position.x +=
-            direction*.13;
-
-
-        await delay(
-            16
-        );
-
-    }
-
-
-    createParticles(
-
-        defender.position
-        .clone()
-        .add(
-            new THREE.Vector3(
-                0,
-                1.3,
-                .2
-            )
-        ),
-
-        colour,
-
-        55
-
-    );
-
-
-    triggerCameraShake(
-        .25
-    );
-
-
-    await avatarHit(
-        defender
-    );
-
-
-    /* RETURN */
-
-    for (
-        let i=0;
-        i<8;
-        i++
-    ) {
-
-        attacker.position.x -=
-            direction*.13;
-
-
-        await delay(
-            16
-        );
-
-    }
-
-
-    attacker.position.x =
-        startX;
-
-
-    attacker.position.y =
-        startY;
-
-
-    attacker.rotation.y =
-        attacker.userData.baseRotationY;
-
-
-    attacker.userData.state =
-        "idle";
-
-
-    resetAvatarPose(
-        attacker
-    );
-
-
-    battleCamera.position.copy(
-        originalCamera
-    );
-
-
-    battleCamera.lookAt(
-        originalLook.x,
-        originalLook.y,
-        originalLook.z
-    );
-
-}
-
-
-
-/* =========================================================
-   SPECIAL BANNER
-========================================================= */
-
-function showSpecialBanner(
-    side,
-    special
-) {
-
-    const banner =
-        $("#specialMoveBanner");
-
-
-    $("#specialMoveIcon")
-        .textContent =
-        special.icon;
-
-
-    $("#specialMoveOwner")
-        .textContent =
-        side === "player"
-        ? "PLAYER SPECIAL"
-        : "CPU SPECIAL";
-
-
-    $("#specialMoveTitle")
-        .textContent =
-        special.name.toUpperCase();
-
-
-    $("#specialMoveBonus")
-        .textContent =
-        `+${special.bonus} ${special.stat}`;
-
-
-    banner.classList.remove(
-        "show"
-    );
-
-
-    void banner.offsetWidth;
-
-
-    banner.classList.add(
-        "show"
-    );
-
-
-    setTimeout(
-        () =>
-            banner.classList.remove(
-                "show"
-            ),
-        1500
-    );
-
-}
-
-
-
-/* =========================================================
-   SETUP PREVIEW
-========================================================= */
-
-let setupScene;
-
-let setupRenderer;
-
-let setupCamera;
-
-let setupAvatar;
-
-
-let selectedPreset =
-    profile.avatar.preset ||
-    "hero";
-
-
-function currentSetupAvatar() {
-
-    return {
-
-        preset:
-            selectedPreset,
-
-        skin:
-            $("#skinSelect").value,
-
-        hair:
-            $("#hairSelect").value,
-
-        outfit:
-            $("#outfitSelect").value
-
-    };
-
-}
-
-
-
-function createSetupPreview() {
-
-    const container =
-        $("#setupAvatarPreview");
-
-
-    setupScene =
-        new THREE.Scene();
-
-
-    setupCamera =
-        new THREE.PerspectiveCamera(
-            42,
-            container.clientWidth /
-            container.clientHeight,
-            .1,
-            100
-        );
-
-
-    setupCamera.position.set(
-        0,
-        1.7,
-        5
-    );
-
-
-    setupCamera.lookAt(
-        0,
-        1.2,
-        0
-    );
-
-
-    setupRenderer =
-        new THREE.WebGLRenderer({
-
-            antialias:true,
-
-            alpha:true
-
-        });
-
-
-    setupRenderer.setSize(
-        container.clientWidth,
-        container.clientHeight
-    );
-
-
-    setupRenderer.setPixelRatio(
-        Math.min(
-            window.devicePixelRatio,
-            2
-        )
-    );
-
-
-    container.appendChild(
-        setupRenderer.domElement
-    );
-
-
-    setupScene.add(
-        new THREE.HemisphereLight(
-            "#ffffff",
-            "#35431f",
-            2.4
-        )
-    );
-
-
-    const light =
-        new THREE.DirectionalLight(
-            "#fff0c5",
-            3
-        );
-
-
-    light.position.set(
-        3,
-        5,
-        5
-    );
-
-
-    setupScene.add(
-        light
-    );
-
-
-    const floor =
-        mesh(
-            new THREE.BoxGeometry(
-                6,
-                .2,
-                4
-            ),
-            "#5e8849"
-        );
-
-
-    floor.position.y =
-        -.72;
-
-
-    setupScene.add(
-        floor
-    );
-
-
-    updateSetupPreview();
-
-
-    function animate(time) {
-
-        requestAnimationFrame(
-            animate
-        );
-
-
-        if (
-            setupAvatar
-        ) {
-
-            setupAvatar.rotation.y =
-                Math.sin(
-                    time*.0006
-                )*.28;
-
-
-            animateAvatar(
-                setupAvatar,
-                time
-            );
-
-        }
-
-
-        setupRenderer.render(
-            setupScene,
-            setupCamera
-        );
-
-    }
-
-
-    animate();
-
-}
-
-
-
-function updateSetupPreview() {
-
-    if (!setupScene) return;
-
-
-    if (
-        setupAvatar
-    ) {
-
-        setupScene.remove(
-            setupAvatar
-        );
-
-    }
-
-
-    setupAvatar =
-        createAvatar3D(
-
-            currentSetupAvatar(),
-
-            "Guitar"
-
-        );
-
-
-    setupAvatar.position.y =
-        -.42;
-
-
-    setupAvatar.userData.baseY =
-        -.42;
-
-
-    setupScene.add(
-        setupAvatar
-    );
-
-}
-
-
-
-/* =========================================================
-   SETUP UI
-========================================================= */
-
-function renderPresetButtons() {
-
-    const grid =
-        $("#avatarPresetGrid");
-
-
-    grid.innerHTML =
-        "";
-
-
-    avatarPresets.forEach(
-        preset => {
-
-            const button =
-                document.createElement(
-                    "button"
-                );
-
-
-            button.type =
-                "button";
-
-
-            button.className =
-
-                `avatar-preset ${
-                    preset.id ===
-                    selectedPreset
-                    ? "selected"
-                    : ""
-                }`;
-
-
-            button.innerHTML = `
-
-                <span>
-                    ${preset.badge}
-                </span>
-
-                ${preset.name}
-
-            `;
-
-
-            button.onclick =
-                () => {
-
-                    selectedPreset =
-                        preset.id;
-
-
-                    renderPresetButtons();
-
-                    updateSetupPreview();
-
-                };
-
-
-            grid.appendChild(
-                button
-            );
-
-        }
-    );
-
-}
-
-
-
-function initialiseSetup() {
-
-    $("#skinSelect").value =
-        profile.avatar.skin;
-
-
-    $("#hairSelect").value =
-        profile.avatar.hair;
-
-
-    $("#outfitSelect").value =
-        profile.avatar.outfit;
-
-
-    renderPresetButtons();
-
-
-    [
-        "#skinSelect",
-        "#hairSelect",
-        "#outfitSelect"
-    ].forEach(
-        selector => {
-
-            $(selector)
-            .addEventListener(
-                "change",
-                updateSetupPreview
-            );
-
-        }
-    );
-
-
-    createSetupPreview();
-
-
-    if (
-        !profile.playerName
-    ) {
-
-        $("#playerSetup")
-        .classList.add(
-            "show"
-        );
-
-    }
-
-}
-
-
-
-$("#startMusicVerse").onclick =
-    () => {
-
-        const name =
-            $("#playerNameInput")
-            .value
-            .trim();
-
-
-        if (
-            name.length < 2
-        ) {
-
-            $("#playerNameError")
-            .textContent =
-                "Please enter at least 2 characters.";
-
-
-            return;
-
-        }
-
-
-        profile.playerName =
-            name;
-
-
-        profile.avatar =
-            currentSetupAvatar();
-
-
-        saveProfile();
-
-
-        $("#playerSetup")
-        .classList.remove(
-            "show"
-        );
-
-
-        rebuildPlayerAvatar();
-
-        updateDisplays();
-
-        renderLeaderboard();
-
-    };
-
-
-
-/* =========================================================
-   EXP
-========================================================= */
-
-function addXP(amount) {
-
-    if (
-        amount > 0
-    ) {
-
-        profile.totalXpEarned +=
-            amount;
-
-
-        profile.spendableXp +=
-            amount;
-
-    }
-
-
-    profile.xp +=
-        amount;
-
-
-    while (
-        profile.xp >= 100
-    ) {
-
-        profile.xp -=
-            100;
-
-
-        profile.level++;
-
-
-        profile.highestLevel =
-            Math.max(
-
-                profile.highestLevel,
-
-                profile.level
-
-            );
-
-
-        tone(
-            523.25,
-            .2
-        );
-
-
-        setTimeout(
-            () =>
-                tone(
-                    659.25,
-                    .2
-                ),
-            100
-        );
-
-    }
-
-
-    while (
-        profile.xp < 0 &&
-        profile.level > 1
-    ) {
-
-        profile.level--;
-
-
-        profile.xp +=
-            100;
-
-    }
-
-
-    if (
-        profile.level === 1 &&
-        profile.xp < 0
-    ) {
-
-        profile.xp =
-            0;
-
-    }
-
-
-    saveProfile();
-
-    updateDisplays();
-
-    renderLeaderboard();
-
-}
-
-
-
-/* =========================================================
-   OWNERSHIP
-========================================================= */
-
-function ownsInstrument(name) {
-
-    return battleData.ownedInstruments.includes(
-        name
-    );
-
-}
-
-
-
-function showCannotBuy(
-    instrument,
-    price
-) {
-
-    const missing =
-        Math.max(
-            0,
-            price-profile.spendableXp
-        );
-
-
-    $("#purchasePopupTitle")
-        .textContent =
-        `You Cannot Buy ${instrument.name}`;
-
-
-    $("#purchasePopupInstrument")
-        .textContent =
-        instrument.icon;
-
-
-    $("#purchaseCurrentXP")
-        .textContent =
-        profile.spendableXp
-        .toLocaleString();
-
-
-    $("#purchaseRequiredXP")
-        .textContent =
-        price.toLocaleString();
-
-
-    $("#purchaseXPNeeded")
-        .textContent =
-        `You need ${missing.toLocaleString()} more EXP.`;
-
-
-    $("#purchasePopup")
-        .classList.add(
-            "show"
-        );
-
-}
-
-
-
-function closePurchasePopup() {
-
-    $("#purchasePopup")
-        .classList.remove(
-            "show"
-        );
-
-}
-
-
-$("#purchasePopupClose").onclick =
-    closePurchasePopup;
-
-
-$("#purchasePopupOkay").onclick =
-    closePurchasePopup;
-
-
-
-function buyInstrument(name) {
-
-    if (
-        ownsInstrument(name)
-    ) {
-
-        equipInstrument(name);
-
-        return;
-
-    }
-
-
-    const instrument =
-        getInstrument(name);
-
-
-    const price =
-        instrumentPrices[name];
-
-
-    if (
-        profile.spendableXp <
-        price
-    ) {
-
-        showCannotBuy(
-            instrument,
-            price
-        );
-
-
-        return;
-
-    }
-
-
-    if (
-        !confirm(
-            `Buy ${name} for ${price.toLocaleString()} EXP?`
-        )
-    ) {
-
-        return;
-
-    }
-
-
-    profile.spendableXp -=
-        price;
-
-
-    battleData.ownedInstruments.push(
-        name
-    );
-
-
-    battleData.instrument =
-        name;
-
-
-    saveProfile();
-
-    saveBattleData();
-
-
-    playInstrumentSound(
-        instrument
-    );
-
-
-    clearCPU();
-
-    refreshBattle();
-
-}
-
-
-
-function equipInstrument(name) {
-
-    battleData.instrument =
-        name;
-
-
-    saveBattleData();
-
-
-    playInstrumentSound(
-        getInstrument(name)
-    );
-
-
-    clearCPU();
-
-    refreshBattle();
-
-}
-
-
-
-/* =========================================================
-   BATTLE SHOP
-========================================================= */
-
-function renderBattleShop() {
-
-    const grid =
-        $("#battleInstrumentGrid");
-
-
-    grid.innerHTML =
-        "";
-
-
-    [...instruments]
-
-    .sort(
-        (a,b) =>
-            instrumentPrices[a.name] -
-            instrumentPrices[b.name]
-    )
-
-    .forEach(
-        instrument => {
-
-            const owned =
-                ownsInstrument(
-                    instrument.name
-                );
-
-
-            const active =
-                instrument.name ===
-                battleData.instrument;
-
-
-            const button =
-                document.createElement(
-                    "button"
-                );
-
-
-            button.className =
-
-                `battle-instrument ${
-                    active
-                    ? "active"
-                    : ""
-                }`;
-
-
-            button.innerHTML = `
-
-                <span class="instrument-big">
-
-                    ${instrument.icon}
-
-                </span>
-
-                <strong>
-                    ${instrument.name}
-                </strong>
-
-                ${
-                    owned
-
-                    ? `
-
-                        <span class="owned-tag">
-
-                            ${
-                                active
-                                ? "EQUIPPED ✓"
-                                : "OWNED ✓"
-                            }
-
-                        </span>
-
-                    `
-
-                    : `
-
-                        <span class="price-tag">
-
-                            ${instrumentPrices[
-                                instrument.name
-                            ].toLocaleString()}
-
-                            EXP
-
-                        </span>
-
-                    `
-                }
-
-            `;
-
-
-            button.onclick =
-                () => {
-
-                    if (
-                        owned
-                    ) {
-
-                        equipInstrument(
-                            instrument.name
-                        );
-
-                    }
-                    else {
-
-                        buyInstrument(
-                            instrument.name
-                        );
-
-                    }
-
-                };
-
-
-            grid.appendChild(
-                button
-            );
-
-        }
-    );
-
-
-    $("#ownedInstrumentCount")
-        .textContent =
-        battleData.ownedInstruments.length;
-
-}
-
-
-
-/* =========================================================
-   UPGRADES
-========================================================= */
-
-function currentUpgrades() {
-
-    return battleData.instrumentUpgrades[
-        battleData.instrument
+  const skinId=
+    profile.equipped.skins?.[
+      battleData.equipped
     ];
 
+  if(skinId)
+    ids.push(skinId);
+
+  for(const id of ids){
+
+    const item=
+      allCollectibles.find(
+        i=>i.id===id
+      );
+
+    if(!item)
+      continue;
+
+    for(
+      const [k,v]
+      of Object.entries(
+        item.ability?.mods||{}
+      )
+    ){
+
+      mods[k]=
+        (mods[k]||0)+v;
+    }
+  }
+
+  if(
+    battleMode==="demoRanked" ||
+    battleMode==="onlineRanked"
+  ){
+
+    for(const k in mods)
+      mods[k]=Math.min(
+        mods[k],
+        10
+      );
+  }
+
+  return mods;
 }
 
+function finalStats(inst){
 
+  const m=cosmeticMods();
 
-function upgradeCost(stat) {
+  return{
+    attack:
+      inst.attack*
+      (1+m.attack/100),
 
-    return 100 +
-        currentUpgrades()[stat]*75;
+    defense:
+      inst.defense*
+      (1+m.defense/100),
 
+    melody:
+      inst.melody*
+      (1+m.melody/100),
+
+    rhythm:
+      inst.rhythm*
+      (1+m.rhythm/100)
+  };
 }
 
+function statHtml(i){
 
+  return[
+    ["ATK",i.attack],
+    ["DEF",i.defense],
+    ["MEL",i.melody],
+    ["RHY",i.rhythm]
+  ]
+  .map(([l,v])=>
+    `
+    <div class="stat-row">
 
-function buyUpgrade(stat) {
+      <span>${l}</span>
 
-    const cost =
-        upgradeCost(stat);
+      <div class="stat-bar">
+        <i style="width:${Math.min(100,v)}%"></i>
+      </div>
 
+      <b>${Math.round(v)}</b>
 
-    if (
-        profile.spendableXp <
-        cost
-    ) {
+    </div>
+    `
+  )
+  .join("");
+}
 
-        setBattleStatus(
+function updateProfileUI(){
 
-            `🔒 You need ${(cost-profile.spendableXp).toLocaleString()} more EXP.`
+  $("#heroName").textContent=
+    profile.playerName||"Player";
 
-        );
+  $("#heroLevel").textContent=
+    `Level ${profile.level}`;
 
+  $("#heroCoins").textContent=
+    profile.musicCoins.toLocaleString();
 
-        return;
+  $("#heroDust").textContent=
+    profile.starDust.toLocaleString();
 
+  $("#heroLifetime").textContent=
+    profile.totalXpEarned.toLocaleString();
+
+  $("#coinTop").textContent=
+    profile.musicCoins.toLocaleString();
+
+  $("#dustTop").textContent=
+    profile.starDust.toLocaleString();
+
+  $("#levelTop").textContent=
+    profile.level;
+
+  $("#gachaCoins").textContent=
+    profile.musicCoins.toLocaleString();
+
+  $("#gachaDust").textContent=
+    profile.starDust.toLocaleString();
+
+  $("#recordLabel").textContent=
+    `${battleData.wins}W / ${battleData.losses}L`;
+
+  $("#demoRankLabel").textContent=
+    rankName(
+      battleData.demoRP
+    );
+
+  $("#demoRpLabel").textContent=
+    `${battleData.demoRP} RP`;
+
+  $("#onlineRankLabel").textContent=
+    battleData.onlineRP
+      ?rankName(
+        battleData.onlineRP
+      )
+      :"Unranked";
+
+  $("#onlineRpLabel").textContent=
+    `${battleData.onlineRP} RP`;
+
+  $("#streakLabel").textContent=
+    `${battleData.streak} 🔥`;
+
+  updateGachaUI();
+}
+
+function setupProfile(){
+
+  const presets=[
+    "hero",
+    "swift",
+    "power",
+    "star",
+    "neo",
+    "legend"
+  ];
+
+  const tones=[
+    "#dca57b",
+    "#f0c7a5",
+    "#a56b46",
+    "#71452f",
+    "#4a2d24"
+  ];
+
+  const hairs=[
+    "#201915",
+    "#4b2b18",
+    "#8a552e",
+    "#d3aa55",
+    "#111111"
+  ];
+
+  const outfits=[
+    "#19345b",
+    "#7d2b3e",
+    "#265a45",
+    "#5b3f86",
+    "#111827"
+  ];
+
+  $("#avatarPresetSelect").innerHTML=
+    presets.map(
+      x=>`<option>${x}</option>`
+    ).join("");
+
+  $("#skinSelect").innerHTML=
+    tones.map(
+      x=>`<option value="${x}">${x}</option>`
+    ).join("");
+
+  $("#hairSelect").innerHTML=
+    hairs.map(
+      x=>`<option value="${x}">${x}</option>`
+    ).join("");
+
+  $("#outfitSelect").innerHTML=
+    outfits.map(
+      x=>`<option value="${x}">${x}</option>`
+    ).join("");
+
+  if(!profile.playerName){
+
+    $("#setupOverlay")
+      .classList
+      .remove("hidden");
+
+    requestAnimationFrame(
+      initSetupPreview
+    );
+  }
+
+  $("#startBtn").onclick=()=>{
+
+    const name=
+      $("#playerNameInput")
+      .value
+      .trim();
+
+    if(!name){
+
+      $("#setupError").textContent=
+        "Please choose a player name.";
+
+      return;
     }
 
+    profile.playerName=name;
 
-    if (
-        !confirm(
-            `Spend ${cost.toLocaleString()} EXP to upgrade ${stat}?`
+    profile.avatar.preset=
+      $("#avatarPresetSelect").value;
+
+    profile.avatar.skin=
+      $("#skinSelect").value;
+
+    profile.avatar.hairColor=
+      $("#hairSelect").value;
+
+    profile.avatar.outfit=
+      $("#outfitSelect").value;
+
+    persist();
+
+    $("#setupOverlay")
+      .classList
+      .add("hidden");
+
+    updateProfileUI();
+
+    refreshBattle(true);
+  };
+}
+
+function renderFamilies(){
+
+  $("#familyTabs").innerHTML=
+    families.map(
+      f=>`
+      <button
+        class="tab ${f===activeFamily?"active":""}"
+        data-family="${f}"
+      >
+        ${f}
+      </button>
+      `
+    ).join("");
+
+  $$("[data-family]")
+  .forEach(
+    b=>b.onclick=()=>{
+
+      activeFamily=
+        b.dataset.family;
+
+      renderFamilies();
+      renderInstruments();
+    }
+  );
+}
+
+function renderInstruments(){
+
+  const q=
+    $("#instrumentSearch")
+    .value
+    .toLowerCase()
+    .trim();
+
+  const rows=
+    instrumentData.filter(
+      i=>
+        (
+          activeFamily==="All" ||
+          i.family===activeFamily
         )
-    ) {
-
-        return;
-
-    }
-
-
-    profile.spendableXp -=
-        cost;
-
-
-    currentUpgrades()[stat]++;
-
-
-    saveProfile();
-
-    saveBattleData();
-
-    renderPlayerStats();
-
-    renderUpgrades();
-
-    updateDisplays();
-
-}
-
-
-
-$$(".upgrade-button")
-.forEach(
-    button => {
-
-        button.onclick =
-            () =>
-                buyUpgrade(
-                    button.dataset.upgrade
-                );
-
-    }
-);
-
-
-
-function renderUpgrades() {
-
-    const labels = {
-
-        power:["⚡","Power"],
-        melody:["🎵","Melody"],
-        rhythm:["🥁","Rhythm"],
-        defense:["🛡","Defense"]
-
-    };
-
-
-    $$(".upgrade-button")
-    .forEach(
-        button => {
-
-            const stat =
-                button.dataset.upgrade;
-
-
-            const level =
-                currentUpgrades()[stat];
-
-
-            const cost =
-                upgradeCost(stat);
-
-
-            button.innerHTML = `
-
-                <span>
-
-                    ${labels[stat][0]}
-                    ${labels[stat][1]}
-
-                </span>
-
-                <strong>
-                    +3
-                </strong>
-
-                <small>
-                    Upgrade Lv ${level}
-                </small>
-
-                <small>
-                    ${cost.toLocaleString()} EXP
-                </small>
-
-            `;
-
-        }
+        &&
+        i.name
+        .toLowerCase()
+        .includes(q)
     );
 
-}
-
-
-
-/* =========================================================
-   PLAYER STATS
-========================================================= */
-
-function playerStats() {
-
-    const base =
-        baseStats[
-            battleData.instrument
-        ];
-
-
-    const levelBonus =
-        (
-            profile.level-1
-        )*2;
-
-
-    const upgrades =
-        currentUpgrades();
-
-
-    return {
-
-        power:
-            base[0] +
-            levelBonus +
-            upgrades.power*3,
-
-        melody:
-            base[1] +
-            levelBonus +
-            upgrades.melody*3,
-
-        rhythm:
-            base[2] +
-            levelBonus +
-            upgrades.rhythm*3,
-
-        defense:
-            base[3] +
-            levelBonus +
-            upgrades.defense*3
-
-    };
-
-}
-
-
-
-function renderPlayerStats() {
-
-    const instrument =
-        getInstrument(
-            battleData.instrument
-        );
-
-
-    const stats =
-        playerStats();
-
-
-    const special =
-        specialMoves[
-            instrument.name
-        ];
-
-
-    $("#playerBattleName")
-        .textContent =
-        instrument.name;
-
-
-    $("#playerBattleLevel")
-        .textContent =
-        `LV ${profile.level}`;
-
-
-    $("#playerPower")
-        .textContent =
-        stats.power;
-
-
-    $("#playerMelody")
-        .textContent =
-        stats.melody;
-
-
-    $("#playerRhythm")
-        .textContent =
-        stats.rhythm;
-
-
-    $("#playerDefense")
-        .textContent =
-        stats.defense;
-
-
-    $("#playerSpecialMove")
-        .textContent =
-        `${special.icon} ${special.name}`;
-
-
-    $("#playerSpecialDescription")
-        .textContent =
-
-        `${special.description} • ${Math.round(special.chance*100)}% activation chance`;
-
-
-    $("#upgradeInstrumentName")
-        .textContent =
-        instrument.name;
-
-}
-
-
-
-/* =========================================================
-   DIFFICULTY
-========================================================= */
-
-function difficulty() {
-
-    const owned =
-        battleData.ownedInstruments.length;
-
-
-    if (
-        owned <= 5
-    ) {
-
-        return {
-
-            name:"Beginner",
-            icon:"🟢",
-            cpu:.84,
-            min:-2,
-            max:0,
-            player:1.12
-
-        };
-
-    }
-
-
-    if (
-        owned <= 10
-    ) {
-
-        return {
-
-            name:"Intermediate",
-            icon:"🟡",
-            cpu:.94,
-            min:-1,
-            max:1,
-            player:1.06
-
-        };
-
-    }
-
-
-    if (
-        owned <= 14
-    ) {
-
-        return {
-
-            name:"Advanced",
-            icon:"🟠",
-            cpu:1.03,
-            min:0,
-            max:2,
-            player:1.02
-
-        };
-
-    }
-
-
-    return {
-
-        name:"Master",
-        icon:"🔴",
-        cpu:1.10,
-        min:1,
-        max:3,
-        player:1
-
-    };
-
-}
-
-
-
-/* =========================================================
-   CPU
-========================================================= */
-
-let currentCPU =
-    null;
-
-
-function findOpponent() {
-
-    const config =
-        difficulty();
-
-
-    const instrument =
-        randomItem(
-
-            instruments.filter(
-                item =>
-                    item.name !==
-                    battleData.instrument
-            )
-
-        );
-
-
-    const level =
-        Math.max(
-
-            1,
-
-            profile.level +
-
-            randomNumber(
-                config.min,
-                config.max
-            )
-
-        );
-
-
-    const base =
-        baseStats[
-            instrument.name
-        ];
-
-
-    const levelBonus =
-        (
-            level-1
-        )*2;
-
-
-    currentCPU = {
-
-        instrument,
-
-        level,
-
-        avatar:
-            randomCPUAvatarConfig(),
-
-        stats:{
-
-            power:
-                Math.round(
-                    (
-                        base[0]+
-                        levelBonus
-                    )*
-                    config.cpu
-                ),
-
-            melody:
-                Math.round(
-                    (
-                        base[1]+
-                        levelBonus
-                    )*
-                    config.cpu
-                ),
-
-            rhythm:
-                Math.round(
-                    (
-                        base[2]+
-                        levelBonus
-                    )*
-                    config.cpu
-                ),
-
-            defense:
-                Math.round(
-                    (
-                        base[3]+
-                        levelBonus
-                    )*
-                    config.cpu
-                )
-
-        }
-
-    };
-
-
-    rebuildCPUAvatar(
-        currentCPU
-    );
-
-
-    renderCPU();
-
-
-    $("#battleButton")
-        .disabled =
-        false;
-
-
-    setBattleStatus(
-
-        `${instrument.icon} ${instrument.name} challenges you!`
-
-    );
-
-}
-
-
-
-function renderCPU() {
-
-    if (
-        !currentCPU
-    ) {
-
-        $("#cpuBattleName")
-            .textContent =
-            "Waiting...";
-
-
-        $("#cpuBattleLevel")
-            .textContent =
-            "LV ?";
-
-
-        [
-            "#cpuPower",
-            "#cpuMelody",
-            "#cpuRhythm",
-            "#cpuDefense"
-        ].forEach(
-            selector =>
-                $(selector)
-                .textContent =
-                "?"
-        );
-
-
-        return;
-
-    }
-
-
-    $("#cpuBattleName")
-        .textContent =
-        currentCPU.instrument.name;
-
-
-    $("#cpuBattleLevel")
-        .textContent =
-        `LV ${currentCPU.level}`;
-
-
-    $("#cpuPower")
-        .textContent =
-        currentCPU.stats.power;
-
-
-    $("#cpuMelody")
-        .textContent =
-        currentCPU.stats.melody;
-
-
-    $("#cpuRhythm")
-        .textContent =
-        currentCPU.stats.rhythm;
-
-
-    $("#cpuDefense")
-        .textContent =
-        currentCPU.stats.defense;
-
-}
-
-
-
-function clearCPU() {
-
-    currentCPU =
-        null;
-
-
-    renderCPU();
-
-
-    if (
-        cpuAvatar3D
-    ) {
-
-        cpuAvatar3D.visible =
-            false;
-
-    }
-
-
-    $("#battleButton")
-        .disabled =
-        true;
-
-}
-
-
-$("#findOpponentButton").onclick =
-    findOpponent;
-
-
-
-/* =========================================================
-   BATTLE CALCULATION
-========================================================= */
-
-function score(
-    stats,
-    player=false
-) {
-
-    const config =
-        difficulty();
-
-
-    const base =
-
-        stats.power*1.05 +
-
-        stats.melody*.9 +
-
-        stats.rhythm*.95 +
-
-        stats.defense*.75;
-
-
-    return (
-
-        base *
-
-        (
-            .88 +
-            Math.random()*.24
-        ) *
-
-        (
-            player
-            ? config.player
-            : 1
-        )
-
-    );
-
-}
-
-
-
-function trySpecial(
-    instrumentName,
-    stats,
-    enemyStats
-) {
-
-    const move =
-        specialMoves[
-            instrumentName
-        ];
-
-
-    if (
-        Math.random() >=
-        move.chance
-    ) {
-
-        return {
-
-            activated:false
-
-        };
-
-    }
-
-
-    return {
-
-        activated:true,
-
-        name:
-            move.name,
-
-        icon:
-            move.icon,
-
-        stat:
-            move.stat,
-
-        bonus:
-            Math.round(
-                move.effect(
-                    stats,
-                    enemyStats
-                )
-            )
-
-    };
-
-}
-
-
-
-function setBattleStatus(html) {
-
-    $("#battleStatus")
-        .innerHTML =
-        html;
-
-}
-
-
-
-function addBattleLog(text) {
-
-    const row =
-        document.createElement(
-            "div"
-        );
-
-
-    row.textContent =
-        text;
-
-
-    $("#battleLog")
-        .appendChild(
-            row
-        );
-
-
-    $("#battleLog")
-        .scrollTop =
-        $("#battleLog")
-        .scrollHeight;
-
-}
-
-
-
-/* =========================================================
-   BATTLE
-========================================================= */
-
-$("#battleButton").onclick =
-    async () => {
-
-        if (
-            !currentCPU
-        ) return;
-
-
-        $("#battleButton")
-            .disabled =
-            true;
-
-
-        $("#battleLog")
-            .innerHTML =
-            "";
-
-
-        const playerInstrument =
-            getInstrument(
-                battleData.instrument
-            );
-
-
-        const pStats =
-            playerStats();
-
-
-        addBattleLog(
-
-            `${playerInstrument.icon} ${playerInstrument.name} enters the arena!`
-
-        );
-
-
-        playInstrumentSound(
-            playerInstrument
-        );
-
-
-        await delay(
-            300
-        );
-
-
-        let playerScore =
-            score(
-                pStats,
-                true
-            );
-
-
-        let cpuScore =
-            score(
-                currentCPU.stats
-            );
-
-
-        const category =
-            randomItem([
-                "power",
-                "melody",
-                "rhythm",
-                "defense"
-            ]);
-
-
-        playerScore +=
-            pStats[category]*.72;
-
-
-        cpuScore +=
-            currentCPU.stats[category]*.65;
-
-
-        addBattleLog(
-
-            `🎯 ${category.toUpperCase()} challenge!`
-
-        );
-
-
-        await delay(
-            300
-        );
-
-
-        await avatarAttack(
-
-            playerAvatar3D,
-
-            cpuAvatar3D
-
-        );
-
-
-        await delay(
-            200
-        );
-
-
-        await avatarAttack(
-
-            cpuAvatar3D,
-
-            playerAvatar3D
-
-        );
-
-
-        /* PLAYER SPECIAL */
-
-        const playerSpecial =
-            trySpecial(
-
-                battleData.instrument,
-
-                pStats,
-
-                currentCPU.stats
-
-            );
-
-
-        if (
-            playerSpecial.activated
-        ) {
-
-            playerScore +=
-                playerSpecial.bonus;
-
-
-            addBattleLog(
-
-                `${playerSpecial.icon} ${playerSpecial.name}! +${playerSpecial.bonus}`
-
-            );
-
-
-            playInstrumentSound(
-                playerInstrument
-            );
-
-
-            await avatarSpecial(
-
-                playerAvatar3D,
-
-                cpuAvatar3D,
-
-                playerSpecial,
-
-                "player"
-
-            );
-
-        }
-
-
-        /* CPU SPECIAL */
-
-        const cpuSpecial =
-            trySpecial(
-
-                currentCPU.instrument.name,
-
-                currentCPU.stats,
-
-                pStats
-
-            );
-
-
-        if (
-            cpuSpecial.activated
-        ) {
-
-            cpuScore +=
-                cpuSpecial.bonus;
-
-
-            addBattleLog(
-
-                `CPU ${cpuSpecial.icon} ${cpuSpecial.name}! +${cpuSpecial.bonus}`
-
-            );
-
-
-            playInstrumentSound(
-                currentCPU.instrument
-            );
-
-
-            await avatarSpecial(
-
-                cpuAvatar3D,
-
-                playerAvatar3D,
-
-                cpuSpecial,
-
-                "cpu"
-
-            );
-
-        }
-
-
-        addBattleLog(
-
-            `YOU ${Math.round(playerScore)} ⚔️ ${Math.round(cpuScore)} CPU`
-
-        );
-
-
-        if (
-            playerScore >=
-            cpuScore
-        ) {
-
-            const reward =
-                randomNumber(
-                    20,
-                    35
-                );
-
-
-            battleData.wins++;
-
-
-            setBattleStatus(
-
-                `🏆 <strong>YOU WIN!</strong><br>+${reward} EXP`
-
-            );
-
-
-            addXP(
-                reward
-            );
-
-
-            addMasteryXP(
-                reward
-            );
-
-
-            await avatarVictory(
-                playerAvatar3D
-            );
-
-        }
-        else {
-
-            const loss =
-                randomNumber(
-                    12,
-                    25
-                );
-
-
-            battleData.losses++;
-
-
-            setBattleStatus(
-
-                `💀 <strong>YOU LOST!</strong><br>-${loss} Level EXP`
-
-            );
-
-
-            addXP(
-                -loss
-            );
-
-
-            await avatarVictory(
-                cpuAvatar3D
-            );
-
-        }
-
-
-        saveBattleData();
-
-        renderRecord();
-
-
-        setTimeout(
-            clearCPU,
-            900
-        );
-
-    };
-
-
-
-/* =========================================================
-   RECORD
-========================================================= */
-
-function renderRecord() {
-
-    const total =
-        battleData.wins +
-        battleData.losses;
-
-
-    const rate =
-        total
-        ? Math.round(
-            battleData.wins /
-            total *
-            100
-        )
-        : 0;
-
-
-    $("#battleWins")
-        .textContent =
-        battleData.wins;
-
-
-    $("#battleLosses")
-        .textContent =
-        battleData.losses;
-
-
-    $("#battleWinRate")
-        .textContent =
-        `${rate}%`;
-
-
-    $("#battleHighestLevel")
-        .textContent =
-        profile.highestLevel;
-
-}
-
-
-
-/* =========================================================
-   MASTERY
-========================================================= */
-
-function trophyTier(name) {
-
-    const xp =
-        battleData.instrumentXP[
-            name
-        ] || 0;
-
-
-    let result =
-        null;
-
-
-    TROPHY_TIERS.forEach(
-        tier => {
-
-            if (
-                xp >= tier.xp
-            ) {
-
-                result =
-                    tier;
-
-            }
-
-        }
-    );
-
-
-    return result;
-
-}
-
-
-
-function nextTrophy(name) {
-
-    const xp =
-        battleData.instrumentXP[
-            name
-        ] || 0;
-
-
-    return (
-
-        TROPHY_TIERS.find(
-            tier =>
-                xp < tier.xp
-        ) ||
-
-        null
-
-    );
-
-}
-
-
-
-function addMasteryXP(amount) {
-
-    if (
-        amount <= 0
-    ) return;
-
-
-    const name =
-        battleData.instrument;
-
-
-    battleData.instrumentXP[
-        name
-    ] +=
-        amount;
-
-
-    saveBattleData();
-
-    renderMastery();
-
-    renderTrophyCabinet();
-
-}
-
-
-
-function renderMastery() {
-
-    const name =
-        battleData.instrument;
-
-
-    const instrument =
-        getInstrument(
-            name
-        );
-
-
-    const xp =
-        battleData.instrumentXP[
-            name
-        ] || 0;
-
-
-    const current =
-        trophyTier(
-            name
-        );
-
-
-    const next =
-        nextTrophy(
-            name
-        );
-
-
-    if (!next) {
-
-        $("#instrumentMastery")
-            .innerHTML = `
-
-                <div class="mastery-header">
-
-                    <div>
-
-                        <small>
-                            INSTRUMENT MASTERY
-                        </small>
-
-                        <strong>
-                            ${instrument.icon}
-                            ${instrument.name}
-                        </strong>
-
-                    </div>
-
-                    <div class="mastery-rank">
-                        👑🏆 GRAND MASTER
-                    </div>
-
-                </div>
-
-
-                <div class="mastery-info">
-
-                    <span>
-
-                        ${xp.toLocaleString()}
-                        Mastery EXP
-
-                    </span>
-
-                    <span>
-                        MAX
-                    </span>
-
-                </div>
-
-
-                <div class="progress-bar">
-
-                    <div
-                        class="progress-fill"
-                        style="width:100%"
-                    ></div>
-
-                </div>
-
-            `;
-
-
-        return;
-
-    }
-
-
-    const previous =
-        current
-        ? current.xp
-        : 0;
-
-
-    const percentage =
-        Math.min(
-
-            100,
-
-            (
-                xp-previous
-            ) /
-
-            (
-                next.xp-previous
-            ) *
-
-            100
-
-        );
-
-
-    $("#instrumentMastery")
-        .innerHTML = `
-
-            <div class="mastery-header">
-
-                <div>
-
-                    <small>
-                        INSTRUMENT MASTERY
-                    </small>
-
-                    <strong>
-
-                        ${instrument.icon}
-                        ${instrument.name}
-
-                    </strong>
-
-                </div>
-
-                <div class="mastery-rank">
-
-                    ${
-                        current
-
-                        ? `${current.icon} ${current.title}`
-
-                        : "Unranked"
-                    }
-
-                </div>
-
-            </div>
-
-
-            <div class="mastery-info">
-
-                <span>
-
-                    ${xp.toLocaleString()}
-                    Mastery EXP
-
-                </span>
-
-                <span>
-
-                    ${next.icon}
-
-                    ${(
-                        next.xp-xp
-                    ).toLocaleString()}
-
-                    to ${next.name}
-
-                </span>
-
-            </div>
-
-
-            <div class="progress-bar">
-
-                <div
-                    class="progress-fill"
-                    style="width:${percentage}%"
-                ></div>
-
-            </div>
-
-        `;
-
-}
-
-
-
-/* =========================================================
-   TROPHY CABINET
-========================================================= */
-
-function renderTrophyCabinet() {
-
-    const total =
-        instruments.reduce(
-            (sum,instrument) => {
-
-                const xp =
-                    battleData.instrumentXP[
-                        instrument.name
-                    ] || 0;
-
-
-                return sum +
-
-                    TROPHY_TIERS.filter(
-                        tier =>
-                            xp >= tier.xp
-                    ).length;
-
-            },
-            0
-        );
-
-
-    const grandMasters =
-        instruments.filter(
-            instrument =>
-                (
-                    battleData.instrumentXP[
-                        instrument.name
-                    ] || 0
-                ) >= 50000
-        ).length;
-
-
-    $("#trophyCabinet")
-        .innerHTML = `
-
-            <div class="trophy-summary">
-
-                <p class="eyebrow">
-                    MASTERY COLLECTION
-                </p>
-
-                <h3>
-                    🏆 Trophy Cabinet
-                </h3>
-
-                <p class="muted">
-
-                    ${total}/90 trophies
-
-                    • ${grandMasters}/18 Grand Masters
-
-                </p>
-
-            </div>
-
-
-            <div class="trophy-grid">
-
-                ${
-                    instruments.map(
-                        instrument => {
-
-                            const xp =
-                                battleData.instrumentXP[
-                                    instrument.name
-                                ] || 0;
-
-
-                            return `
-
-                                <article
-                                    class="
-                                        trophy-card
-
-                                        ${
-                                            xp >= 50000
-                                            ? "grand"
-                                            : ""
-                                        }
-                                    "
-                                >
-
-                                    <div class="instrument-symbol">
-                                        ${instrument.icon}
-                                    </div>
-
-                                    <strong>
-                                        ${instrument.name}
-                                    </strong>
-
-                                    <div class="trophy-row">
-
-                                        ${
-                                            TROPHY_TIERS.map(
-                                                tier => `
-
-                                                    <div
-                                                        class="
-                                                            trophy-slot
-
-                                                            ${
-                                                                xp >= tier.xp
-                                                                ? ""
-                                                                : "locked"
-                                                            }
-                                                        "
-                                                    >
-
-                                                        ${
-                                                            xp >= tier.xp
-                                                            ? tier.icon
-                                                            : "🔒"
-                                                        }
-
-                                                    </div>
-
-                                                `
-                                            ).join("")
-                                        }
-
-                                    </div>
-
-                                    <small>
-
-                                        ${xp.toLocaleString()}
-                                        Mastery EXP
-
-                                    </small>
-
-                                </article>
-
-                            `;
-
-                        }
-                    ).join("")
-                }
-
-            </div>
-
-        `;
-
-}
-
-
-
-/* =========================================================
-   LIBRARY
-========================================================= */
-
-let selectedCategory =
-    "all";
-
-
-let librarySearch =
-    "";
-
-
-function renderLibrary() {
-
-    const results =
-        instruments.filter(
-            instrument => {
-
-                const categoryMatch =
-
-                    selectedCategory ===
-                    "all" ||
-
-                    instrument.category ===
-                    selectedCategory;
-
-
-                const searchMatch =
-
-                    instrument.name
-                    .toLowerCase()
-                    .includes(
-                        librarySearch
-                    );
-
-
-                return (
-                    categoryMatch &&
-                    searchMatch
-                );
-
-            }
-        );
-
-
-    $("#instrumentGrid")
-        .innerHTML =
-
-        results.map(
-            instrument => `
-
-                <article class="instrument-card">
-
-                    <div class="instrument-card-icon">
-
-                        ${instrument.icon}
-
-                    </div>
-
-                    <small>
-
-                        ${instrument.family.toUpperCase()}
-
-                    </small>
-
-                    <h3>
-                        ${instrument.name}
-                    </h3>
-
-                    <p>
-                        ${instrument.description}
-                    </p>
-
-                    <button
-                        data-sound="${instrument.name}"
-                    >
-                        ▶ Play Sound
-                    </button>
-
-                </article>
-
-            `
-        ).join("");
-
-
-    $$("[data-sound]")
-    .forEach(
-        button => {
-
-            button.onclick =
-                () =>
-                    playInstrumentSound(
-                        getInstrument(
-                            button.dataset.sound
-                        )
-                    );
-
-        }
-    );
-
-}
-
-
-
-$$(".tab-button")
-.forEach(
-    button => {
-
-        button.onclick =
-            () => {
-
-                selectedCategory =
-                    button.dataset.category;
-
-
-                $$(".tab-button")
-                .forEach(
-                    tab =>
-                        tab.classList.remove(
-                            "active"
-                        )
-                );
-
-
-                button.classList.add(
-                    "active"
-                );
-
-
-                renderLibrary();
-
-            };
-
-    }
-);
-
-
-$("#searchInput")
-    .oninput =
-    event => {
-
-        librarySearch =
-            event.target.value
-            .trim()
-            .toLowerCase();
-
-
-        renderLibrary();
-
-    };
-
-
-
-/* =========================================================
-   MUSICCRAFT
-========================================================= */
-
-const canvas =
-    $("#musiccraftCanvas");
-
-
-const ctx =
-    canvas.getContext(
-        "2d"
-    );
-
-
-const TILE =
-    40;
-
-
-const WORLD =
-    140;
-
-
-const blockData = {
-
-air:{
-    icon:"",
-    color:"#171a1f",
-    mineable:false,
-    solid:false,
-    xp:0
-},
-
-grass:{
-    icon:"🌱",
-    color:"#557d3b",
-    mineable:true,
-    solid:false,
-    xp:1
-},
-
-dirt:{
-    icon:"🟫",
-    color:"#76513a",
-    mineable:true,
-    solid:true,
-    xp:1
-},
-
-stone:{
-    icon:"🪨",
-    color:"#717983",
-    mineable:true,
-    solid:true,
-    xp:2
-},
-
-coal:{
-    icon:"⬛",
-    color:"#30343a",
-    mineable:true,
-    solid:true,
-    xp:4
-},
-
-iron:{
-    icon:"🔩",
-    color:"#918579",
-    mineable:true,
-    solid:true,
-    xp:6
-},
-
-gold:{
-    icon:"🟨",
-    color:"#c8a34c",
-    mineable:true,
-    solid:true,
-    xp:10
-},
-
-diamond:{
-    icon:"💎",
-    color:"#55bfca",
-    mineable:true,
-    solid:true,
-    xp:18
-},
-
-music:{
-    icon:"🎵",
-    color:"#875ca6",
-    mineable:true,
-    solid:true,
-    xp:25
-},
-
-water:{
-    icon:"💧",
-    color:"#28699b",
-    mineable:false,
-    solid:true,
-    xp:0
-},
-
-lava:{
-    icon:"🌋",
-    color:"#b94c2c",
-    mineable:false,
-    solid:true,
-    xp:0
-}
-
-};
-
-
-const blockNames = {
-
-    dirt:"Dirt",
-    stone:"Stone",
-    coal:"Coal",
-    iron:"Iron",
-    gold:"Gold",
-    diamond:"Diamond",
-    music:"Music Crystal"
-
-};
-
-
-const depths = [
-
-    "🌱 Surface",
-    "⛏️ Underground",
-    "🪨 Deep Caves",
-    "💎 Crystal Depths",
-    "🌋 Ancient Depths",
-    "🎵 Music Core"
-
-];
-
-
-const missions = [
-
-{
-    dirt:6,
-    stone:8
-},
-
-{
-    stone:12,
-    coal:5
-},
-
-{
-    coal:8,
-    iron:5
-},
-
-{
-    iron:8,
-    gold:4,
-    diamond:1
-},
-
-{
-    gold:8,
-    diamond:4,
-    music:2
-},
-
-{
-    diamond:10,
-    music:8
-}
-
-];
-
-
-let mcDepth =
-    0;
-
-
-let world =
-    [];
-
-
-let selectedBlock =
-    "dirt";
-
-
-const inventory = {
-
-    dirt:0,
-    stone:0,
-    coal:0,
-    iron:0,
-    gold:0,
-    diamond:0,
-    music:0
-
-};
-
-
-const mcPlayer = {
-
-    x:
-        Math.floor(
-            WORLD/2
-        ),
-
-    y:
-        Math.floor(
-            WORLD/2
-        ),
-
-    health:10
-
-};
-
-
-let camera = {
-
-    x:0,
-    y:0
-
-};
-
-
-
-function randomBlock() {
-
-    const r =
-        Math.random();
-
-
-    if (
-        mcDepth === 0
-    ) {
-
-        if (r<.05) return "water";
-        if (r<.30) return "dirt";
-        if (r<.48) return "stone";
-
-        return "grass";
-
-    }
-
-
-    if (
-        mcDepth === 1
-    ) {
-
-        if (r<.12) return "coal";
-        if (r<.55) return "stone";
-
-        return "dirt";
-
-    }
-
-
-    if (
-        mcDepth === 2
-    ) {
-
-        if (r<.12) return "coal";
-        if (r<.22) return "iron";
-        if (r<.25) return "gold";
-
-        return "stone";
-
-    }
-
-
-    if (
-        mcDepth === 3
-    ) {
-
-        if (r<.10) return "iron";
-        if (r<.18) return "gold";
-        if (r<.23) return "diamond";
-        if (r<.26) return "music";
-
-        return "stone";
-
-    }
-
-
-    if (
-        mcDepth === 4
-    ) {
-
-        if (r<.07) return "lava";
-        if (r<.15) return "gold";
-        if (r<.22) return "diamond";
-        if (r<.28) return "music";
-
-        return "stone";
-
-    }
-
-
-    if (r<.08) return "lava";
-    if (r<.20) return "diamond";
-    if (r<.34) return "music";
-    if (r<.42) return "gold";
-
-    return "stone";
-
-}
-
-
-
-function generateWorld() {
-
-    world =
-        Array.from(
-            {
-                length:WORLD
-            },
-            () =>
-                Array.from(
-                    {
-                        length:WORLD
-                    },
-                    randomBlock
-                )
-        );
-
-
-    for (
-        let y=mcPlayer.y-2;
-        y<=mcPlayer.y+2;
-        y++
-    ) {
-
-        for (
-            let x=mcPlayer.x-2;
-            x<=mcPlayer.x+2;
-            x++
-        ) {
-
-            world[y][x] =
-                "air";
-
-        }
-
-    }
-
-
-    drawWorld();
-
-    renderInventory();
-
-    renderMission();
-
-}
-
-
-
-function drawWorld() {
-
-    ctx.clearRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
-
-
-    const cols =
-        Math.ceil(
-            canvas.width/TILE
-        );
-
-
-    const rows =
-        Math.ceil(
-            canvas.height/TILE
-        );
-
-
-    camera.x =
-        mcPlayer.x -
-        Math.floor(
-            cols/2
-        );
-
-
-    camera.y =
-        mcPlayer.y -
-        Math.floor(
-            rows/2
-        );
-
-
-    for (
-        let sy=0;
-        sy<=rows;
-        sy++
-    ) {
-
-        for (
-            let sx=0;
-            sx<=cols;
-            sx++
-        ) {
-
-            const wx =
-                camera.x+sx;
-
-
-            const wy =
-                camera.y+sy;
-
-
-            if (
-                wx<0 ||
-                wy<0 ||
-                wx>=WORLD ||
-                wy>=WORLD
-            ) continue;
-
-
-            const name =
-                world[wy][wx];
-
-
-            const block =
-                blockData[name];
-
-
-            ctx.fillStyle =
-                block.color;
-
-
-            ctx.fillRect(
-                sx*TILE,
-                sy*TILE,
-                TILE,
-                TILE
-            );
-
-
-            ctx.strokeStyle =
-                "rgba(0,0,0,.15)";
-
-
-            ctx.strokeRect(
-                sx*TILE,
-                sy*TILE,
-                TILE,
-                TILE
-            );
-
-
-            if (
-                [
-                    "gold",
-                    "diamond",
-                    "music",
-                    "water",
-                    "lava"
-                ].includes(name)
-            ) {
-
-                ctx.font =
-                    "18px serif";
-
-
-                ctx.textAlign =
-                    "center";
-
-
-                ctx.fillText(
-
-                    block.icon,
-
-                    sx*TILE+20,
-
-                    sy*TILE+26
-
-                );
-
-            }
-
-        }
-
-    }
-
-
-    const px =
-        (
-            mcPlayer.x-camera.x
-        )*TILE;
-
-
-    const py =
-        (
-            mcPlayer.y-camera.y
-        )*TILE;
-
-
-    /* BLOCKY PLAYER */
-
-    ctx.fillStyle =
-        profile.avatar.outfit;
-
-
-    ctx.fillRect(
-        px+10,
-        py+13,
-        20,
-        22
-    );
-
-
-    ctx.fillStyle =
-        profile.avatar.skin;
-
-
-    ctx.fillRect(
-        px+12,
-        py+4,
-        16,
-        14
-    );
-
-
-    ctx.fillStyle =
-        profile.avatar.hair;
-
-
-    ctx.fillRect(
-        px+12,
-        py+3,
-        16,
-        4
-    );
-
-
-    $("#mcHealth")
-        .textContent =
-        mcPlayer.health;
-
-}
-
-
-
-function moveMC(
-    dx,
-    dy
-) {
-
-    const x =
-        mcPlayer.x+dx;
-
-
-    const y =
-        mcPlayer.y+dy;
-
-
-    if (
-        x<0 ||
-        y<0 ||
-        x>=WORLD ||
-        y>=WORLD
-    ) return;
-
-
-    const block =
-        world[y][x];
-
-
-    if (
-        blockData[block].solid
-    ) {
-
-        if (
-            block ===
-            "lava"
-        ) {
-
-            mcPlayer.health =
-                Math.max(
-                    1,
-                    mcPlayer.health-1
-                );
-
-        }
-
-
-        drawWorld();
-
-        return;
-
-    }
-
-
-    mcPlayer.x =
-        x;
-
-
-    mcPlayer.y =
-        y;
-
-
-    drawWorld();
-
-}
-
-
-
-function canvasTile(event) {
-
-    const rect =
-        canvas.getBoundingClientRect();
-
-
-    const x =
-
-        (
-            event.clientX-
-            rect.left
-        ) *
-
-        (
-            canvas.width/
-            rect.width
-        );
-
-
-    const y =
-
-        (
-            event.clientY-
-            rect.top
-        ) *
-
-        (
-            canvas.height/
-            rect.height
-        );
-
-
-    return {
-
-        x:
-            Math.floor(
-                x/TILE
-            ) +
-            camera.x,
-
-        y:
-            Math.floor(
-                y/TILE
-            ) +
-            camera.y
-
-    };
-
-}
-
-
-
-function mineBlock(
-    x,
-    y
-) {
-
-    if (
-        !world[y] ||
-        !world[y][x]
-    ) return;
-
-
-    if (
-        Math.abs(
-            x-mcPlayer.x
-        ) > 2 ||
-
-        Math.abs(
-            y-mcPlayer.y
-        ) > 2
-    ) return;
-
-
-    const name =
-        world[y][x];
-
-
-    const data =
-        blockData[name];
-
-
-    if (
-        !data.mineable
-    ) return;
-
-
-    const resource =
-        name === "grass"
-        ? "dirt"
-        : name;
-
-
-    if (
-        resource in inventory
-    ) {
-
-        inventory[
-            resource
-        ]++;
-
-    }
-
-
-    world[y][x] =
-        "air";
-
-
-    addXP(
-        data.xp
-    );
-
-
-    addMasteryXP(
-        data.xp
-    );
-
-
-    addMCLog(
-
-        `${data.icon} ${blockNames[resource] || resource} +${data.xp} EXP`
-
-    );
-
-
-    renderInventory();
-
-    renderMission();
-
-    drawWorld();
-
-}
-
-
-
-function placeBlock(
-    x,
-    y
-) {
-
-    if (
-        !world[y] ||
-        world[y][x] !==
-        "air"
-    ) return;
-
-
-    if (
-        Math.abs(
-            x-mcPlayer.x
-        ) > 2 ||
-
-        Math.abs(
-            y-mcPlayer.y
-        ) > 2
-    ) return;
-
-
-    if (
-        inventory[
-            selectedBlock
-        ] <= 0
-    ) return;
-
-
-    world[y][x] =
-        selectedBlock;
-
-
-    inventory[
-        selectedBlock
-    ]--;
-
-
-    renderInventory();
-
-    renderMission();
-
-    drawWorld();
-
-}
-
-
-
-canvas.onmousedown =
-    event => {
-
-        canvas.focus();
-
-
-        if (
-            event.button !== 0
-        ) return;
-
-
-        const tile =
-            canvasTile(
-                event
-            );
-
-
-        mineBlock(
-            tile.x,
-            tile.y
-        );
-
-    };
-
-
-canvas.oncontextmenu =
-    event => {
-
-        event.preventDefault();
-
-
-        const tile =
-            canvasTile(
-                event
-            );
-
-
-        placeBlock(
-            tile.x,
-            tile.y
-        );
-
-    };
-
-
-canvas.onkeydown =
-    event => {
-
-        const key =
-            event.key
-            .toLowerCase();
-
-
-        const moves = {
-
-            w:[0,-1],
-            arrowup:[0,-1],
-
-            s:[0,1],
-            arrowdown:[0,1],
-
-            a:[-1,0],
-            arrowleft:[-1,0],
-
-            d:[1,0],
-            arrowright:[1,0]
-
-        };
-
-
-        if (
-            moves[key]
-        ) {
-
-            event.preventDefault();
-
-
-            moveMC(
-                ...moves[key]
-            );
-
-        }
-
-
-        const selections = {
-
-            1:"dirt",
-            2:"stone",
-            3:"coal",
-            4:"iron",
-            5:"gold",
-            6:"diamond",
-            7:"music"
-
-        };
-
-
-        if (
-            selections[key]
-        ) {
-
-            selectedBlock =
-                selections[key];
-
-
-            renderInventory();
-
-        }
-
-    };
-
-
-
-function renderInventory() {
-
-    $("#mcInventory")
-        .innerHTML =
-
-        Object.entries(
-            inventory
-        ).map(
-            (
-                [name,count],
-                index
-            ) => `
-
-                <button
-                    class="
-                        inventory-button
-
-                        ${
-                            selectedBlock === name
-                            ? "selected"
-                            : ""
-                        }
-                    "
-
-                    data-block="${name}"
-                >
-
-                    <span>
-                        ${blockData[name].icon}
-                    </span>
-
-                    <span>
-
-                        ${index+1}.
-                        ${blockNames[name]}
-
-                    </span>
-
-                    <span>
-                        ×${count}
-                    </span>
-
-                </button>
-
-            `
-        ).join("");
-
-
-    $$(".inventory-button")
-    .forEach(
-        button => {
-
-            button.onclick =
-                () => {
-
-                    selectedBlock =
-                        button.dataset.block;
-
-
-                    $("#mcSelectedBlock")
-                        .textContent =
-
-                        `${blockData[selectedBlock].icon} ${blockNames[selectedBlock]}`;
-
-
-                    renderInventory();
-
-                };
-
-        }
-    );
-
-}
-
-
-
-function renderMission() {
-
-    const mission =
-        missions[
-            mcDepth
-        ];
-
-
-    $("#mcDepth")
-        .textContent =
-        depths[
-            mcDepth
-        ];
-
-
-    $("#mcDepthDescription")
-        .textContent =
-        `Depth ${mcDepth+1} of ${depths.length}`;
-
-
-    $("#mcMissionTitle")
-        .textContent =
-
-        mcDepth ===
-        depths.length-1
-
-        ? "Music Core Master"
-
-        : `Reach ${depths[mcDepth+1]}`;
-
-
-    let current =
-        0;
-
-
-    let required =
-        0;
-
-
-    let complete =
-        true;
-
-
-    $("#mcMissionList")
-        .innerHTML =
-
-        Object.entries(
-            mission
-        ).map(
-            ([name,amount]) => {
-
-                const have =
-                    inventory[name] || 0;
-
-
-                current +=
-                    Math.min(
-                        have,
-                        amount
-                    );
-
-
-                required +=
-                    amount;
-
-
-                if (
-                    have < amount
-                ) {
-
-                    complete =
-                        false;
-
-                }
-
-
-                return `
-
-                    <div>
-
-                        <span>
-
-                            ${blockData[name].icon}
-
-                            ${blockNames[name]}
-
-                        </span>
-
-                        <strong>
-
-                            ${Math.min(have,amount)}
-                            /
-                            ${amount}
-
-                        </strong>
-
-                    </div>
-
-                `;
-
-            }
-        ).join("");
-
-
-    $("#mcMissionProgressBar")
-        .style.width =
-
-        `${current/required*100}%`;
-
-
-    const button =
-        $("#mcGoDeeper");
-
-
-    if (
-        mcDepth >=
-        depths.length-1
-    ) {
-
-        button.disabled =
-            true;
-
-
-        button.textContent =
-
-            complete
-
-            ? "🏆 Music Core Conquered"
-
-            : "Complete Final Mission";
-
-    }
-    else {
-
-        button.disabled =
-            !complete;
-
-
-        button.textContent =
-
-            complete
-
-            ? "⛏️ Mine Deeper"
-
-            : "🔒 Complete Mission";
-
-    }
-
-}
-
-
-
-$("#mcGoDeeper").onclick =
-    () => {
-
-        if (
-            mcDepth >=
-            depths.length-1
-        ) return;
-
-
-        const mission =
-            missions[
-                mcDepth
-            ];
-
-
-        const complete =
-
-            Object.entries(
-                mission
-            ).every(
-                ([name,amount]) =>
-                    inventory[name] >=
-                    amount
-            );
-
-
-        if (!complete) return;
-
-
-        Object.entries(
-            mission
-        ).forEach(
-            ([name,amount]) => {
-
-                inventory[name] -=
-                    amount;
-
-            }
-        );
-
-
-        mcDepth++;
-
-
-        mcPlayer.x =
-            Math.floor(
-                WORLD/2
-            );
-
-
-        mcPlayer.y =
-            Math.floor(
-                WORLD/2
-            );
-
-
-        generateWorld();
-
-    };
-
-
-
-function addMCLog(text) {
-
-    const item =
-        document.createElement(
-            "div"
-        );
-
-
-    item.textContent =
-        text;
-
-
-    $("#mcLog")
-        .prepend(
-            item
-        );
-
-
-    while (
-        $("#mcLog")
-        .children.length > 12
-    ) {
-
-        $("#mcLog")
-        .lastChild.remove();
-
-    }
-
-}
-
-
-
-/* =========================================================
-   LEADERBOARD
-========================================================= */
-
-const leaderboardNames = [
-
-    "BeatLegend",
-    "PianoKing",
-    "MelodyMaster",
-    "RhythmAce",
-    "MusicHero",
-    "GuitarPro",
-    "ViolinStar",
-    "DrumChampion",
-    "SoundWizard",
-    "HarmonyKid",
-    "TempoTitan",
-    "GoldenNote",
-    "BassBoss",
-    "ChordMaster",
-    "MusicKnight",
-    "SonicStar",
-    "NoteNinja",
-    "BeatRider",
-    "TuneLegend",
-    "PianoWizard",
-    "DrumHero",
-    "JazzKing",
-    "MelodyAce",
-    "SoundMaster",
-    "MusicFox",
-    "RhythmKing",
-    "ChordHero",
-    "NoteMaster",
-    "SonicKid",
-    "BassLegend"
-
-];
-
-
-let demoLeaderboard =
-    [];
-
-
-function createDemoLeaderboard() {
-
-    if (
-        demoLeaderboard.length
-    ) return;
-
-
-    for (
-        let i=0;
-        i<120;
-        i++
-    ) {
-
-        const instrument =
-            randomItem(
-                instruments
-            );
-
-
-        const avatar =
-            randomItem(
-                avatarPresets
-            );
-
-
-        const xp =
-            Math.max(
-
-                1000,
-
-                90000 -
-
-                i*650 +
-
-                randomNumber(
-                    -500,
-                    500
-                )
-
-            );
-
-
-        demoLeaderboard.push({
-
-            id:
-                `demo-${i}`,
-
-            name:
-
-                `${leaderboardNames[
-                    i %
-                    leaderboardNames.length
-                ]}${i+1}`,
-
-            avatar:
-                avatar.badge,
-
-            xp,
-
-            level:
-                Math.floor(
-                    xp/100
-                )+1,
-
-            instrument:
-                instrument.name,
-
-            icon:
-                instrument.icon
-
-        });
-
-    }
-
-}
-
-
-
-function leaderboardData() {
-
-    createDemoLeaderboard();
-
-
-    const preset =
-        avatarPresets.find(
-            item =>
-                item.id ===
-                profile.avatar.preset
-        ) ||
-        avatarPresets[0];
-
-
-    const instrument =
-        getInstrument(
-            battleData.instrument
-        );
-
-
-    return [
-
-        ...demoLeaderboard,
-
-        {
-
-            id:"YOU",
-
-            name:
-                profile.playerName ||
-                "Player",
-
-            avatar:
-                preset.badge,
-
-            xp:
-                profile.totalXpEarned,
-
-            level:
-                profile.level,
-
-            instrument:
-                instrument.name,
-
-            icon:
-                instrument.icon,
-
-            you:true
-
-        }
-
-    ].sort(
-        (a,b) =>
-            b.xp-a.xp
-    );
-
-}
-
-
-
-function podiumCard(
-    player,
-    rank
-) {
-
-    const medal =
-
-        rank === 1
-        ? "🥇"
-
-        : rank === 2
-        ? "🥈"
-
-        : "🥉";
-
-
-    return `
-
-        <div class="podium-medal">
-            ${medal}
-        </div>
-
-        <div class="podium-avatar">
-            ${player.avatar}
+  $("#instrumentGrid").innerHTML=
+    rows.map(
+      i=>`
+      <article class="instrument-card">
+
+        <div class="icon">
+          ${i.icon}
         </div>
 
         <h3>
-            ${player.name}
+          ${i.name}
         </h3>
 
-        <small>
+        <p>
+          ${i.family} • ${i.style}
+        </p>
 
-            ${player.icon}
-            ${player.instrument}
+        ${statHtml(i)}
 
-        </small>
+        <button
+          class="btn ${
+            battleData.equipped===i.name
+              ?"primary"
+              :"ghost"
+          } small"
+          data-equip="${i.name}"
+        >
 
-        <div class="podium-xp">
+          ${
+            battleData.owned.includes(
+              i.name
+            )
 
-            ${player.xp.toLocaleString()}
-            EXP
+            ?(
+              battleData.equipped===i.name
+                ?"Equipped"
+                :"Equip"
+            )
 
-        </div>
+            :`Unlock • ${i.price} 🎵`
+          }
 
-        <small>
-            Level ${player.level}
-        </small>
+        </button>
 
+      </article>
+      `
+    ).join("");
+
+  $$("[data-equip]")
+  .forEach(
+    b=>b.onclick=()=>
+      unlockOrEquip(
+        b.dataset.equip
+      )
+  );
+}
+
+function unlockOrEquip(name){
+
+  const i=getInst(name);
+
+  if(
+    !battleData.owned.includes(
+      name
+    )
+  ){
+
+    if(
+      profile.musicCoins<
+      i.price
+    ){
+
+      return toast(
+        `Need ${
+          i.price-
+          profile.musicCoins
+        } more Music Coins.`
+      );
+    }
+
+    profile.musicCoins-=
+      i.price;
+
+    battleData.owned.push(
+      name
+    );
+
+    toast(
+      `${name} unlocked!`
+    );
+  }
+
+  battleData.equipped=name;
+
+  persist();
+  renderInstruments();
+  refreshBattle(true);
+  updateProfileUI();
+}
+
+function setBattleMode(mode){
+
+  battleMode=mode;
+
+  $$("#battleModeTabs .mode-btn")
+  .forEach(
+    b=>
+      b.classList.toggle(
+        "active",
+        b.dataset.mode===mode
+      )
+  );
+
+  $("#battleModeLabel").textContent=
+    mode==="practice"
+      ?"Practice"
+
+      :mode==="demoRanked"
+      ?"Demo Ranked"
+
+      :"Online Ranked";
+
+  if(
+    mode==="onlineRanked"
+  ){
+
+    toast(
+      "Online Ranked UI is ready; real players require a connected backend."
+    );
+  }
+
+  refreshBattle(true);
+}
+
+function renderBattleInstrumentSelect(){
+
+  $("#battleInstrumentSelect").innerHTML=
+    battleData.owned.map(
+      n=>`
+      <option
+        value="${n}"
+        ${
+          n===battleData.equipped
+            ?"selected"
+            :""
+        }
+      >
+        ${n}
+      </option>
+      `
+    ).join("");
+}
+
+function refreshBattle(
+  newEnemy=false
+){
+
+  renderBattleInstrumentSelect();
+
+  const inst=
+    getInst(
+      battleData.equipped
+    );
+
+  const fs=
+    finalStats(inst);
+
+  $("#playerBattleName").textContent=
+    profile.playerName||"Player";
+
+  $("#playerInstrumentLabel").textContent=
+    inst.name;
+
+  $("#playerStats").innerHTML=
+    statHtml(fs);
+
+  const mx=
+    battleData.mastery[
+      inst.name
+    ]||0;
+
+  $("#masteryValue").textContent=
+    `${mx.toLocaleString()} EXP`;
+
+  $("#masteryTier").textContent=
+    masteryTier(mx);
+
+  const mods=
+    cosmeticMods();
+
+  $("#cosmeticBonusBox").innerHTML=
+    `
+    <span>
+      COSMETIC BONUSES
+      ${
+        battleMode!=="practice"
+          ?" • Ranked cap 10%"
+          :""
+      }
+    </span>
+
+    <strong>
+      ATK +${mods.attack}%
+      • DEF +${mods.defense}%
+      <br>
+      MEL +${mods.melody}%
+      • RHY +${mods.rhythm}%
+    </strong>
     `;
 
-}
-
-
-
-function renderLeaderboard() {
-
-    const data =
-        leaderboardData();
-
-
-    const top100 =
-        data.slice(
-            0,
-            100
-        );
-
-
-    const rank =
-        data.findIndex(
-            item =>
-                item.you
-        ) + 1;
-
-
-    $("#yourLeaderboardRank")
-        .textContent =
-        `#${rank}`;
-
-
-    $("#leaderboardPlayerName")
-        .textContent =
-        profile.playerName ||
-        "Player";
-
-
-    $("#leaderboardPlayerLevel")
-        .textContent =
-        profile.level;
-
-
-    $("#leaderboardPlayerXP")
-        .textContent =
-        profile.totalXpEarned
-        .toLocaleString();
-
-
-    $("#podiumFirst")
-        .innerHTML =
-        podiumCard(
-            top100[0],
-            1
-        );
-
-
-    $("#podiumSecond")
-        .innerHTML =
-        podiumCard(
-            top100[1],
-            2
-        );
-
-
-    $("#podiumThird")
-        .innerHTML =
-        podiumCard(
-            top100[2],
-            3
-        );
-
-
-    $("#leaderboardBody")
-        .innerHTML =
-
-        top100.map(
-            (player,index) => `
-
-                <tr
-                    class="${
-                        player.you
-                        ? "you-row"
-                        : ""
-                    }"
-                >
-
-                    <td>
-
-                        ${
-                            index === 0
-                            ? "🥇"
-
-                            : index === 1
-                            ? "🥈"
-
-                            : index === 2
-                            ? "🥉"
-
-                            : `#${index+1}`
-                        }
-
-                    </td>
-
-                    <td>
-
-                        <div class="leaderboard-player">
-
-                            <div class="table-avatar">
-
-                                ${player.avatar}
-
-                            </div>
-
-                            <strong>
-
-                                ${player.name}
-
-                            </strong>
-
-                        </div>
-
-                    </td>
-
-                    <td>
-                        ${player.level}
-                    </td>
-
-                    <td>
-
-                        ${player.icon}
-                        ${player.instrument}
-
-                    </td>
-
-                    <td>
-
-                        ${player.xp.toLocaleString()}
-
-                    </td>
-
-                </tr>
-
-            `
-        ).join("");
-
-}
-
-
-
-/* =========================================================
-   QUIZ
-========================================================= */
-
-const questions = [
-
-{
-    q:"Which instrument belongs to the string family?",
-    answers:[
-        "Trumpet",
-        "Guitar",
-        "Flute",
-        "Drums"
-    ],
-    correct:1
-},
-
-{
-    q:"Which instrument commonly uses a slide?",
-    answers:[
-        "Trombone",
-        "Piano",
-        "Flute",
-        "Violin"
-    ],
-    correct:0
-},
-
-{
-    q:"Which instrument uses a double reed?",
-    answers:[
-        "Oboe",
-        "Guitar",
-        "Trumpet",
-        "Drums"
-    ],
-    correct:0
-},
-
-{
-    q:"The saxophone belongs to which family?",
-    answers:[
-        "Woodwind",
-        "String",
-        "Percussion",
-        "Keyboard"
-    ],
-    correct:0
-},
-
-{
-    q:"What does BPM measure?",
-    answers:[
-        "Tempo",
-        "Volume",
-        "Pitch",
-        "Instrument size"
-    ],
-    correct:0
-},
-
-{
-    q:"Which commonly has four strings?",
-    answers:[
-        "Ukulele",
-        "Trumpet",
-        "Flute",
-        "Oboe"
-    ],
-    correct:0
-},
-
-{
-    q:"Which is a brass instrument?",
-    answers:[
-        "Trumpet",
-        "Clarinet",
-        "Violin",
-        "Piano"
-    ],
-    correct:0
-},
-
-{
-    q:"Which is percussion?",
-    answers:[
-        "Drums",
-        "Cello",
-        "Flute",
-        "Organ"
-    ],
-    correct:0
-},
-
-{
-    q:"Which is a keyboard instrument?",
-    answers:[
-        "Piano",
-        "Trumpet",
-        "Violin",
-        "Flute"
-    ],
-    correct:0
-},
-
-{
-    q:"A chord contains...",
-    answers:[
-        "Several notes together",
-        "Only one beat",
-        "Only percussion",
-        "No pitch"
-    ],
-    correct:0
-}
-
-];
-
-
-let questionIndex =
-    0;
-
-
-let quizScore =
-    0;
-
-
-let quizAnswered =
-    false;
-
-
-
-function loadQuestion() {
-
-    quizAnswered =
-        false;
-
-
-    const question =
-        questions[
-            questionIndex
-        ];
-
-
-    $("#questionNumber")
-        .textContent =
-        questionIndex+1;
-
-
-    $("#totalQuestions")
-        .textContent =
-        questions.length;
-
-
-    $("#questionText")
-        .textContent =
-        question.q;
-
-
-    $("#quizResult")
-        .textContent =
-        "";
-
-
-    $("#answerButtons")
-        .innerHTML =
-
-        question.answers.map(
-            (
-                answer,
-                index
-            ) => `
-
-                <button
-                    class="quiz-answer"
-                    data-answer="${index}"
-                >
-                    ${answer}
-                </button>
-
-            `
-        ).join("");
-
-
-    $$(".quiz-answer")
-    .forEach(
-        button => {
-
-            button.onclick =
-                () => {
-
-                    if (
-                        quizAnswered
-                    ) return;
-
-
-                    quizAnswered =
-                        true;
-
-
-                    const answer =
-                        Number(
-                            button.dataset.answer
-                        );
-
-
-                    $$(".quiz-answer")
-                    .forEach(
-                        (
-                            option,
-                            index
-                        ) => {
-
-                            option.disabled =
-                                true;
-
-
-                            if (
-                                index ===
-                                question.correct
-                            ) {
-
-                                option.classList.add(
-                                    "correct"
-                                );
-
-                            }
-
-                        }
-                    );
-
-
-                    if (
-                        answer ===
-                        question.correct
-                    ) {
-
-                        quizScore++;
-
-
-                        $("#quizResult")
-                            .textContent =
-                            "🎉 Correct!";
-
-                    }
-                    else {
-
-                        button.classList.add(
-                            "wrong"
-                        );
-
-
-                        $("#quizResult")
-                            .textContent =
-                            "❌ Incorrect.";
-
-                    }
-
-
-                    $("#score")
-                        .textContent =
-                        quizScore;
-
-                };
-
-        }
+  if(
+    newEnemy ||
+    !battle.enemy
+  ){
+
+    makeEnemy();
+  }
+
+  battle.playerMax=
+    Math.round(
+      90+
+      fs.defense*.38
     );
 
-}
-
-
-
-$("#nextQuestion").onclick =
-    () => {
-
-        if (
-            !quizAnswered
-        ) return;
-
-
-        questionIndex++;
-
-
-        if (
-            questionIndex >=
-            questions.length
-        ) {
-
-            $("#questionText")
-                .textContent =
-                "🎉 Quiz Complete!";
-
-
-            $("#answerButtons")
-                .innerHTML =
-                "";
-
-
-            $("#quizResult")
-                .textContent =
-
-                `Score: ${quizScore}/${questions.length}`;
-
-
-            questionIndex =
-                0;
-
-
-            quizScore =
-                0;
-
-
-            $("#score")
-                .textContent =
-                "0";
-
-
-            return;
-
-        }
-
-
-        loadQuestion();
-
-    };
-
-
-
-/* =========================================================
-   SHARED DISPLAY
-========================================================= */
-
-function updateDisplays() {
-
-    $("#heroPlayerName")
-        .textContent =
-        profile.playerName ||
-        "Player";
-
-
-    const preset =
-        avatarPresets.find(
-            item =>
-                item.id ===
-                profile.avatar.preset
-        ) ||
-        avatarPresets[0];
-
-
-    $("#heroAvatarBadge")
-        .textContent =
-        preset.badge;
-
-
-    $("#heroLifetimeXP")
-        .textContent =
-        profile.totalXpEarned
-        .toLocaleString();
-
-
-    $("#spendableXP")
-        .textContent =
-        profile.spendableXp
-        .toLocaleString();
-
-
-    $("#battleLifetimeXP")
-        .textContent =
-        profile.totalXpEarned
-        .toLocaleString();
-
-
-    const battleDifficulty =
-        difficulty();
-
-
-    $("#battleDifficultyName")
-        .textContent =
-
-        `${battleDifficulty.icon} ${battleDifficulty.name}`;
-
-
-    $("#sharedLevelDisplay")
-        .textContent =
-        `Level ${profile.level}`;
-
-
-    $("#playerXPText")
-        .textContent =
-        `${profile.xp} / 100`;
-
-
-    $("#playerXPBar")
-        .style.width =
-        `${profile.xp}%`;
-
-
-    $("#mcExperience")
-        .textContent =
-
-        `Lv ${profile.level} • ${profile.xp}/100`;
-
-
-    $("#mcSpendableXP")
-        .textContent =
-        profile.spendableXp
-        .toLocaleString();
-
-
-    $("#mcEquippedInstrument")
-        .textContent =
-        battleData.instrument;
-
-}
-
-
-
-function refreshBattle() {
-
-    renderBattleShop();
-
-    renderPlayerStats();
-
-    renderUpgrades();
-
-    renderRecord();
-
-    renderMastery();
-
-    renderTrophyCabinet();
-
-    updateDisplays();
-
-    rebuildPlayerAvatar();
-
-}
-
-
-
-/* =========================================================
-   NAV
-========================================================= */
-
-$("#menuToggle").onclick =
-    () =>
-        $("#navLinks")
-        .classList.toggle(
-            "show"
-        );
-
-
-$$("#navLinks a")
-.forEach(
-    link => {
-
-        link.onclick =
-            () =>
-                $("#navLinks")
-                .classList.remove(
-                    "show"
-                );
-
-    }
-);
-
-
-
-/* =========================================================
-   THEME
-========================================================= */
-
-if (
-    localStorage.getItem(
-        "musicverseTheme"
-    ) === "light"
-) {
-
-    document.body.classList.add(
-        "light-mode"
+  battle.enemyMax=
+    Math.round(
+      90+
+      battle.enemy.defense*.38
     );
 
+  battle.playerHp=
+    battle.playerMax;
 
-    $("#themeToggle")
-        .textContent =
-        "☀️";
+  battle.enemyHp=
+    battle.enemyMax;
 
+  battle.playerShield=0;
+  battle.enemyShield=0;
+
+  battleData.energy=0;
+
+  battle.turnLocked=false;
+
+  updateBattleBars();
+  renderMoves();
+  renderBattleScene();
+  updateEnergy();
 }
 
+function makeEnemy(){
 
-$("#themeToggle").onclick =
-    () => {
+  const inst={
+    ...pick(
+      instrumentData.filter(
+        i=>
+          i.name!==
+          battleData.equipped
+      )
+    )
+  };
 
-        document.body.classList.toggle(
-            "light-mode"
-        );
+  let mult=1;
 
+  if(
+    battleMode==="practice"
+  )
+    mult=.92;
 
-        const light =
-            document.body.classList.contains(
-                "light-mode"
-            );
+  if(
+    battleMode==="demoRanked"
+  )
+    mult=1.02;
 
+  if(
+    battleMode==="onlineRanked"
+  )
+    mult=1.04;
 
-        $("#themeToggle")
-            .textContent =
-            light
-            ? "☀️"
-            : "🌙";
+  for(
+    const k of [
+      "attack",
+      "defense",
+      "melody",
+      "rhythm"
+    ]
+  ){
 
+    inst[k]=Math.round(
+      inst[k]*mult
+    );
+  }
 
-        localStorage.setItem(
+  battle.enemy=inst;
 
-            "musicverseTheme",
+  const name=
+    battleMode==="practice"
+      ?"Training CPU"
 
-            light
-            ? "light"
-            : "dark"
+      :battleMode==="demoRanked"
+      ?pick([
+        "BeatKnight",
+        "PianoNova",
+        "RhythmFox",
+        "StringStorm",
+        "TempoAce",
+        "ChordKing"
+      ])+rand(10,99)
 
-        );
+      :"Online Player (backend needed)";
 
-    };
+  $("#cpuBattleName").textContent=
+    name;
 
+  $("#cpuInstrumentLabel").textContent=
+    inst.name;
 
+  $("#cpuStats").innerHTML=
+    statHtml(inst);
 
-/* =========================================================
-   ESCAPE
-========================================================= */
+  logBattle(
+    `${name} entered with ${inst.name}.`
+  );
+}
 
-document.addEventListener(
-    "keydown",
-    event => {
+function updateBattleBars(){
 
-        if (
-            event.key ===
-            "Escape"
-        ) {
+  $("#playerHpFill").style.width=
+    `${battle.playerHp/battle.playerMax*100}%`;
 
-            closePurchasePopup();
+  $("#cpuHpFill").style.width=
+    `${battle.enemyHp/battle.enemyMax*100}%`;
 
+  $("#playerHpText").textContent=
+    `${battle.playerHp} / ${battle.playerMax}`;
+
+  $("#cpuHpText").textContent=
+    `${battle.enemyHp} / ${battle.enemyMax}`;
+}
+
+function updateEnergy(){
+
+  $("#energyPips").innerHTML=
+    [0,1,2].map(
+      i=>`
+      <i
+        class="pip ${
+          i<battleData.energy
+            ?"on"
+            :""
+        }"
+      ></i>
+      `
+    ).join("");
+}
+
+function renderMoves(){
+
+  const inst=
+    getInst(
+      battleData.equipped
+    );
+
+  const moves=
+    moveSets[inst.play]
+    ||moveSets.strum;
+
+  $("#moveButtons").innerHTML=
+    moves.map(
+      (m,i)=>`
+      <button
+        class="move-btn ${
+          i===3
+            ?"ultimate"
+            :""
+        }"
+        data-move="${i}"
+
+        ${
+          i===3 &&
+          battleData.energy<3
+
+          ?"disabled"
+          :""
         }
+      >
 
-    }
-);
+        <strong>
+          ${m[0]}
+        </strong>
 
+        <span>
+          ${
+            i===3
+              ?"ULTIMATE • 3 ENERGY"
+              :m[3].toUpperCase()
+          }
+        </span>
 
+        <small>
+          ${m[1]}
+        </small>
 
-/* =========================================================
-   RESIZE
-========================================================= */
+      </button>
+      `
+    ).join("");
+
+  $$("[data-move]")
+  .forEach(
+    b=>b.onclick=()=>
+      startPlayerMove(
+        +b.dataset.move
+      )
+  );
+}
+
+function startPlayerMove(i){
+
+  if(
+    battle.turnLocked
+  )
+    return;
+
+  const inst=
+    getInst(
+      battleData.equipped
+    );
+
+  const move=
+    (
+      moveSets[inst.play]
+      ||moveSets.strum
+    )[i];
+
+  if(
+    i===3 &&
+    battleData.energy<3
+  )
+    return;
+
+  battle.turnLocked=true;
+
+  pendingTiming={
+    inst,
+    move,
+    index:i
+  };
+
+  startTiming(
+    move[0],
+    inst.play
+  );
+}
+
+function startTiming(
+  name,
+  play
+){
+
+  $("#timingOverlay")
+    .classList
+    .remove("hidden");
+
+  $("#timingMoveName").textContent=
+    name;
+
+  $("#timingType").textContent=
+    `${play.toUpperCase()} PERFORMANCE`;
+
+  $("#timingResult").textContent=
+    "";
+
+  $("#timingHint").textContent=
+    {
+      strum:
+        "Strum in the gold zone.",
+
+      keys:
+        "Land the chord in the gold zone.",
+
+      drums:
+        "Hit the beat in the gold zone.",
+
+      wind:
+        "Release the note in the gold zone.",
+
+      brass:
+        "Blast the note in the gold zone.",
+
+      bow:
+        "Change bow direction in the gold zone.",
+
+      mallet:
+        "Strike the bar in the gold zone.",
+
+      pads:
+        "Tap the pad in the gold zone.",
+
+      pluck:
+        "Pluck in the gold zone.",
+
+      bellows:
+        "Squeeze in the gold zone.",
+
+      shake:
+        "Shake on the beat."
+    }[play]
+    ||
+    "Play in the gold zone.";
+
+  timingStart=
+    performance.now();
+
+  cancelAnimationFrame(
+    timingRAF
+  );
+
+  const marker=
+    $("#timingMarker");
+
+  const loop=t=>{
+
+    const x=
+      (
+        (
+          Math.sin(
+            (t-timingStart)/420-
+            Math.PI/2
+          )+1
+        )/2
+      )*96;
+
+    marker.style.left=
+      `${x}%`;
+
+    marker.dataset.x=x;
+
+    timingRAF=
+      requestAnimationFrame(
+        loop
+      );
+  };
+
+  timingRAF=
+    requestAnimationFrame(
+      loop
+    );
+}
+
+function resolveTiming(){
+
+  if(!pendingTiming)
+    return;
+
+  cancelAnimationFrame(
+    timingRAF
+  );
+
+  const x=
+    +(
+      $("#timingMarker")
+      .dataset.x||0
+    );
+
+  const d=
+    Math.abs(
+      x-50
+    );
+
+  let rating="MISS";
+  let mult=.4;
+
+  if(d<=4){
+
+    rating="PERFECT";
+    mult=1.25;
+
+  }else if(d<=9){
+
+    rating="GREAT";
+    mult=1;
+
+  }else if(d<=16){
+
+    rating="GOOD";
+    mult=.8;
+  }
+
+  $("#timingResult").textContent=
+    rating;
+
+  setTimeout(
+    ()=>{
+
+      $("#timingOverlay")
+        .classList
+        .add("hidden");
+
+      executePlayerMove(
+        pendingTiming.inst,
+        pendingTiming.move,
+        pendingTiming.index,
+        mult,
+        rating
+      );
+
+      pendingTiming=null;
+
+    },
+    350
+  );
+}
+
+$("#timingHitBtn").onclick=
+  resolveTiming;
 
 window.addEventListener(
-    "resize",
-    () => {
+  "keydown",
+  e=>{
 
-        if (
-            battleRenderer
-        ) {
+    if(
+      e.code==="Space" &&
+      !$("#timingOverlay")
+      .classList
+      .contains("hidden")
+    ){
 
-            battleCamera.aspect =
-                battleContainer.clientWidth /
-                battleContainer.clientHeight;
-
-
-            battleCamera.updateProjectionMatrix();
-
-
-            battleRenderer.setSize(
-
-                battleContainer.clientWidth,
-
-                battleContainer.clientHeight
-
-            );
-
-        }
-
-
-        if (
-            setupRenderer
-        ) {
-
-            const container =
-                $("#setupAvatarPreview");
-
-
-            setupCamera.aspect =
-                container.clientWidth /
-                container.clientHeight;
-
-
-            setupCamera.updateProjectionMatrix();
-
-
-            setupRenderer.setSize(
-
-                container.clientWidth,
-
-                container.clientHeight
-
-            );
-
-        }
-
+      e.preventDefault();
+      resolveTiming();
     }
+  }
 );
 
+async function executePlayerMove(
+  inst,
+  move,
+  index,
+  timing,
+  rating
+){
 
+  const fs=
+    finalStats(inst);
 
-/* =========================================================
-   INITIALISE
-========================================================= */
+  $("#battleStatus").textContent=
+    `${rating}! ${move[0]}`;
 
-initialiseSetup();
+  await playMoveAnimation(
+    "player",
+    inst.play,
+    index
+  );
 
-createBattleScene();
+  if(
+    move[3]==="heal"
+  ){
 
-renderLibrary();
+    const h=
+      Math.round(
+        (
+          fs.melody*.22+9
+        )*timing
+      );
 
-refreshBattle();
+    battle.playerHp=
+      clamp(
+        battle.playerHp+h,
+        0,
+        battle.playerMax
+      );
 
-clearCPU();
+    logBattle(
+      `${move[0]} healed ${h} HP.`
+    );
 
-generateWorld();
+  }else if(
+    move[3]==="shield"
+  ){
+
+    battle.playerShield=1;
+
+    const dmg=
+      Math.round(
+        (
+          fs.melody*.12+5
+        )*timing
+      );
+
+    battle.enemyHp=
+      clamp(
+        battle.enemyHp-dmg,
+        0,
+        battle.enemyMax
+      );
+
+    logBattle(
+      `${move[0]} created a shield and dealt ${dmg}.`
+    );
+
+  }else{
+
+    const source=
+      move[3]==="rhythm"
+        ?(
+          fs.attack*.55+
+          fs.rhythm*.45
+        )
+
+        :move[3]==="melody"
+        ?fs.melody
+
+        :fs.attack;
+
+    let dmg=
+      Math.max(
+        4,
+        Math.round(
+          (
+            source*.29+8
+          )*
+          move[2]*
+          timing
+          -
+          battle.enemy.defense*.07
+        )
+      );
+
+    if(
+      battle.enemyShield
+    ){
+
+      const block=
+        Math.round(
+          dmg*.4
+        );
+
+      dmg-=block;
+
+      battle.enemyShield=0;
+
+      logBattle(
+        `Enemy shield blocked ${block}.`
+      );
+    }
+
+    battle.enemyHp=
+      clamp(
+        battle.enemyHp-dmg,
+        0,
+        battle.enemyMax
+      );
+
+    logBattle(
+      `${move[0]} dealt ${dmg} (${rating}).`
+    );
+  }
+
+  if(index===3){
+
+    battleData.energy=0;
+
+  }else{
+
+    battleData.energy=
+      clamp(
+        battleData.energy+
+        (
+          rating==="PERFECT"
+            ?2
+            :1
+        ),
+        0,
+        3
+      );
+  }
+
+  updateBattleBars();
+  updateEnergy();
+  renderMoves();
+
+  if(
+    battle.enemyHp<=0
+  ){
+
+    return finishBattle(
+      true
+    );
+  }
+
+  setTimeout(
+    enemyTurn,
+    500
+  );
+}
+
+async function enemyTurn(){
+
+  const inst=
+    battle.enemy;
+
+  const moves=
+    moveSets[inst.play]
+    ||moveSets.strum;
+
+  const idx=
+    Math.random()<.2
+      ?2
+
+      :Math.random()<.5
+      ?1
+
+      :0;
+
+  const move=
+    moves[idx];
+
+  $("#battleStatus").textContent=
+    `Opponent performs ${move[0]}`;
+
+  await playMoveAnimation(
+    "enemy",
+    inst.play,
+    idx
+  );
+
+  if(
+    move[3]==="heal"
+  ){
+
+    const h=
+      Math.round(
+        inst.melody*.14
+      );
+
+    battle.enemyHp=
+      clamp(
+        battle.enemyHp+h,
+        0,
+        battle.enemyMax
+      );
+
+    logBattle(
+      `Opponent healed ${h}.`
+    );
+
+  }else if(
+    move[3]==="shield"
+  ){
+
+    battle.enemyShield=1;
+
+    logBattle(
+      "Opponent gained a shield."
+    );
+
+  }else{
+
+    const source=
+      move[3]==="rhythm"
+        ?(
+          inst.attack*.55+
+          inst.rhythm*.45
+        )
+
+        :move[3]==="melody"
+        ?inst.melody
+
+        :inst.attack;
+
+    let dmg=
+      Math.max(
+        4,
+        Math.round(
+          source*.24*
+          move[2]
+          -
+          finalStats(
+            getInst(
+              battleData.equipped
+            )
+          ).defense*.06
+        )
+      );
+
+    if(
+      battle.playerShield
+    ){
+
+      const block=
+        Math.round(
+          dmg*.45
+        );
+
+      dmg-=block;
+
+      battle.playerShield=0;
+
+      logBattle(
+        `Your shield blocked ${block}.`
+      );
+    }
+
+    battle.playerHp=
+      clamp(
+        battle.playerHp-dmg,
+        0,
+        battle.playerMax
+      );
+
+    logBattle(
+      `Opponent dealt ${dmg}.`
+    );
+  }
+
+  updateBattleBars();
+
+  if(
+    battle.playerHp<=0
+  ){
+
+    return finishBattle(
+      false
+    );
+  }
+
+  battle.turnLocked=false;
+
+  $("#battleStatus").textContent=
+    "Your turn — choose a move.";
+}
+
+function finishBattle(win){
+
+  battle.turnLocked=true;
+
+  const exp=
+    win
+      ?rand(24,38)
+      :-rand(12,22);
+
+  const coins=
+    win
+
+      ?battleMode==="practice"
+      ?rand(20,35)
+
+      :battleMode==="demoRanked"
+      ?rand(35,50)
+
+      :rand(50,75)
+
+      :0;
+
+  battleData[
+    win
+      ?"wins"
+      :"losses"
+  ]++;
+
+  if(win){
+
+    addXP(exp);
+
+    addMastery(
+      battleData.equipped,
+      exp
+    );
+
+    addCoins(coins);
+
+    if(
+      battleMode==="demoRanked"
+    ){
+
+      const rp=
+        rand(18,30);
+
+      battleData.demoRP+=rp;
+      battleData.streak++;
+      battleData.demoWins++;
+
+      toast(
+        `Victory +${rp} RP +${coins} Music Coins`
+      );
+
+    }else if(
+      battleMode==="onlineRanked"
+    ){
+
+      toast(
+        "Online RP requires backend verification; local demo rewards only."
+      );
+
+    }else{
+
+      toast(
+        `Victory +${coins} Music Coins`
+      );
+    }
+
+    $("#battleStatus").textContent=
+      "Victory!";
+
+    playVictory(
+      "player"
+    );
+
+  }else{
+
+    addXP(exp);
+
+    if(
+      battleMode==="demoRanked"
+    ){
+
+      const loss=
+        rand(12,22);
+
+      battleData.demoRP=
+        Math.max(
+          0,
+          battleData.demoRP-loss
+        );
+
+      battleData.streak=0;
+      battleData.demoLosses++;
+
+      toast(
+        `Defeat -${loss} RP`
+      );
+    }
+
+    $("#battleStatus").textContent=
+      "Defeat";
+
+    playVictory(
+      "enemy"
+    );
+  }
+
+  persist();
+  updateProfileUI();
+
+  setTimeout(
+    ()=>refreshBattle(true),
+    1800
+  );
+}
+
+function logBattle(m){
+
+  const l=
+    $("#battleLog");
+
+  l.insertAdjacentHTML(
+    "afterbegin",
+    `<p>• ${m}</p>`
+  );
+}
+
+/* ===========================
+   THREE.JS BATTLE
+=========================== */
+
+let scene;
+let camera;
+let renderer;
+let playerAvatar;
+let enemyAvatar;
+let raf;
+
+let fx=[];
+
+const cameraBase=
+  new THREE.Vector3(
+    0,
+    3.2,
+    8.6
+  );
+
+let cameraShake=0;
+
+function mat(
+  c,
+  e=0x000000
+){
+
+  return new THREE.MeshStandardMaterial({
+    color:c,
+    roughness:.62,
+    metalness:.08,
+    emissive:e,
+    emissiveIntensity:.25
+  });
+}
+
+function box(
+  w,
+  h,
+  d,
+  m
+){
+
+  const x=
+    new THREE.Mesh(
+      new THREE.BoxGeometry(
+        w,
+        h,
+        d
+      ),
+      m
+    );
+
+  x.castShadow=true;
+
+  return x;
+}
+
+function createInstrument3D(name){
+
+  const inst=
+    getInst(name);
+
+  const skin=
+    skinPool.find(
+      s=>
+        s.id===
+        profile.equipped.skins?.[
+          name
+        ]
+    );
+
+  const p=
+    mat(
+      skin?.primary
+      ||
+      "#c9884c"
+    );
+
+  const s=
+    mat(
+      skin?.secondary
+      ||
+      "#3b2419"
+    );
+
+  const g=
+    new THREE.Group();
+
+  if(
+    inst.play==="keys"
+  ){
+
+    const b=
+      box(
+        1.25,
+        .28,
+        .58,
+        s
+      );
+
+    g.add(b);
+
+    for(
+      let i=0;
+      i<8;
+      i++
+    ){
+
+      const k=
+        box(
+          .12,
+          .05,
+          .42,
+          mat("#f4f2e9")
+        );
+
+      k.position.set(
+        -.5+i*.145,
+        .16,
+        .02
+      );
+
+      g.add(k);
+    }
+
+  }else if(
+    inst.play==="drums" ||
+    inst.play==="pads" ||
+    inst.play==="mallet"
+  ){
+
+    const d=
+      box(
+        1.0,
+        .42,
+        .5,
+        p
+      );
+
+    g.add(d);
+
+    for(
+      let i=-1;
+      i<=1;
+      i++
+    ){
+
+      const pad=
+        box(
+          .24,
+          .06,
+          .22,
+          mat("#e7d7a1")
+        );
+
+      pad.position.set(
+        i*.3,
+        .25,
+        .05
+      );
+
+      g.add(pad);
+    }
+
+  }else if(
+    inst.play==="wind" ||
+    inst.play==="brass"
+  ){
+
+    const tube=
+      box(
+        1.15,
+        .14,
+        .14,
+        p
+      );
+
+    tube.rotation.z=
+      -.12;
+
+    g.add(tube);
+
+    const bell=
+      box(
+        .25,
+        .3,
+        .3,
+        p
+      );
+
+    bell.position.x=.65;
+
+    g.add(bell);
+
+  }else{
+
+    const body=
+      box(
+        .62,
+        .78,
+        .18,
+        p
+      );
+
+    body.position.y=
+      -.08;
+
+    g.add(body);
+
+    const neck=
+      box(
+        .16,
+        .95,
+        .13,
+        s
+      );
+
+    neck.position.set(
+      .2,
+      .72,
+      0
+    );
+
+    neck.rotation.z=
+      -.18;
+
+    g.add(neck);
+  }
+
+  g.scale.set(
+    .7,
+    .7,
+    .7
+  );
+
+  return g;
+}
+
+function createAvatar(
+  config,
+  instrumentName,
+  isEnemy=false
+){
+
+  const r=
+    new THREE.Group();
+
+  const skin=
+    mat(
+      config.skin
+      ||
+      "#dca57b"
+    );
+
+  const shirt=
+    mat(
+      isEnemy
+      ?"#7d2d3d"
+      :config.outfit
+      ||"#19345b"
+    );
+
+  const hair=
+    mat(
+      config.hairColor
+      ||
+      "#201915"
+    );
+
+  const pants=
+    mat(
+      "#24334a"
+    );
+
+  const torso=
+    box(
+      1.1,
+      .95,
+      .55,
+      shirt
+    );
+
+  torso.position.y=
+    1.65;
+
+  r.add(torso);
+
+  const head=
+    box(
+      .9,
+      .9,
+      .9,
+      skin
+    );
+
+  head.position.y=
+    2.6;
+
+  r.add(head);
+
+  const ht=
+    box(
+      .94,
+      .18,
+      .94,
+      hair
+    );
+
+  ht.position.y=
+    3.12;
+
+  r.add(ht);
+
+  [-.18,.18]
+  .forEach(
+    x=>{
+
+      const e=
+        box(
+          .07,
+          .09,
+          .04,
+          mat("#111")
+        );
+
+      e.position.set(
+        x,
+        2.66,
+        .47
+      );
+
+      r.add(e);
+    }
+  );
+
+  const armL=
+    new THREE.Group();
+
+  const armR=
+    new THREE.Group();
+
+  armL.position.set(
+    -.7,
+    1.95,
+    0
+  );
+
+  armR.position.set(
+    .7,
+    1.95,
+    0
+  );
+
+  r.add(
+    armL,
+    armR
+  );
+
+  for(
+    const a of [
+      armL,
+      armR
+    ]
+  ){
+
+    const u=
+      box(
+        .32,
+        .72,
+        .32,
+        shirt
+      );
+
+    u.position.y=
+      -.38;
+
+    a.add(u);
+
+    const h=
+      box(
+        .33,
+        .3,
+        .33,
+        skin
+      );
+
+    h.position.y=
+      -.82;
+
+    a.add(h);
+  }
+
+  const legL=
+    new THREE.Group();
+
+  const legR=
+    new THREE.Group();
+
+  legL.position.set(
+    -.26,
+    1.05,
+    0
+  );
+
+  legR.position.set(
+    .26,
+    1.05,
+    0
+  );
+
+  r.add(
+    legL,
+    legR
+  );
+
+  for(
+    const l of [
+      legL,
+      legR
+    ]
+  ){
+
+    const z=
+      box(
+        .38,
+        .9,
+        .42,
+        pants
+      );
+
+    z.position.y=
+      -.48;
+
+    l.add(z);
+
+    const f=
+      box(
+        .42,
+        .2,
+        .58,
+        mat("#111827")
+      );
+
+    f.position.set(
+      0,
+      -1,
+      .08
+    );
+
+    l.add(f);
+  }
+
+  const instrument=
+    createInstrument3D(
+      instrumentName
+    );
+
+  instrument.position.set(
+    .05,
+    1.45,
+    .66
+  );
+
+  r.add(instrument);
+
+  r.userData={
+    torso,
+    head,
+    armL,
+    armR,
+    legL,
+    legR,
+    instrument,
+    phase:
+      Math.random()*6
+  };
+
+  if(!isEnemy)
+    addEquippedVisuals(r);
+
+  return r;
+}
+
+function addEquippedVisuals(r){
+
+  const eq=
+    profile.equipped;
+
+  if(eq.head){
+
+    const c=
+      box(
+        .7,
+        .15,
+        .7,
+        mat("#d2ac48")
+      );
+
+    c.position.set(
+      0,
+      3.35,
+      0
+    );
+
+    r.add(c);
+  }
+
+  if(eq.aura){
+
+    for(
+      let i=0;
+      i<6;
+      i++
+    ){
+
+      const q=
+        box(
+          .08,
+          .08,
+          .08,
+          mat(
+            "#f0d05a",
+            0xf0d05a
+          )
+        );
+
+      q.userData.orbit=i;
+
+      q.position.y=
+        1.5;
+
+      r.add(q);
+    }
+  }
+
+  if(eq.pet){
+
+    const pet=
+      box(
+        .38,
+        .38,
+        .38,
+        mat("#7cc5ff")
+      );
+
+    pet.position.set(
+      -1.0,
+      .65,
+      .2
+    );
+
+    pet.userData.pet=
+      true;
+
+    r.add(pet);
+  }
+}
+
+function renderBattleScene(){
+
+  const host=
+    $("#battle3D");
+
+  const w=
+    Math.max(
+      300,
+      host.clientWidth
+    );
+
+  const h=
+    Math.max(
+      260,
+      host.clientHeight
+    );
+
+  if(renderer){
+
+    cancelAnimationFrame(
+      raf
+    );
+
+    renderer.dispose();
+  }
+
+  scene=
+    new THREE.Scene();
+
+  scene.background=
+    new THREE.Color(
+      0x9bd8ff
+    );
+
+  camera=
+    new THREE.PerspectiveCamera(
+      42,
+      w/h,
+      .1,
+      100
+    );
+
+  camera.position.copy(
+    cameraBase
+  );
+
+  camera.lookAt(
+    0,
+    1.5,
+    0
+  );
+
+  renderer=
+    new THREE.WebGLRenderer({
+      antialias:true,
+      alpha:true
+    });
+
+  renderer.setPixelRatio(
+    Math.min(
+      devicePixelRatio,
+      2
+    )
+  );
+
+  renderer.setSize(
+    w,
+    h
+  );
+
+  renderer.shadowMap.enabled=
+    true;
+
+  host.innerHTML="";
+
+  host.appendChild(
+    renderer.domElement
+  );
+
+  scene.add(
+    new THREE.HemisphereLight(
+      0xffffff,
+      0x496b43,
+      2.2
+    )
+  );
+
+  const dl=
+    new THREE.DirectionalLight(
+      0xffffff,
+      2.3
+    );
+
+  dl.position.set(
+    4,
+    7,
+    4
+  );
+
+  scene.add(dl);
+
+  const ground=
+    box(
+      14,
+      .2,
+      8,
+      mat("#6aa84f")
+    );
+
+  ground.position.y=
+    -.1;
+
+  scene.add(ground);
+
+  playerAvatar=
+    createAvatar(
+      profile.avatar,
+      battleData.equipped,
+      false
+    );
+
+  enemyAvatar=
+    createAvatar(
+      {
+        skin:"#c98d67",
+        hairColor:"#2e221d",
+        outfit:"#7d2d3d"
+      },
+      battle.enemy?.name
+      ||
+      "Piano",
+      true
+    );
+
+  playerAvatar.position.set(
+    -2.4,
+    0,
+    0
+  );
+
+  enemyAvatar.position.set(
+    2.4,
+    0,
+    0
+  );
+
+  enemyAvatar.rotation.y=
+    Math.PI;
+
+  scene.add(
+    playerAvatar,
+    enemyAvatar
+  );
+
+  loopScene();
+}
+
+function loopScene(
+  t=0
+){
+
+  if(!renderer)
+    return;
+
+  for(
+    const [a,off]
+    of [
+      [playerAvatar,0],
+      [enemyAvatar,2]
+    ]
+  ){
+
+    if(a){
+
+      a.position.y=
+        Math.sin(
+          t*.003+
+          a.userData.phase
+        )*.035;
+
+      a.userData.armL.rotation.x=
+        Math.sin(
+          t*.003+off
+        )*.06;
+
+      a.userData.armR.rotation.x=
+        -Math.sin(
+          t*.003+off
+        )*.06;
+
+      for(
+        const c
+        of a.children
+      ){
+
+        if(
+          c.userData?.orbit!=null
+        ){
+
+          const ang=
+            t*.001+
+            c.userData.orbit;
+
+          c.position.set(
+            Math.cos(ang)*1.05,
+            1.6+
+            Math.sin(
+              ang*1.8
+            )*.35,
+            Math.sin(ang)*.7
+          );
+        }
+      }
+    }
+  }
+
+  fx=
+    fx.filter(
+      o=>{
+
+        o.mesh.position.add(
+          o.vel
+        );
+
+        o.life--;
+
+        if(
+          o.life<=0
+        ){
+
+          scene.remove(
+            o.mesh
+          );
+
+          return false;
+        }
+
+        return true;
+      }
+    );
+
+  camera.position.copy(
+    cameraBase
+  );
+
+  if(
+    cameraShake>0
+  ){
+
+    camera.position.x+=
+      (
+        Math.random()-.5
+      )*cameraShake;
+
+    camera.position.y+=
+      (
+        Math.random()-.5
+      )*cameraShake;
+
+    cameraShake*=.82;
+  }
+
+  camera.lookAt(
+    0,
+    1.5,
+    0
+  );
+
+  renderer.render(
+    scene,
+    camera
+  );
+
+  raf=
+    requestAnimationFrame(
+      loopScene
+    );
+}
+
+function spawnNotes(
+  fromX,
+  toX,
+  color="#f1d16f"
+){
+
+  for(
+    let i=0;
+    i<12;
+    i++
+  ){
+
+    const m=
+      box(
+        .08,
+        .08,
+        .08,
+        mat(
+          color,
+          0xffffff
+        )
+      );
+
+    m.position.set(
+      fromX+
+      Math.random()*.2,
+
+      1.5+
+      Math.random()*1.3,
+
+      (
+        Math.random()-.5
+      )*.7
+    );
+
+    scene.add(m);
+
+    fx.push({
+      mesh:m,
+
+      vel:
+        new THREE.Vector3(
+          (toX-fromX)/28,
+          (
+            Math.random()-.5
+          )*.02,
+          (
+            Math.random()-.5
+          )*.02
+        ),
+
+      life:
+        28+
+        rand(0,10)
+    });
+  }
+}
+
+function playMoveAnimation(
+  side,
+  play,
+  index
+){
+
+  return new Promise(
+    res=>{
+
+      const a=
+        side==="player"
+          ?playerAvatar
+          :enemyAvatar;
+
+      const dir=
+        side==="player"
+          ?1
+          :-1;
+
+      if(!a)
+        return res();
+
+      a.userData.torso.rotation.z=
+        -dir*.10;
+
+      a.userData.armL.rotation.x=
+        -1.0;
+
+      a.userData.armR.rotation.x=
+        -.7;
+
+      a.userData.instrument.rotation.z=
+        dir*.08;
+
+      spawnNotes(
+        side==="player"
+          ?-1.8
+          :1.8,
+
+        side==="player"
+          ?1.8
+          :-1.8,
+
+        index===3
+          ?"#ffd84f"
+          :"#bfe5ff"
+      );
+
+      if(index===3){
+
+        cameraShake=.22;
+
+        a.scale.set(
+          1.08,
+          1.08,
+          1.08
+        );
+      }
+
+      setTimeout(
+        ()=>{
+
+          a.userData.torso.rotation.z=0;
+          a.userData.armL.rotation.x=0;
+          a.userData.armR.rotation.x=0;
+          a.userData.instrument.rotation.z=0;
+
+          a.scale.set(
+            1,
+            1,
+            1
+          );
+
+          res();
+        },
+        620
+      );
+    }
+  );
+}
+
+function playVictory(side){
+
+  const a=
+    side==="player"
+      ?playerAvatar
+      :enemyAvatar;
+
+  if(!a)
+    return;
+
+  let n=0;
+
+  const iv=
+    setInterval(
+      ()=>{
+
+        a.rotation.y+=
+          .45;
+
+        a.position.y=
+          .35*
+          Math.abs(
+            Math.sin(
+              n*.8
+            )
+          );
+
+        n++;
+
+        if(n>12){
+
+          clearInterval(iv);
+
+          a.rotation.y=
+            side==="player"
+              ?0
+              :Math.PI;
+
+          a.position.y=0;
+        }
+      },
+      70
+    );
+}
+
+let setupRenderer;
+let setupScene;
+let setupCamera;
+let setupAvatar;
+let setupRAF;
+
+function initSetupPreview(){
+
+  const host=
+    $("#setupPreview");
+
+  const w=
+    Math.max(
+      280,
+      host.clientWidth
+    );
+
+  const h=
+    Math.max(
+      240,
+      host.clientHeight
+    );
+
+  setupScene=
+    new THREE.Scene();
+
+  setupCamera=
+    new THREE.PerspectiveCamera(
+      40,
+      w/h,
+      .1,
+      100
+    );
+
+  setupCamera.position.set(
+    0,
+    2.25,
+    6.4
+  );
+
+  setupRenderer=
+    new THREE.WebGLRenderer({
+      antialias:true,
+      alpha:true
+    });
+
+  setupRenderer.setSize(
+    w,
+    h
+  );
+
+  host.innerHTML="";
+
+  host.appendChild(
+    setupRenderer.domElement
+  );
+
+  setupScene.add(
+    new THREE.HemisphereLight(
+      0xffffff,
+      0x35536b,
+      2.2
+    )
+  );
+
+  const d=
+    new THREE.DirectionalLight(
+      0xffffff,
+      2
+    );
+
+  d.position.set(
+    3,
+    5,
+    4
+  );
+
+  setupScene.add(d);
+
+  setupAvatar=
+    createAvatar(
+      profile.avatar,
+      "Guitar",
+      false
+    );
+
+  setupAvatar.position.y=
+    -1.1;
+
+  setupScene.add(
+    setupAvatar
+  );
+
+  const loop=t=>{
+
+    if(!setupRenderer)
+      return;
+
+    setupAvatar.rotation.y=
+      Math.sin(
+        t*.0006
+      )*.35;
+
+    setupRenderer.render(
+      setupScene,
+      setupCamera
+    );
+
+    setupRAF=
+      requestAnimationFrame(
+        loop
+      );
+  };
+
+  setupRAF=
+    requestAnimationFrame(
+      loop
+    );
+}
+
+/* ===========================
+   GACHA
+=========================== */
+
+const gachaConfig={
+  accessory:{
+    title:"Accessory Gacha",
+    subtitle:"Hair • Hats • Clothing • Wings • Glasses",
+    cost:100,
+    ten:900,
+    pool:accessoryPool,
+    icon:"👑"
+  },
+
+  pet:{
+    title:"Pet Gacha",
+    subtitle:"Pets only • Hatch your companion",
+    cost:200,
+    ten:1800,
+    pool:petPool,
+    icon:"🥚"
+  },
+
+  aura:{
+    title:"Aura Gacha",
+    subtitle:"Animated battle auras",
+    cost:175,
+    ten:1575,
+    pool:auraPool,
+    icon:"🔮"
+  },
+
+  skin:{
+    title:"Instrument Skin Gacha",
+    subtitle:"Exclusive visual instrument skins",
+    cost:150,
+    ten:1350,
+    pool:skinPool,
+    icon:"🎸"
+  }
+};
+
+function updateGachaUI(){
+
+  const c=
+    gachaConfig[
+      activeGacha
+    ];
+
+  const p=
+    profile.gacha[
+      activeGacha
+    ];
+
+  $("#gachaTitle").textContent=
+    c.title;
+
+  $("#gachaSubtitle").textContent=
+    c.subtitle;
+
+  $("#gachaOrb").textContent=
+    c.icon;
+
+  $("#rollOneBtn").textContent=
+    `Roll x1 • ${c.cost} 🎵`;
+
+  $("#rollTenBtn").textContent=
+    `Roll x10 • ${c.ten} 🎵`;
+
+  $("#gachaLegendaryPity").textContent=
+    `${p.legendary} / 30`;
+
+  $("#gachaMythicPity").textContent=
+    `${p.mythic} / 100`;
+}
+
+function rollRarity(){
+
+  const p=
+    profile.gacha[
+      activeGacha
+    ];
+
+  if(
+    p.mythic>=99
+  )
+    return"mythic";
+
+  if(
+    p.legendary>=29
+  ){
+
+    return Math.random()<.18
+      ?"mythic"
+      :"legendary";
+  }
+
+  let r=
+    Math.random()*100;
+
+  let acc=0;
+
+  for(
+    const k
+    of rarityOrder
+  ){
+
+    acc+=
+      rarities[k].weight;
+
+    if(r<=acc)
+      return k;
+  }
+
+  return"common";
+}
+
+function ownedList(type){
+
+  return profile.owned[type]
+    ||[];
+}
+
+function rollOne(){
+
+  let rarity=
+    rollRarity();
+
+  let pool=
+    gachaConfig[
+      activeGacha
+    ].pool.filter(
+      i=>
+        i.rarity===rarity
+    );
+
+  if(
+    activeGacha==="skin"
+  ){
+
+    pool=
+      pool.filter(
+        i=>
+          battleData.owned
+          .includes(
+            i.instrument
+          )
+      );
+  }
+
+  if(!pool.length){
+
+    pool=
+      gachaConfig[
+        activeGacha
+      ].pool;
+  }
+
+  const item=
+    pick(pool);
+
+  const list=
+    ownedList(
+      activeGacha
+    );
+
+  const dup=
+    list.includes(
+      item.id
+    );
+
+  if(dup){
+
+    profile.starDust+=
+      rarities[
+        item.rarity
+      ].dust;
+
+  }else{
+
+    list.push(
+      item.id
+    );
+  }
+
+  const p=
+    profile.gacha[
+      activeGacha
+    ];
+
+  if(
+    item.rarity==="mythic"
+  ){
+
+    p.mythic=0;
+    p.legendary=0;
+
+  }else{
+
+    p.mythic++;
+
+    if(
+      item.rarity==="legendary"
+    )
+      p.legendary=0;
+
+    else
+      p.legendary++;
+  }
+
+  return{
+    item,
+    dup,
+    dust:
+      dup
+        ?rarities[
+          item.rarity
+        ].dust
+        :0
+  };
+}
+
+function rollGacha(count){
+
+  const c=
+    gachaConfig[
+      activeGacha
+    ];
+
+  const cost=
+    count===10
+      ?c.ten
+      :c.cost;
+
+  if(
+    profile.musicCoins<
+    cost
+  ){
+
+    return toast(
+      `Need ${
+        cost-
+        profile.musicCoins
+      } more Music Coins.`
+    );
+  }
+
+  profile.musicCoins-=
+    cost;
+
+  const orb=
+    $("#gachaOrb");
+
+  orb.classList.add(
+    "rolling"
+  );
+
+  setTimeout(
+    ()=>{
+
+      const results=
+        Array.from(
+          {
+            length:count
+          },
+          rollOne
+        );
+
+      orb.classList.remove(
+        "rolling"
+      );
+
+      persist();
+      updateProfileUI();
+      renderInventory();
+
+      const box=
+        $("#gachaReveal");
+
+      box.classList.remove(
+        "hidden"
+      );
+
+      box.innerHTML=
+        `
+        <p class="eyebrow">
+          GACHA RESULTS
+        </p>
+
+        <div class="reveal-grid">
+
+          ${
+            results.map(
+              ({
+                item,
+                dup,
+                dust
+              })=>
+              `
+              <div
+                class="reveal-card"
+                style="
+                  border-color:
+                  ${rarities[
+                    item.rarity
+                  ].color}
+                "
+              >
+
+                <div
+                  style="
+                    font-size:30px
+                  "
+                >
+                  ${item.icon}
+                </div>
+
+                <div
+                  class="rarity"
+                  style="
+                    color:
+                    ${rarities[
+                      item.rarity
+                    ].color}
+                  "
+                >
+                  ${
+                    rarities[
+                      item.rarity
+                    ].label
+                  }
+                </div>
+
+                <strong>
+                  ${item.name}
+                </strong>
+
+                <small>
+                  ${
+                    dup
+
+                    ?`Duplicate → +${dust} ✨`
+
+                    :item.ability.text
+                  }
+                </small>
+
+              </div>
+              `
+            ).join("")
+          }
+
+        </div>
+        `;
+    },
+    650
+  );
+}
+
+function renderInventory(){
+
+  const filter=
+    $("#inventoryFilter")
+    .value;
+
+  const ids=[];
+
+  for(
+    const type
+    of [
+      "accessory",
+      "pet",
+      "aura",
+      "skin"
+    ]
+  ){
+
+    for(
+      const id
+      of profile.owned[type]
+      ||[]
+    ){
+
+      ids.push({
+        type,
+        id
+      });
+    }
+  }
+
+  const rows=
+    ids
+    .map(
+      x=>
+        allCollectibles.find(
+          i=>i.id===x.id
+        )
+    )
+    .filter(Boolean)
+    .filter(
+      i=>
+        filter==="all"
+        ||
+        i.type===filter
+    );
+
+  $("#inventoryGrid").innerHTML=
+    rows.length
+
+    ?rows.map(
+      i=>{
+
+        const equipped=
+          isEquipped(i);
+
+        return`
+        <div class="inventory-item">
+
+          <strong>
+            ${i.icon}
+            ${i.name}
+          </strong>
+
+          <small>
+            ${
+              rarities[
+                i.rarity
+              ].label
+            }
+
+            ${
+              i.instrument
+                ?` • ${i.instrument}`
+                :""
+            }
+          </small>
+
+          <span class="ability">
+            ${i.ability.text}
+          </span>
+
+          <button
+            class="btn ${
+              equipped
+                ?"primary"
+                :"ghost"
+            } small"
+            data-inv="${i.id}"
+          >
+            ${
+              equipped
+                ?"Equipped"
+                :"Equip"
+            }
+          </button>
+
+        </div>
+        `;
+      }
+    ).join("")
+
+    :`
+    <p class="fineprint">
+      No items in this category yet.
+    </p>
+    `;
+
+  $$("[data-inv]")
+  .forEach(
+    b=>b.onclick=()=>
+      equipItem(
+        b.dataset.inv
+      )
+  );
+
+  renderEquipped();
+}
+
+function isEquipped(i){
+
+  if(
+    i.type==="skin"
+  ){
+
+    return profile
+      .equipped
+      .skins?.[
+        i.instrument
+      ]===i.id;
+  }
+
+  return profile.equipped[
+    i.slot
+  ]===i.id;
+}
+
+function equipItem(id){
+
+  const i=
+    allCollectibles.find(
+      x=>x.id===id
+    );
+
+  if(!i)
+    return;
+
+  if(
+    i.type==="skin"
+  ){
+
+    profile.equipped.skins[
+      i.instrument
+    ]=id;
+
+  }else{
+
+    profile.equipped[
+      i.slot
+    ]=
+      profile.equipped[
+        i.slot
+      ]===id
+
+      ?null
+      :id;
+  }
+
+  persist();
+
+  renderInventory();
+  refreshBattle(false);
+
+  toast(
+    `${i.name} ${
+      isEquipped(i)
+        ?"equipped"
+        :"unequipped"
+    }.`
+  );
+}
+
+function renderEquipped(){
+
+  const items=[];
+
+  for(
+    const [slot,id]
+    of Object.entries(
+      profile.equipped
+    )
+  ){
+
+    if(
+      slot==="skins" ||
+      !id
+    )
+      continue;
+
+    const i=
+      allCollectibles.find(
+        x=>x.id===id
+      );
+
+    if(i)
+      items.push(i);
+  }
+
+  const sid=
+    profile.equipped
+    .skins?.[
+      battleData.equipped
+    ];
+
+  if(sid){
+
+    const s=
+      skinPool.find(
+        x=>x.id===sid
+      );
+
+    if(s)
+      items.push(s);
+  }
+
+  $("#equippedGrid").innerHTML=
+    items.length
+
+    ?items.map(
+      i=>`
+      <div class="inventory-item">
+
+        <strong>
+          ${i.icon}
+          ${i.name}
+        </strong>
+
+        <small>
+          ${i.slot}
+          ${
+            i.instrument
+              ?` • ${i.instrument}`
+              :""
+          }
+        </small>
+
+        <span class="ability">
+          ${i.ability.text}
+        </span>
+
+        <span class="equipped-badge">
+          EQUIPPED
+        </span>
+
+      </div>
+      `
+    ).join("")
+
+    :`
+    <p class="fineprint">
+      Nothing equipped yet.
+    </p>
+    `;
+}
+
+/* ===========================
+   MULTIPLAYER DEMO
+=========================== */
+
+const botNames=[
+  "BeatKnight",
+  "PianoNova",
+  "RhythmFox",
+  "StringStorm",
+  "TempoAce",
+  "ChordKing",
+  "MelodyMint",
+  "BassOrbit",
+  "JazzPixel",
+  "GrooveCat",
+  "TempoTiger",
+  "HarpHero"
+];
+
+let lobbySize=1;
+
+function openLobby(size){
+
+  lobbySize=size;
+
+  $("#teamLobby")
+    .classList
+    .remove("hidden");
+
+  $("#teamLobbyTitle").textContent=
+    size===10
+      ?"10v10 Mega Orchestra"
+      :`${size}v${size} Team Battle`;
+
+  const make=
+    team=>
+      Array.from(
+        {
+          length:size
+        },
+        (_,i)=>
+          i===0 &&
+          team==="blue"
+
+          ?{
+            name:
+              profile.playerName
+              ||"You",
+            inst:
+              battleData.equipped,
+            you:true
+          }
+
+          :{
+            name:
+              pick(botNames)
+              +
+              rand(1,99),
+
+            inst:
+              pick(
+                instrumentData
+              ).name
+          }
+      );
+
+  const blue=
+    make("blue");
+
+  const red=
+    make("red");
+
+  $("#blueTeamList").innerHTML=
+    blue.map(
+      p=>`
+      <div class="team-player">
+
+        <span>
+          ${
+            p.you
+              ?"⭐ "
+              :""
+          }
+          ${p.name}
+        </span>
+
+        <small>
+          ${p.inst}
+        </small>
+
+      </div>
+      `
+    ).join("");
+
+  $("#redTeamList").innerHTML=
+    red.map(
+      p=>`
+      <div class="team-player">
+
+        <span>
+          ${p.name}
+        </span>
+
+        <small>
+          ${p.inst}
+        </small>
+
+      </div>
+      `
+    ).join("");
+
+  $("#startTeamBattleBtn").onclick=
+    ()=>
+      simulateTeamBattle(
+        size
+      );
+}
+
+function simulateTeamBattle(size){
+
+  const chance=
+    .50+
+    Math.min(
+      .12,
+      finalStats(
+        getInst(
+          battleData.equipped
+        )
+      ).rhythm/1000
+    );
+
+  const win=
+    Math.random()<chance;
+
+  const coins=
+    win
+
+    ?Math.round(
+      (
+        35+
+        size*10
+      )*
+      (
+        size===10
+          ?1.4
+          :1
+      )
+    )
+
+    :10;
+
+  addCoins(coins);
+
+  addXP(
+    win
+      ?Math.min(
+        70,
+        18+
+        size*4
+      )
+      :5
+  );
+
+  toast(
+    `${size}v${size} ${
+      win
+        ?"victory"
+        :"match complete"
+    }: +${coins} Music Coins`
+  );
+
+  $("#teamLobby")
+    .classList
+    .add("hidden");
+}
+
+/* ===========================
+   MUSICCRAFT
+=========================== */
+
+const craftTypes=[
+  "dirt",
+  "stone",
+  "coal",
+  "iron",
+  "gold",
+  "diamond",
+  "crystal"
+];
+
+const craftColors={
+  air:"#112032",
+  dirt:"#76512e",
+  stone:"#6f7882",
+  coal:"#2d3138",
+  iron:"#a7a8a7",
+  gold:"#d6af39",
+  diamond:"#55d7ef",
+  crystal:"#a06aff",
+  water:"#2b6da6",
+  lava:"#ef5c28"
+};
+
+const depthNames=[
+  "Surface",
+  "Underground",
+  "Deep Caves",
+  "Crystal Depths",
+  "Ancient Depths",
+  "Music Core"
+];
+
+function genWorld(){
+
+  const size=140;
+  const w=[];
+
+  for(
+    let y=0;
+    y<size;
+    y++
+  ){
+
+    const row=[];
+
+    for(
+      let x=0;
+      x<size;
+      x++
+    ){
+
+      const r=
+        Math.random();
+
+      let t="dirt";
+
+      if(r<.12)
+        t="stone";
+
+      if(r<.07)
+        t="coal";
+
+      if(r<.045)
+        t="iron";
+
+      if(r<.026)
+        t="gold";
+
+      if(r<.012)
+        t="diamond";
+
+      if(r<.006)
+        t="crystal";
+
+      if(r>.986)
+        t="water";
+
+      if(r>.995)
+        t="lava";
+
+      row.push(t);
+    }
+
+    w.push(row);
+  }
+
+  for(
+    let y=68;
+    y<=72;
+    y++
+  ){
+
+    for(
+      let x=68;
+      x<=72;
+      x++
+    ){
+
+      w[y][x]="air";
+    }
+  }
+
+  craft={
+    size,
+    x:70,
+    y:70,
+    hp:100,
+    depth:0,
+    selected:0,
+
+    inv:
+      Object.fromEntries(
+        craftTypes.map(
+          t=>[t,0]
+        )
+      ),
+
+    world:w
+  };
+
+  save(
+    "musicverseCraft",
+    craft
+  );
+}
+
+if(
+  !craft?.world
+)
+  genWorld();
+
+const canvas=
+  $("#craftCanvas");
+
+const ctx=
+  canvas.getContext(
+    "2d"
+  );
+
+const tile=26;
+const viewX=30;
+const viewY=20;
+
+function drawCraft(){
+
+  ctx.clearRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+  const sx=
+    Math.floor(
+      craft.x-
+      viewX/2
+    );
+
+  const sy=
+    Math.floor(
+      craft.y-
+      viewY/2
+    );
+
+  for(
+    let gy=0;
+    gy<viewY;
+    gy++
+  ){
+
+    for(
+      let gx=0;
+      gx<viewX;
+      gx++
+    ){
+
+      const x=
+        sx+gx;
+
+      const y=
+        sy+gy;
+
+      if(
+        x<0 ||
+        y<0 ||
+        x>=craft.size ||
+        y>=craft.size
+      )
+        continue;
+
+      ctx.fillStyle=
+        craftColors[
+          craft.world[y][x]
+        ];
+
+      ctx.fillRect(
+        gx*tile,
+        gy*tile,
+        tile-1,
+        tile-1
+      );
+    }
+  }
+
+  ctx.fillStyle=
+    "#f5d67e";
+
+  ctx.fillRect(
+    (
+      craft.x-sx
+    )*tile+5,
+
+    (
+      craft.y-sy
+    )*tile+5,
+
+    tile-10,
+    tile-10
+  );
+
+  renderCraftUI();
+}
+
+function renderCraftUI(){
+
+  $("#depthLabel").textContent=
+    depthNames[
+      craft.depth
+    ];
+
+  $("#craftHp").textContent=
+    craft.hp;
+
+  $("#craftInventory").innerHTML=
+    craftTypes.map(
+      (t,i)=>`
+      <div
+        class="craft-slot ${
+          i===craft.selected
+            ?"active"
+            :""
+        }"
+      >
+
+        <span>
+          ${i+1}. ${t}
+        </span>
+
+        <b>
+          ${craft.inv[t]}
+        </b>
+
+      </div>
+      `
+    ).join("");
+
+  const ms=[
+    {
+      stone:8
+    },
+
+    {
+      coal:6,
+      iron:4
+    },
+
+    {
+      gold:5,
+      diamond:2
+    },
+
+    {
+      diamond:5,
+      crystal:3
+    },
+
+    {
+      crystal:8
+    }
+  ];
+
+  if(
+    craft.depth>=5
+  ){
+
+    $("#missionText").textContent=
+      "You reached the Music Core!";
+
+    $("#missionBtn").disabled=
+      true;
+
+  }else{
+
+    const req=
+      ms[
+        craft.depth
+      ];
+
+    $("#missionText").textContent=
+      "Collect: "+
+      Object.entries(req)
+      .map(
+        ([k,v])=>
+          `${v} ${k}`
+      )
+      .join(", ");
+
+    $("#missionBtn").disabled=
+      !Object.entries(req)
+      .every(
+        ([k,v])=>
+          craft.inv[k]>=v
+      );
+  }
+
+  save(
+    "musicverseCraft",
+    craft
+  );
+}
+
+function moveCraft(
+  dx,
+  dy
+){
+
+  const nx=
+    clamp(
+      craft.x+dx,
+      0,
+      craft.size-1
+    );
+
+  const ny=
+    clamp(
+      craft.y+dy,
+      0,
+      craft.size-1
+    );
+
+  const t=
+    craft.world[ny][nx];
+
+  if(
+    t==="lava"
+  ){
+
+    craft.hp=
+      Math.max(
+        1,
+        craft.hp-10
+      );
+
+    toast(
+      "Lava hurts! -10 HP"
+    );
+
+    return drawCraft();
+  }
+
+  if(
+    t!=="air"
+  )
+    return;
+
+  craft.x=nx;
+  craft.y=ny;
+
+  drawCraft();
+}
+
+function craftTile(e){
+
+  const r=
+    canvas.getBoundingClientRect();
+
+  const gx=
+    Math.floor(
+      (
+        e.clientX-r.left
+      )*
+      (
+        canvas.width/
+        r.width
+      )/
+      tile
+    );
+
+  const gy=
+    Math.floor(
+      (
+        e.clientY-r.top
+      )*
+      (
+        canvas.height/
+        r.height
+      )/
+      tile
+    );
+
+  const sx=
+    Math.floor(
+      craft.x-
+      viewX/2
+    );
+
+  const sy=
+    Math.floor(
+      craft.y-
+      viewY/2
+    );
+
+  return[
+    sx+gx,
+    sy+gy
+  ];
+}
+
+canvas.onclick=e=>{
+
+  const[
+    x,
+    y
+  ]=craftTile(e);
+
+  if(
+    x<0 ||
+    y<0 ||
+    x>=craft.size ||
+    y>=craft.size ||
+    Math.max(
+      Math.abs(
+        x-craft.x
+      ),
+      Math.abs(
+        y-craft.y
+      )
+    )>2
+  )
+    return;
+
+  const t=
+    craft.world[y][x];
+
+  if(
+    [
+      "air",
+      "water",
+      "lava"
+    ].includes(t)
+  )
+    return;
+
+  craft.world[y][x]=
+    "air";
+
+  craft.inv[t]=
+    (
+      craft.inv[t]
+      ||0
+    )+1;
+
+  const reward=
+    t==="crystal"
+      ?6
+
+      :t==="diamond"
+      ?4
+
+      :2;
+
+  addXP(reward);
+  addCoins(reward);
+
+  addMastery(
+    battleData.equipped,
+    reward
+  );
+
+  drawCraft();
+};
+
+canvas.oncontextmenu=e=>{
+
+  e.preventDefault();
+
+  const[
+    x,
+    y
+  ]=craftTile(e);
+
+  if(
+    x<0 ||
+    y<0 ||
+    x>=craft.size ||
+    y>=craft.size ||
+    Math.max(
+      Math.abs(
+        x-craft.x
+      ),
+      Math.abs(
+        y-craft.y
+      )
+    )>2 ||
+    (
+      x===craft.x &&
+      y===craft.y
+    ) ||
+    craft.world[y][x]!=="air"
+  )
+    return;
+
+  const t=
+    craftTypes[
+      craft.selected
+    ];
+
+  if(
+    !craft.inv[t]
+  )
+    return;
+
+  craft.world[y][x]=t;
+
+  craft.inv[t]--;
+
+  drawCraft();
+};
+
+window.addEventListener(
+  "keydown",
+  e=>{
+
+    if(
+      [
+        "INPUT",
+        "SELECT",
+        "TEXTAREA"
+      ].includes(
+        document.activeElement
+        .tagName
+      )
+    )
+      return;
+
+    const m={
+      ArrowUp:[0,-1],
+      w:[0,-1],
+      W:[0,-1],
+
+      ArrowDown:[0,1],
+      s:[0,1],
+      S:[0,1],
+
+      ArrowLeft:[-1,0],
+      a:[-1,0],
+      A:[-1,0],
+
+      ArrowRight:[1,0],
+      d:[1,0],
+      D:[1,0]
+    };
+
+    if(
+      m[e.key]
+    ){
+
+      e.preventDefault();
+
+      moveCraft(
+        ...m[e.key]
+      );
+    }
+
+    if(
+      /^[1-7]$/
+      .test(
+        e.key
+      )
+    ){
+
+      craft.selected=
+        +e.key-1;
+
+      drawCraft();
+    }
+  }
+);
+
+$("#missionBtn").onclick=()=>{
+
+  const ms=[
+    {
+      stone:8
+    },
+
+    {
+      coal:6,
+      iron:4
+    },
+
+    {
+      gold:5,
+      diamond:2
+    },
+
+    {
+      diamond:5,
+      crystal:3
+    },
+
+    {
+      crystal:8
+    }
+  ];
+
+  if(
+    craft.depth>=5
+  )
+    return;
+
+  const req=
+    ms[
+      craft.depth
+    ];
+
+  if(
+    !Object.entries(req)
+    .every(
+      ([k,v])=>
+        craft.inv[k]>=v
+    )
+  )
+    return;
+
+  Object.entries(req)
+  .forEach(
+    ([k,v])=>
+      craft.inv[k]-=v
+  );
+
+  craft.depth++;
+
+  addXP(
+    25+
+    craft.depth*10
+  );
+
+  addCoins(
+    40+
+    craft.depth*10
+  );
+
+  toast(
+    `${depthNames[
+      craft.depth
+    ]} unlocked!`
+  );
+
+  drawCraft();
+};
+
+$("#newWorldBtn").onclick=()=>{
+
+  if(
+    confirm(
+      "Generate a new world?"
+    )
+  ){
+
+    genWorld();
+    drawCraft();
+  }
+};
+
+/* ===========================
+   LEADERBOARD
+=========================== */
+
+function renderLeaderboard(){
+
+  const bots=
+    Array.from(
+      {
+        length:99
+      },
+      ()=>({
+        name:
+          pick(botNames)
+          +
+          rand(1,999),
+
+        level:
+          rand(3,70),
+
+        instrument:
+          pick(
+            instrumentData
+          ).name,
+
+        xp:
+          rand(
+            500,
+            95000
+          )
+      })
+    );
+
+  bots.push({
+    name:
+      profile.playerName
+      ||"You",
+
+    level:
+      profile.level,
+
+    instrument:
+      battleData.equipped,
+
+    xp:
+      profile.totalXpEarned,
+
+    you:true
+  });
+
+  bots.sort(
+    (a,b)=>
+      b.xp-a.xp
+  );
+
+  const rank=
+    bots.findIndex(
+      x=>x.you
+    )+1;
+
+  $("#yourRank").textContent=
+    `#${rank}`;
+
+  $("#podium").innerHTML=
+    [1,0,2]
+    .map(
+      i=>{
+
+        const p=
+          bots[i];
+
+        return`
+        <div class="podium-card">
+
+          <div>
+            ${
+              i===0
+                ?"🥇"
+
+                :i===1
+                ?"🥈"
+
+                :"🥉"
+            }
+          </div>
+
+          <strong>
+            ${p.name}
+          </strong>
+
+          <p>
+            ${p.instrument}
+          </p>
+
+          <b>
+            ${p.xp.toLocaleString()} EXP
+          </b>
+
+        </div>
+        `;
+      }
+    ).join("");
+
+  $("#leaderboardBody").innerHTML=
+    bots.slice(
+      0,
+      100
+    )
+    .map(
+      (p,i)=>`
+      <tr
+        class="${
+          p.you
+            ?"you"
+            :""
+        }"
+      >
+
+        <td>
+          #${i+1}
+        </td>
+
+        <td>
+          ${p.name}
+        </td>
+
+        <td>
+          ${p.level}
+        </td>
+
+        <td>
+          ${p.instrument}
+        </td>
+
+        <td>
+          ${p.xp.toLocaleString()}
+        </td>
+
+      </tr>
+      `
+    ).join("");
+}
+
+/* ===========================
+   QUIZ
+=========================== */
+
+const quiz=[
+  [
+    "Which family does the trumpet belong to?",
+    [
+      "Brass",
+      "Strings",
+      "Keys",
+      "Percussion"
+    ],
+    0
+  ],
+
+  [
+    "Which instrument normally uses a bow?",
+    [
+      "Violin",
+      "Trumpet",
+      "Flute",
+      "Bongos"
+    ],
+    0
+  ],
+
+  [
+    "Which is percussion?",
+    [
+      "Timpani",
+      "Oboe",
+      "Tuba",
+      "Sitar"
+    ],
+    0
+  ],
+
+  [
+    "Which uses keys and bellows?",
+    [
+      "Accordion",
+      "Cello",
+      "Cornet",
+      "Recorder"
+    ],
+    0
+  ],
+
+  [
+    "Which is woodwind?",
+    [
+      "Clarinet",
+      "Trombone",
+      "Bass Guitar",
+      "Organ"
+    ],
+    0
+  ],
+
+  [
+    "Which is mainly plucked?",
+    [
+      "Harp",
+      "Trumpet",
+      "Timpani",
+      "Flute"
+    ],
+    0
+  ],
+
+  [
+    "Which uses drumsticks?",
+    [
+      "Drums",
+      "Violin",
+      "Oboe",
+      "French Horn"
+    ],
+    0
+  ],
+
+  [
+    "Which has a slide?",
+    [
+      "Trombone",
+      "Trumpet",
+      "Clarinet",
+      "Saxophone"
+    ],
+    0
+  ],
+
+  [
+    "Which is a keyboard instrument?",
+    [
+      "Harpsichord",
+      "Cello",
+      "Bassoon",
+      "Tambourine"
+    ],
+    0
+  ],
+
+  [
+    "Which world instrument is bowed?",
+    [
+      "Erhu",
+      "Guzheng",
+      "Kalimba",
+      "Pipa"
+    ],
+    0
+  ]
+];
+
+let qi=0;
+let qs=0;
+let answered=false;
+
+function renderQuiz(){
+
+  const q=
+    quiz[qi];
+
+  $("#quizScore").textContent=
+    `${qs} / ${quiz.length}`;
+
+  $("#quizCard").innerHTML=
+    `
+    <p class="eyebrow">
+      QUESTION ${qi+1}
+      OF ${quiz.length}
+    </p>
+
+    <h3>
+      ${q[0]}
+    </h3>
+
+    <div class="quiz-options">
+
+      ${
+        q[1].map(
+          (o,i)=>`
+          <button
+            class="quiz-option"
+            data-q="${i}"
+          >
+            ${o}
+          </button>
+          `
+        ).join("")
+      }
+
+    </div>
+    `;
+
+  $$("[data-q]")
+  .forEach(
+    b=>b.onclick=()=>
+      answerQuiz(
+        +b.dataset.q
+      )
+  );
+}
+
+function answerQuiz(i){
+
+  if(answered)
+    return;
+
+  answered=true;
+
+  const q=
+    quiz[qi];
+
+  const bs=
+    $$("[data-q]");
+
+  bs[q[2]]
+    .classList
+    .add("correct");
+
+  if(
+    i===q[2]
+  ){
+
+    qs++;
+
+    addXP(5);
+    addCoins(5);
+
+  }else{
+
+    bs[i]
+      .classList
+      .add("wrong");
+  }
+
+  setTimeout(
+    ()=>{
+
+      qi++;
+      answered=false;
+
+      if(
+        qi>=quiz.length
+      ){
+
+        $("#quizCard").innerHTML=
+          `
+          <h3>
+            Quiz complete!
+          </h3>
+
+          <p>
+            You scored
+            ${qs}/${quiz.length}.
+          </p>
+
+          <button
+            id="restartQuiz"
+            class="btn primary"
+          >
+            Play again
+          </button>
+          `;
+
+        $("#restartQuiz").onclick=
+          ()=>{
+
+            qi=0;
+            qs=0;
+
+            renderQuiz();
+          };
+
+      }else{
+
+        renderQuiz();
+      }
+    },
+    700
+  );
+}
+
+/* ===========================
+   WIRING
+=========================== */
+
+$("#instrumentSearch").oninput=
+  renderInstruments;
+
+$("#battleInstrumentSelect").onchange=
+  e=>{
+
+    battleData.equipped=
+      e.target.value;
+
+    persist();
+
+    renderInstruments();
+
+    refreshBattle(true);
+
+    renderInventory();
+  };
+
+$("#newOpponentBtn").onclick=
+  ()=>refreshBattle(true);
+
+$$("#battleModeTabs .mode-btn")
+.forEach(
+  b=>b.onclick=()=>
+    setBattleMode(
+      b.dataset.mode
+    )
+);
+
+$$(".mp-start")
+.forEach(
+  b=>b.onclick=()=>
+    openLobby(
+      +b.dataset.team
+    )
+);
+
+$("#closeLobby").onclick=
+  ()=>
+    $("#teamLobby")
+    .classList
+    .add("hidden");
+
+$("#createRoomBtn").onclick=
+  ()=>{
+
+    $("#roomCode").textContent=
+      `MV-${rand(
+        100000,
+        999999
+      )}`;
+
+    toast(
+      "Local room code created. Real invites need backend connection."
+    );
+  };
+
+$$(".gacha-tab")
+.forEach(
+  b=>b.onclick=()=>{
+
+    activeGacha=
+      b.dataset.gacha;
+
+    $$(".gacha-tab")
+    .forEach(
+      x=>
+        x.classList.toggle(
+          "active",
+          x===b
+        )
+    );
+
+    updateGachaUI();
+  }
+);
+
+$("#rollOneBtn").onclick=
+  ()=>rollGacha(1);
+
+$("#rollTenBtn").onclick=
+  ()=>rollGacha(10);
+
+$("#inventoryFilter").onchange=
+  renderInventory;
+
+/* ===========================
+   START GAME
+=========================== */
+
+setupProfile();
+
+updateProfileUI();
+
+renderFamilies();
+
+renderInstruments();
+
+refreshBattle(true);
+
+renderInventory();
+
+drawCraft();
 
 renderLeaderboard();
 
-loadQuestion();
+renderQuiz();
 
-updateDisplays();
+window.addEventListener(
+  "resize",
+  ()=>{
+
+    if(renderer)
+      renderBattleScene();
+  }
+);
