@@ -16077,3 +16077,6 @@ if (
   claimDailyBtn.onclick =
     claimDailyReward;
 }
+  <script src="./script.js"></script>
+</body>
+</html>
