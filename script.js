@@ -1,99 +1,74 @@
-/* ============================
+/* =========================================================
    CORE HELPERS
-============================ */
+========================================================= */
 
 const $ = s =>
   document.querySelector(s);
 
 const $$ = s =>
-  [
-    ...document.querySelectorAll(s)
-  ];
+  [...document.querySelectorAll(s)];
 
 const rand = (a, b) =>
   Math.floor(
-    Math.random() *
-    (
-      b - a + 1
-    )
+    Math.random() * (b - a + 1)
   ) + a;
 
 const pick = a =>
   a[
     Math.floor(
-      Math.random() *
-      a.length
+      Math.random() * a.length
     )
   ];
 
 const clamp = (n, a, b) =>
   Math.max(
     a,
-    Math.min(
-      b,
-      n
-    )
+    Math.min(b, n)
   );
 
 const wait = ms =>
   new Promise(
-    r =>
-      setTimeout(
-        r,
-        ms
-      )
+    resolve =>
+      setTimeout(resolve, ms)
   );
 
 
-/* ============================
+/* =========================================================
    SAVE / LOAD
-============================ */
+========================================================= */
 
-function save(
-  k,
-  v
-) {
+function save(key, value) {
 
   localStorage.setItem(
-    k,
-    JSON.stringify(
-      v
-    )
+    key,
+    JSON.stringify(value)
   );
 }
 
 
-function load(
-  k,
-  f
-) {
+function load(key, fallback) {
 
   try {
 
-    const v =
-      localStorage.getItem(
-        k
-      );
+    const value =
+      localStorage.getItem(key);
 
-
-    return v
-      ? JSON.parse(
-          v
-        )
-      : f;
+    return value
+      ? JSON.parse(value)
+      : fallback;
 
   }
 
   catch {
 
-    return f;
+    return fallback;
   }
 }
 
 
-/* ============================
+/* =========================================================
    SOUND ENGINE
-============================ */
+========================================================= */
 
 const SoundEngine = {
 
@@ -101,45 +76,38 @@ const SoundEngine = {
 
   master: null,
 
-  sfxVolume: .6,
+  sfxVolume: 0.6,
 
   enabled: true,
 
 
   init() {
 
-    if (
-      this.context
-    ) {
-
+    if (this.context) {
       return;
     }
 
 
-    const A =
+    const AudioContextClass =
       window.AudioContext ||
       window.webkitAudioContext;
 
 
-    if (
-      !A
-    ) {
-
+    if (!AudioContextClass) {
       return;
     }
 
 
     this.context =
-      new A();
+      new AudioContextClass();
 
 
     this.master =
-      this.context
-      .createGain();
+      this.context.createGain();
 
 
     this.master.gain.value =
-      .7;
+      0.7;
 
 
     this.master.connect(
@@ -155,7 +123,7 @@ const SoundEngine = {
 
     if (
       this.context?.state ===
-      'suspended'
+      "suspended"
     ) {
 
       this.context.resume();
@@ -164,17 +132,14 @@ const SoundEngine = {
 
 
   tone(
-    f = 440,
-    d = .15,
-    t = 'sine',
-    v = .18,
+    frequency = 440,
+    duration = 0.15,
+    type = "sine",
+    volume = 0.18,
     delay = 0
   ) {
 
-    if (
-      !this.enabled
-    ) {
-
+    if (!this.enabled) {
       return;
     }
 
@@ -182,10 +147,7 @@ const SoundEngine = {
     this.resume();
 
 
-    if (
-      !this.context
-    ) {
-
+    if (!this.context) {
       return;
     }
 
@@ -195,115 +157,88 @@ const SoundEngine = {
       delay;
 
 
-    const o =
-      this.context
-      .createOscillator();
+    const oscillator =
+      this.context.createOscillator();
 
 
-    const g =
-      this.context
-      .createGain();
+    const gain =
+      this.context.createGain();
 
 
-    o.type =
-      t;
+    oscillator.type =
+      type;
 
 
-    o.frequency.setValueAtTime(
-      f,
+    oscillator.frequency.setValueAtTime(
+      frequency,
       now
     );
 
 
-    g.gain.setValueAtTime(
-      .0001,
+    gain.gain.setValueAtTime(
+      0.0001,
       now
     );
 
 
-    g.gain.exponentialRampToValueAtTime(
-
+    gain.gain.exponentialRampToValueAtTime(
       Math.max(
-        .001,
-        v *
-        this.sfxVolume
+        0.001,
+        volume * this.sfxVolume
       ),
+      now + 0.015
+    );
 
+
+    gain.gain.exponentialRampToValueAtTime(
+      0.0001,
+      now + duration
+    );
+
+
+    oscillator.connect(gain);
+
+    gain.connect(this.master);
+
+
+    oscillator.start(now);
+
+    oscillator.stop(
       now +
-      .015
-    );
-
-
-    g.gain.exponentialRampToValueAtTime(
-
-      .0001,
-
-      now +
-      d
-    );
-
-
-    o.connect(
-      g
-    );
-
-
-    g.connect(
-      this.master
-    );
-
-
-    o.start(
-      now
-    );
-
-
-    o.stop(
-      now +
-      d +
-      .04
+      duration +
+      0.04
     );
   },
 
 
   chord(
     notes,
-    d = .3,
-    t = 'sine',
-    v = .12
+    duration = 0.3,
+    type = "sine",
+    volume = 0.12
   ) {
 
     notes.forEach(
-      (
-        n,
-        i
-      ) =>
+      (note, index) => {
+
         this.tone(
-
-          n,
-
-          d,
-
-          t,
-
-          v,
-
-          i *
-          .025
-        )
+          note,
+          duration,
+          type,
+          volume,
+          index * 0.025
+        );
+      }
     );
   },
 
 
   noise(
-    d = .15,
-    v = .12
+    duration = 0.15,
+    volume = 0.12
   ) {
 
-    if (
-      !this.enabled
-    ) {
-
+    if (!this.enabled) {
       return;
     }
 
@@ -311,98 +246,77 @@ const SoundEngine = {
     this.resume();
 
 
-    const c =
+    const context =
       this.context;
 
 
-    if (
-      !c
-    ) {
-
+    if (!context) {
       return;
     }
 
 
-    const b =
-      c.createBuffer(
-
+    const buffer =
+      context.createBuffer(
         1,
-
-        c.sampleRate *
-        d,
-
-        c.sampleRate
+        context.sampleRate *
+          duration,
+        context.sampleRate
       );
 
 
     const data =
-      b.getChannelData(
-        0
-      );
+      buffer.getChannelData(0);
 
 
     for (
       let i = 0;
-      i <
-      data.length;
+      i < data.length;
       i++
     ) {
 
       data[i] =
-        Math.random() *
-        2 -
-        1;
+        Math.random() * 2 - 1;
     }
 
 
-    const s =
-      c.createBufferSource();
+    const source =
+      context.createBufferSource();
 
 
-    const g =
-      c.createGain();
+    const gain =
+      context.createGain();
 
 
-    s.buffer =
-      b;
+    source.buffer =
+      buffer;
 
 
-    g.gain.setValueAtTime(
-
-      v *
-      this.sfxVolume,
-
-      c.currentTime
+    gain.gain.setValueAtTime(
+      volume * this.sfxVolume,
+      context.currentTime
     );
 
 
-    g.gain.exponentialRampToValueAtTime(
-
-      .0001,
-
-      c.currentTime +
-      d
+    gain.gain.exponentialRampToValueAtTime(
+      0.0001,
+      context.currentTime +
+        duration
     );
 
 
-    s.connect(
-      g
-    );
+    source.connect(gain);
+
+    gain.connect(this.master);
 
 
-    g.connect(
-      this.master
-    );
-
-
-    s.start();
+    source.start();
   }
 };
 
 
-/* ============================
+/* =========================================================
    SOUND EFFECTS
-============================ */
+========================================================= */
 
 const S = {
 
@@ -410,9 +324,9 @@ const S = {
 
     SoundEngine.tone(
       620,
-      .07,
-      'sine',
-      .12
+      0.07,
+      "sine",
+      0.12
     );
   },
 
@@ -421,18 +335,18 @@ const S = {
 
     SoundEngine.tone(
       880,
-      .08,
-      'square',
-      .11
+      0.08,
+      "square",
+      0.11
     );
 
 
     SoundEngine.tone(
       1320,
-      .12,
-      'square',
-      .08,
-      .07
+      0.12,
+      "square",
+      0.08,
+      0.07
     );
   },
 
@@ -441,27 +355,27 @@ const S = {
 
     SoundEngine.tone(
       523,
-      .09,
-      'sine',
-      .08
+      0.09,
+      "sine",
+      0.08
     );
 
 
     SoundEngine.tone(
       659,
-      .1,
-      'sine',
-      .08,
-      .06
+      0.1,
+      "sine",
+      0.08,
+      0.06
     );
 
 
     SoundEngine.tone(
       784,
-      .14,
-      'sine',
-      .09,
-      .12
+      0.14,
+      "sine",
+      0.09,
+      0.12
     );
   },
 
@@ -469,32 +383,23 @@ const S = {
   level() {
 
     SoundEngine.chord(
-
       [
         523,
         659,
         784
       ],
-
-      .3,
-
-      'triangle',
-
-      .12
+      0.3,
+      "triangle",
+      0.12
     );
 
 
     SoundEngine.tone(
-
       1046,
-
-      .5,
-
-      'sine',
-
-      .14,
-
-      .24
+      0.5,
+      "sine",
+      0.14,
+      0.24
     );
   },
 
@@ -502,28 +407,19 @@ const S = {
   attack() {
 
     SoundEngine.tone(
-
       180,
-
-      .12,
-
-      'sawtooth',
-
-      .13
+      0.12,
+      "sawtooth",
+      0.13
     );
 
 
     SoundEngine.tone(
-
       260,
-
-      .15,
-
-      'square',
-
-      .06,
-
-      .04
+      0.15,
+      "square",
+      0.06,
+      0.04
     );
   },
 
@@ -532,27 +428,27 @@ const S = {
 
     SoundEngine.tone(
       880,
-      .1,
-      'square',
-      .14
+      0.1,
+      "square",
+      0.14
     );
 
 
     SoundEngine.tone(
       1174,
-      .16,
-      'square',
-      .12,
-      .06
+      0.16,
+      "square",
+      0.12,
+      0.06
     );
 
 
     SoundEngine.tone(
       1568,
-      .25,
-      'sine',
-      .12,
-      .12
+      0.25,
+      "sine",
+      0.12,
+      0.12
     );
   },
 
@@ -565,25 +461,17 @@ const S = {
       440,
       660,
       880
-    ]
-    .forEach(
-      (
-        n,
-        i
-      ) =>
+    ].forEach(
+      (note, index) => {
+
         SoundEngine.tone(
-
-          n,
-
-          .32,
-
-          'sawtooth',
-
-          .1,
-
-          i *
-          .08
-        )
+          note,
+          0.32,
+          "sawtooth",
+          0.1,
+          index * 0.08
+        );
+      }
     );
   },
 
@@ -591,18 +479,14 @@ const S = {
   shield() {
 
     SoundEngine.chord(
-
       [
         440,
         554,
         659
       ],
-
-      .4,
-
-      'sine',
-
-      .08
+      0.4,
+      "sine",
+      0.08
     );
   },
 
@@ -614,25 +498,17 @@ const S = {
       659,
       784,
       1046
-    ]
-    .forEach(
-      (
-        n,
-        i
-      ) =>
+    ].forEach(
+      (note, index) => {
+
         SoundEngine.tone(
-
-          n,
-
-          .2,
-
-          'sine',
-
-          .08,
-
-          i *
-          .07
-        )
+          note,
+          0.2,
+          "sine",
+          0.08,
+          index * 0.07
+        );
+      }
     );
   },
 
@@ -641,18 +517,18 @@ const S = {
 
     SoundEngine.tone(
       1046,
-      .11,
-      'sine',
-      .14
+      0.11,
+      "sine",
+      0.14
     );
 
 
     SoundEngine.tone(
       1568,
-      .14,
-      'sine',
-      .09,
-      .05
+      0.14,
+      "sine",
+      0.09,
+      0.05
     );
   },
 
@@ -661,9 +537,9 @@ const S = {
 
     SoundEngine.tone(
       880,
-      .1,
-      'triangle',
-      .1
+      0.1,
+      "triangle",
+      0.1
     );
   },
 
@@ -672,9 +548,9 @@ const S = {
 
     SoundEngine.tone(
       660,
-      .09,
-      'triangle',
-      .07
+      0.09,
+      "triangle",
+      0.07
     );
   },
 
@@ -683,9 +559,9 @@ const S = {
 
     SoundEngine.tone(
       150,
-      .16,
-      'sawtooth',
-      .07
+      0.16,
+      "sawtooth",
+      0.07
     );
   },
 
@@ -694,18 +570,18 @@ const S = {
 
     SoundEngine.tone(
       660,
-      .1,
-      'sine',
-      .11
+      0.1,
+      "sine",
+      0.11
     );
 
 
     SoundEngine.tone(
       990,
-      .16,
-      'sine',
-      .1,
-      .08
+      0.16,
+      "sine",
+      0.1,
+      0.08
     );
   },
 
@@ -714,18 +590,18 @@ const S = {
 
     SoundEngine.tone(
       220,
-      .18,
-      'square',
-      .07
+      0.18,
+      "square",
+      0.07
     );
 
 
     SoundEngine.tone(
       165,
-      .22,
-      'square',
-      .06,
-      .09
+      0.22,
+      "square",
+      0.06,
+      0.09
     );
   },
 
@@ -737,25 +613,17 @@ const S = {
       659,
       784,
       1046
-    ]
-    .forEach(
-      (
-        n,
-        i
-      ) =>
+    ].forEach(
+      (note, index) => {
+
         SoundEngine.tone(
-
-          n,
-
-          .35,
-
-          'triangle',
-
-          .11,
-
-          i *
-          .13
-        )
+          note,
+          0.35,
+          "triangle",
+          0.11,
+          index * 0.13
+        );
+      }
     );
   },
 
@@ -767,25 +635,17 @@ const S = {
       330,
       262,
       196
-    ]
-    .forEach(
-      (
-        n,
-        i
-      ) =>
+    ].forEach(
+      (note, index) => {
+
         SoundEngine.tone(
-
-          n,
-
-          .3,
-
-          'triangle',
-
-          .07,
-
-          i *
-          .14
-        )
+          note,
+          0.3,
+          "triangle",
+          0.07,
+          index * 0.14
+        );
+      }
     );
   },
 
@@ -794,18 +654,18 @@ const S = {
 
     SoundEngine.tone(
       280,
-      .1,
-      'square',
-      .06
+      0.1,
+      "square",
+      0.06
     );
 
 
     SoundEngine.tone(
       560,
-      .1,
-      'square',
-      .04,
-      .06
+      0.1,
+      "square",
+      0.04,
+      0.06
     );
   },
 
@@ -813,16 +673,16 @@ const S = {
   mine() {
 
     SoundEngine.noise(
-      .07,
-      .09
+      0.07,
+      0.09
     );
 
 
     SoundEngine.tone(
       110,
-      .07,
-      'square',
-      .05
+      0.07,
+      "square",
+      0.05
     );
   },
 
@@ -834,25 +694,17 @@ const S = {
       988,
       1174,
       1568
-    ]
-    .forEach(
-      (
-        n,
-        i
-      ) =>
+    ].forEach(
+      (note, index) => {
+
         SoundEngine.tone(
-
-          n,
-
-          .2,
-
-          'sine',
-
-          .09,
-
-          i *
-          .07
-        )
+          note,
+          0.2,
+          "sine",
+          0.09,
+          index * 0.07
+        );
+      }
     );
   },
 
@@ -861,2626 +713,1188 @@ const S = {
 
     for (
       let i = 0;
-      i <
-      7;
+      i < 7;
       i++
     ) {
 
       SoundEngine.tone(
-
-        300 +
-        i *
-        100,
-
-        .16,
-
-        'triangle',
-
-        .07,
-
-        i *
-        .08
+        300 + i * 100,
+        0.16,
+        "triangle",
+        0.07,
+        i * 0.08
       );
     }
   }
 };
 
 
-/* ============================
+/* =========================================================
    CROWD SOUND
-============================ */
+========================================================= */
 
 function crowd(
-  strength = .5
+  strength = 0.5
 ) {
 
   for (
     let i = 0;
-
-    i <
-    6 +
-    strength *
-    8;
-
+    i < 6 + strength * 8;
     i++
   ) {
 
     setTimeout(
+      () => {
 
-      () =>
         SoundEngine.noise(
+          rand(15, 35) / 100,
+          0.015 +
+            Math.random() *
+            0.02
+        );
+      },
 
-          rand(
-            15,
-            35
-          ) /
-          100,
-
-          .015 +
-          Math.random() *
-          .02
-        ),
-
-      Math.random() *
-      500
+      Math.random() * 500
     );
   }
 }
 
 
-/* ============================
-   ENABLE AUDIO AFTER CLICK
-============================ */
+/* =========================================================
+   ENABLE AUDIO AFTER FIRST INTERACTION
+========================================================= */
 
 document.addEventListener(
-
-  'pointerdown',
-
+  "pointerdown",
   () =>
     SoundEngine.resume(),
-
   {
     once: true
   }
 );
 
 
-/* ============================
+/* =========================================================
    SOUND TOGGLE
-============================ */
+========================================================= */
 
-$('#soundToggle')
-.onclick =
-  () => {
-
-    SoundEngine.enabled =
-      !SoundEngine.enabled;
+const soundToggle =
+  $("#soundToggle");
 
 
-    $('#soundToggle')
-    .textContent =
+if (soundToggle) {
 
-      SoundEngine.enabled
-        ? '🔊'
-        : '🔇';
+  soundToggle.onclick =
+    () => {
 
-
-    if (
-      SoundEngine.enabled
-    ) {
-
-      S.click();
-    }
-  };
+      SoundEngine.enabled =
+        !SoundEngine.enabled;
 
 
-/* ============================
+      soundToggle.textContent =
+        SoundEngine.enabled
+          ? "🔊"
+          : "🔇";
+
+
+      if (
+        SoundEngine.enabled
+      ) {
+
+        S.click();
+      }
+    };
+}
+
+
+/* =========================================================
    INSTRUMENT DATA
-============================ */
+========================================================= */
 
 const instruments = [
 
   [
-    'Guitar',
-    'Strings',
-    '🎸',
+    "Guitar",
+    "Strings",
+    "🎸",
     78,
     58,
     72,
     76,
-    'strum'
+    "strum"
   ],
 
   [
-    'Ukulele',
-    'Strings',
-    '🪕',
+    "Ukulele",
+    "Strings",
+    "🪕",
     86,
     38,
     70,
     82,
-    'strum'
+    "strum"
   ],
 
   [
-    'Piano',
-    'Keys',
-    '🎹',
+    "Piano",
+    "Keys",
+    "🎹",
     62,
     88,
     92,
     70,
-    'keys'
+    "keys"
   ],
 
   [
-    'Flute',
-    'Woodwind',
-    '🪈',
+    "Flute",
+    "Woodwind",
+    "🪈",
     58,
     48,
     96,
     82,
-    'wind'
+    "wind"
   ],
 
   [
-    'Drums',
-    'Percussion',
-    '🥁',
+    "Drums",
+    "Percussion",
+    "🥁",
     92,
     72,
     38,
     96,
-    'drums'
+    "drums"
   ],
 
   [
-    'Clarinet',
-    'Woodwind',
-    '🎶',
+    "Clarinet",
+    "Woodwind",
+    "🎶",
     60,
     64,
     88,
     72,
-    'wind'
+    "wind"
   ],
 
   [
-    'Trumpet',
-    'Brass',
-    '🎺',
+    "Trumpet",
+    "Brass",
+    "🎺",
     88,
     54,
     68,
     74,
-    'brass'
+    "brass"
   ],
 
   [
-    'Violin',
-    'Strings',
-    '🎻',
+    "Violin",
+    "Strings",
+    "🎻",
     72,
     52,
     98,
     84,
-    'bow'
+    "bow"
   ],
 
   [
-    'Saxophone',
-    'Woodwind',
-    '🎷',
+    "Saxophone",
+    "Woodwind",
+    "🎷",
     76,
     62,
     88,
     78,
-    'wind'
+    "wind"
   ],
 
   [
-    'Cello',
-    'Strings',
-    '🎻',
+    "Cello",
+    "Strings",
+    "🎻",
     70,
     84,
     94,
     58,
-    'bow'
+    "bow"
   ],
 
   [
-    'Xylophone',
-    'Percussion',
-    '🔔',
+    "Xylophone",
+    "Percussion",
+    "🔔",
     68,
     50,
     76,
     92,
-    'mallet'
+    "mallet"
   ],
 
   [
-    'Trombone',
-    'Brass',
-    '🎺',
+    "Trombone",
+    "Brass",
+    "🎺",
     84,
     70,
     62,
     64,
-    'brass'
+    "brass"
   ],
 
   [
-    'Synthesizer',
-    'Keys',
-    '🎛️',
+    "Synthesizer",
+    "Keys",
+    "🎛️",
     74,
     58,
     90,
     86,
-    'keys'
+    "keys"
   ],
 
   [
-    'French Horn',
-    'Brass',
-    '📯',
+    "French Horn",
+    "Brass",
+    "📯",
     72,
     82,
     86,
     58,
-    'brass'
+    "brass"
   ],
 
   [
-    'Oboe',
-    'Woodwind',
-    '🎼',
+    "Oboe",
+    "Woodwind",
+    "🎼",
     64,
     56,
     94,
     68,
-    'wind'
+    "wind"
   ],
 
   [
-    'Digital Piano',
-    'Keys',
-    '🎹',
+    "Digital Piano",
+    "Keys",
+    "🎹",
     68,
     78,
     88,
     78,
-    'keys'
+    "keys"
   ],
 
   [
-    'Organ',
-    'Keys',
-    '🎹',
+    "Organ",
+    "Keys",
+    "🎹",
     76,
     92,
     90,
     48,
-    'keys'
+    "keys"
   ],
 
   [
-    'Drum Machine',
-    'Percussion',
-    '🎛️',
+    "Drum Machine",
+    "Percussion",
+    "🎛️",
     82,
     54,
     58,
     100,
-    'pads'
+    "pads"
   ],
 
   [
-    'Electric Guitar',
-    'Strings',
-    '🎸',
+    "Electric Guitar",
+    "Strings",
+    "🎸",
     94,
     48,
     68,
     88,
-    'strum'
+    "strum"
   ],
 
   [
-    'Bass Guitar',
-    'Strings',
-    '🎸',
+    "Bass Guitar",
+    "Strings",
+    "🎸",
     86,
     76,
     54,
     90,
-    'pluck'
+    "pluck"
   ],
 
   [
-    'Harp',
-    'Strings',
-    '🪕',
+    "Harp",
+    "Strings",
+    "🪕",
     52,
     64,
     100,
     72,
-    'pluck'
+    "pluck"
   ],
 
   [
-    'Banjo',
-    'Strings',
-    '🪕',
+    "Banjo",
+    "Strings",
+    "🪕",
     82,
     44,
     64,
     94,
-    'pluck'
+    "pluck"
   ],
 
   [
-    'Mandolin',
-    'Strings',
-    '🪕',
+    "Mandolin",
+    "Strings",
+    "🪕",
     80,
     46,
     78,
     90,
-    'pluck'
+    "pluck"
   ],
 
   [
-    'Double Bass',
-    'Strings',
-    '🎻',
+    "Double Bass",
+    "Strings",
+    "🎻",
     82,
     90,
     72,
     54,
-    'bow'
+    "bow"
   ],
 
   [
-    'Accordion',
-    'Keys',
-    '🪗',
+    "Accordion",
+    "Keys",
+    "🪗",
     72,
     74,
     82,
     78,
-    'bellows'
+    "bellows"
   ],
 
   [
-    'Keytar',
-    'Keys',
-    '🎹',
+    "Keytar",
+    "Keys",
+    "🎹",
     86,
     46,
     76,
     92,
-    'keys'
+    "keys"
   ],
 
   [
-    'Harpsichord',
-    'Keys',
-    '🎹',
+    "Harpsichord",
+    "Keys",
+    "🎹",
     70,
     60,
     92,
     80,
-    'keys'
+    "keys"
   ],
 
   [
-    'Marimba',
-    'Percussion',
-    '🔔',
+    "Marimba",
+    "Percussion",
+    "🔔",
     66,
     58,
     84,
     94,
-    'mallet'
+    "mallet"
   ],
 
   [
-    'Timpani',
-    'Percussion',
-    '🥁',
+    "Timpani",
+    "Percussion",
+    "🥁",
     90,
     86,
     42,
     72,
-    'drums'
+    "drums"
   ],
 
   [
-    'Bongos',
-    'Percussion',
-    '🥁',
+    "Bongos",
+    "Percussion",
+    "🥁",
     78,
     42,
     54,
     98,
-    'drums'
+    "drums"
   ],
 
   [
-    'Congas',
-    'Percussion',
-    '🥁',
+    "Congas",
+    "Percussion",
+    "🥁",
     82,
     58,
     50,
     94,
-    'drums'
+    "drums"
   ],
 
   [
-    'Tambourine',
-    'Percussion',
-    '🪘',
+    "Tambourine",
+    "Percussion",
+    "🪘",
     70,
     34,
     58,
     100,
-    'shake'
+    "shake"
   ],
 
   [
-    'Steel Pan',
-    'Percussion',
-    '🛢️',
+    "Steel Pan",
+    "Percussion",
+    "🛢️",
     68,
     56,
     86,
     88,
-    'mallet'
+    "mallet"
   ],
 
   [
-    'Tuba',
-    'Brass',
-    '🎺',
+    "Tuba",
+    "Brass",
+    "🎺",
     90,
     94,
     54,
     38,
-    'brass'
+    "brass"
   ],
 
   [
-    'Euphonium',
-    'Brass',
-    '🎺',
+    "Euphonium",
+    "Brass",
+    "🎺",
     76,
     84,
     78,
     54,
-    'brass'
+    "brass"
   ],
 
   [
-    'Cornet',
-    'Brass',
-    '🎺',
+    "Cornet",
+    "Brass",
+    "🎺",
     84,
     58,
     74,
     76,
-    'brass'
+    "brass"
   ],
 
   [
-    'Piccolo',
-    'Woodwind',
-    '🪈',
+    "Piccolo",
+    "Woodwind",
+    "🪈",
     66,
     32,
     96,
     92,
-    'wind'
+    "wind"
   ],
 
   [
-    'Bassoon',
-    'Woodwind',
-    '🎼',
+    "Bassoon",
+    "Woodwind",
+    "🎼",
     68,
     86,
     84,
     48,
-    'wind'
+    "wind"
   ],
 
   [
-    'Recorder',
-    'Woodwind',
-    '🪈',
+    "Recorder",
+    "Woodwind",
+    "🪈",
     70,
     44,
     78,
     84,
-    'wind'
+    "wind"
   ],
 
   [
-    'Erhu',
-    'World',
-    '🎻',
+    "Erhu",
+    "World",
+    "🎻",
     74,
     54,
     98,
     82,
-    'bow'
+    "bow"
   ],
 
   [
-    'Guzheng',
-    'World',
-    '🎶',
+    "Guzheng",
+    "World",
+    "🎶",
     78,
     62,
     96,
     88,
-    'pluck'
+    "pluck"
   ],
 
   [
-    'Pipa',
-    'World',
-    '🪕',
+    "Pipa",
+    "World",
+    "🪕",
     84,
     50,
     88,
     92,
-    'pluck'
+    "pluck"
   ],
 
   [
-    'Kalimba',
-    'World',
-    '🎵',
+    "Kalimba",
+    "World",
+    "🎵",
     58,
     60,
     90,
     86,
-    'pluck'
+    "pluck"
   ],
 
   [
-    'Sitar',
-    'World',
-    '🪕',
+    "Sitar",
+    "World",
+    "🪕",
     76,
     64,
     96,
     80,
-    'pluck'
+    "pluck"
   ],
 
   [
-    'Shamisen',
-    'World',
-    '🪕',
+    "Shamisen",
+    "World",
+    "🪕",
     88,
     48,
     74,
     92,
-    'pluck'
+    "pluck"
   ]
 
-]
-.map(
-  (
-    x,
-    i
-  ) => ({
+].map(
+  (instrument, index) => ({
 
     name:
-      x[0],
+      instrument[0],
 
     family:
-      x[1],
+      instrument[1],
 
     icon:
-      x[2],
+      instrument[2],
 
     attack:
-      x[3],
+      instrument[3],
 
     defense:
-      x[4],
+      instrument[4],
 
     melody:
-      x[5],
+      instrument[5],
 
     rhythm:
-      x[6],
+      instrument[6],
 
     play:
-      x[7],
+      instrument[7],
 
     price:
-      i === 0
+      index === 0
         ? 0
-        : 220 +
-          i *
-          95
+        : 220 + index * 95
   })
 );
 
 
-/* ============================
+/* =========================================================
    GET INSTRUMENT
-============================ */
+========================================================= */
 
 const getInstrument =
-  n =>
+  name =>
     instruments.find(
-      i =>
-        i.name === n
+      instrument =>
+        instrument.name === name
     ) ||
     instruments[0];
-/* ============================
+/* =========================================================
    FALLBACK MOVE SETS
-============================ */
+========================================================= */
 
 const moveSets = {
 
   strum: [
-
-    [
-      'Power Strum',
-      'attack',
-      1
-    ],
-
-    [
-      'Rapid Riff',
-      'rhythm',
-      .9
-    ],
-
-    [
-      'Harmony Guard',
-      'shield',
-      0
-    ],
-
-    [
-      'Dragon Solo',
-      'ultimate',
-      1.8
-    ]
+    ["Power Strum", "attack", 1],
+    ["Rapid Riff", "rhythm", 0.9],
+    ["Harmony Guard", "shield", 0],
+    ["Dragon Solo", "ultimate", 1.8]
   ],
-
 
   keys: [
-
-    [
-      'Power Chord',
-      'attack',
-      1
-    ],
-
-    [
-      'Rapid Keys',
-      'rhythm',
-      .9
-    ],
-
-    [
-      'Sustain Shield',
-      'shield',
-      0
-    ],
-
-    [
-      'Grand Crescendo',
-      'ultimate',
-      1.8
-    ]
+    ["Power Chord", "attack", 1],
+    ["Rapid Keys", "rhythm", 0.9],
+    ["Sustain Shield", "shield", 0],
+    ["Grand Crescendo", "ultimate", 1.8]
   ],
-
 
   drums: [
-
-    [
-      'Power Beat',
-      'attack',
-      1
-    ],
-
-    [
-      'Drum Roll',
-      'rhythm',
-      .95
-    ],
-
-    [
-      'Rhythm Barrier',
-      'shield',
-      0
-    ],
-
-    [
-      'Thunder Beat',
-      'ultimate',
-      1.85
-    ]
+    ["Power Beat", "attack", 1],
+    ["Drum Roll", "rhythm", 0.95],
+    ["Rhythm Barrier", "shield", 0],
+    ["Thunder Beat", "ultimate", 1.85]
   ],
-
 
   wind: [
-
-    [
-      'Focused Note',
-      'attack',
-      1
-    ],
-
-    [
-      'Rapid Scale',
-      'rhythm',
-      .9
-    ],
-
-    [
-      'Breath Heal',
-      'heal',
-      0
-    ],
-
-    [
-      'Cyclone Symphony',
-      'ultimate',
-      1.8
-    ]
+    ["Focused Note", "attack", 1],
+    ["Rapid Scale", "rhythm", 0.9],
+    ["Breath Heal", "heal", 0],
+    ["Cyclone Symphony", "ultimate", 1.8]
   ],
-
 
   brass: [
-
-    [
-      'Brass Blast',
-      'attack',
-      1
-    ],
-
-    [
-      'Fanfare Rush',
-      'rhythm',
-      .92
-    ],
-
-    [
-      'Royal Guard',
-      'shield',
-      0
-    ],
-
-    [
-      'Solar Fanfare',
-      'ultimate',
-      1.85
-    ]
+    ["Brass Blast", "attack", 1],
+    ["Fanfare Rush", "rhythm", 0.92],
+    ["Royal Guard", "shield", 0],
+    ["Solar Fanfare", "ultimate", 1.85]
   ],
-
 
   bow: [
-
-    [
-      'Power Bow',
-      'attack',
-      1
-    ],
-
-    [
-      'Rapid Bow',
-      'rhythm',
-      .92
-    ],
-
-    [
-      'Harmony Strings',
-      'heal',
-      0
-    ],
-
-    [
-      'Phoenix Symphony',
-      'ultimate',
-      1.8
-    ]
+    ["Power Bow", "attack", 1],
+    ["Rapid Bow", "rhythm", 0.92],
+    ["Harmony Strings", "heal", 0],
+    ["Phoenix Symphony", "ultimate", 1.8]
   ],
-
 
   mallet: [
-
-    [
-      'Mallet Strike',
-      'attack',
-      1
-    ],
-
-    [
-      'Scale Rush',
-      'rhythm',
-      .95
-    ],
-
-    [
-      'Resonance',
-      'shield',
-      0
-    ],
-
-    [
-      'Rainbow Cascade',
-      'ultimate',
-      1.8
-    ]
+    ["Mallet Strike", "attack", 1],
+    ["Scale Rush", "rhythm", 0.95],
+    ["Resonance", "shield", 0],
+    ["Rainbow Cascade", "ultimate", 1.8]
   ],
-
 
   pads: [
-
-    [
-      'Beat Drop',
-      'attack',
-      1
-    ],
-
-    [
-      'Pad Rush',
-      'rhythm',
-      .98
-    ],
-
-    [
-      'Bass Sequence',
-      'shield',
-      0
-    ],
-
-    [
-      'Mega Beat Drop',
-      'ultimate',
-      1.9
-    ]
+    ["Beat Drop", "attack", 1],
+    ["Pad Rush", "rhythm", 0.98],
+    ["Bass Sequence", "shield", 0],
+    ["Mega Beat Drop", "ultimate", 1.9]
   ],
-
 
   pluck: [
-
-    [
-      'Crystal Pluck',
-      'attack',
-      1
-    ],
-
-    [
-      'Finger Rush',
-      'rhythm',
-      .95
-    ],
-
-    [
-      'Resonance',
-      'heal',
-      0
-    ],
-
-    [
-      'Starlight Cascade',
-      'ultimate',
-      1.82
-    ]
+    ["Crystal Pluck", "attack", 1],
+    ["Finger Rush", "rhythm", 0.95],
+    ["Resonance", "heal", 0],
+    ["Starlight Cascade", "ultimate", 1.82]
   ],
-
 
   bellows: [
-
-    [
-      'Squeeze Beat',
-      'attack',
-      1
-    ],
-
-    [
-      'Polka Rush',
-      'rhythm',
-      .95
-    ],
-
-    [
-      'Bellows Guard',
-      'shield',
-      0
-    ],
-
-    [
-      'Festival Frenzy',
-      'ultimate',
-      1.85
-    ]
+    ["Squeeze Beat", "attack", 1],
+    ["Polka Rush", "rhythm", 0.95],
+    ["Bellows Guard", "shield", 0],
+    ["Festival Frenzy", "ultimate", 1.85]
   ],
 
-
   shake: [
-
-    [
-      'Rhythm Shake',
-      'attack',
-      1
-    ],
-
-    [
-      'Jingle Rush',
-      'rhythm',
-      .98
-    ],
-
-    [
-      'Tempo Guard',
-      'shield',
-      0
-    ],
-
-    [
-      'Carnival Storm',
-      'ultimate',
-      1.8
-    ]
+    ["Rhythm Shake", "attack", 1],
+    ["Jingle Rush", "rhythm", 0.98],
+    ["Tempo Guard", "shield", 0],
+    ["Carnival Storm", "ultimate", 1.8]
   ]
 };
 
 
-/* ============================
+/* =========================================================
    INDIVIDUAL INSTRUMENT MOVES
-============================ */
+========================================================= */
 
 const instrumentMoves = {
 
-
   Guitar: [
-
-    [
-      'Power Strum',
-      'attack',
-      1
-    ],
-
-    [
-      'Rapid Riff',
-      'rhythm',
-      .9
-    ],
-
-    [
-      'Harmony Guard',
-      'shield',
-      0
-    ],
-
-    [
-      'Dragon Solo',
-      'ultimate',
-      1.8
-    ]
+    ["Power Strum", "attack", 1],
+    ["Rapid Riff", "rhythm", 0.9],
+    ["Harmony Guard", "shield", 0],
+    ["Dragon Solo", "ultimate", 1.8]
   ],
-
 
   Ukulele: [
-
-    [
-      'Island Strum',
-      'attack',
-      1
-    ],
-
-    [
-      'Sunny Rhythm',
-      'rhythm',
-      .92
-    ],
-
-    [
-      'Tropical Harmony',
-      'heal',
-      0
-    ],
-
-    [
-      'Paradise Finale',
-      'ultimate',
-      1.8
-    ]
+    ["Island Strum", "attack", 1],
+    ["Sunny Rhythm", "rhythm", 0.92],
+    ["Tropical Harmony", "heal", 0],
+    ["Paradise Finale", "ultimate", 1.8]
   ],
-
 
   Piano: [
-
-    [
-      'Power Chord',
-      'attack',
-      1
-    ],
-
-    [
-      'Rapid Keys',
-      'rhythm',
-      .9
-    ],
-
-    [
-      'Sustain Shield',
-      'shield',
-      0
-    ],
-
-    [
-      'Grand Crescendo',
-      'ultimate',
-      1.8
-    ]
+    ["Power Chord", "attack", 1],
+    ["Rapid Keys", "rhythm", 0.9],
+    ["Sustain Shield", "shield", 0],
+    ["Grand Crescendo", "ultimate", 1.8]
   ],
-
 
   Flute: [
-
-    [
-      'Focused Note',
-      'attack',
-      1
-    ],
-
-    [
-      'Flutter Scale',
-      'rhythm',
-      .92
-    ],
-
-    [
-      'Breath of Harmony',
-      'heal',
-      0
-    ],
-
-    [
-      'Cyclone Symphony',
-      'ultimate',
-      1.8
-    ]
+    ["Focused Note", "attack", 1],
+    ["Flutter Scale", "rhythm", 0.92],
+    ["Breath of Harmony", "heal", 0],
+    ["Cyclone Symphony", "ultimate", 1.8]
   ],
-
 
   Drums: [
-
-    [
-      'Power Beat',
-      'attack',
-      1
-    ],
-
-    [
-      'Drum Roll',
-      'rhythm',
-      .95
-    ],
-
-    [
-      'Rhythm Barrier',
-      'shield',
-      0
-    ],
-
-    [
-      'Thunder Beat',
-      'ultimate',
-      1.85
-    ]
+    ["Power Beat", "attack", 1],
+    ["Drum Roll", "rhythm", 0.95],
+    ["Rhythm Barrier", "shield", 0],
+    ["Thunder Beat", "ultimate", 1.85]
   ],
-
 
   Clarinet: [
-
-    [
-      'Midnight Tone',
-      'attack',
-      1
-    ],
-
-    [
-      'Silver Scale',
-      'rhythm',
-      .92
-    ],
-
-    [
-      'Warm Breath',
-      'heal',
-      0
-    ],
-
-    [
-      'Moonlight Rhapsody',
-      'ultimate',
-      1.82
-    ]
+    ["Midnight Tone", "attack", 1],
+    ["Silver Scale", "rhythm", 0.92],
+    ["Warm Breath", "heal", 0],
+    ["Moonlight Rhapsody", "ultimate", 1.82]
   ],
-
 
   Trumpet: [
-
-    [
-      'Brass Blast',
-      'attack',
-      1
-    ],
-
-    [
-      'Victory Fanfare',
-      'rhythm',
-      .92
-    ],
-
-    [
-      'Royal Guard',
-      'shield',
-      0
-    ],
-
-    [
-      'Solar Fanfare',
-      'ultimate',
-      1.85
-    ]
+    ["Brass Blast", "attack", 1],
+    ["Victory Fanfare", "rhythm", 0.92],
+    ["Royal Guard", "shield", 0],
+    ["Solar Fanfare", "ultimate", 1.85]
   ],
-
 
   Violin: [
-
-    [
-      'Piercing Bow',
-      'attack',
-      1
-    ],
-
-    [
-      'Rapid Arpeggio',
-      'rhythm',
-      .94
-    ],
-
-    [
-      'Healing Strings',
-      'heal',
-      0
-    ],
-
-    [
-      'Phoenix Symphony',
-      'ultimate',
-      1.85
-    ]
+    ["Piercing Bow", "attack", 1],
+    ["Rapid Arpeggio", "rhythm", 0.94],
+    ["Healing Strings", "heal", 0],
+    ["Phoenix Symphony", "ultimate", 1.85]
   ],
-
 
   Saxophone: [
-
-    [
-      'Jazz Burst',
-      'attack',
-      1
-    ],
-
-    [
-      'Groove Run',
-      'rhythm',
-      .95
-    ],
-
-    [
-      'Soul Melody',
-      'heal',
-      0
-    ],
-
-    [
-      'Midnight Jazz Storm',
-      'ultimate',
-      1.85
-    ]
+    ["Jazz Burst", "attack", 1],
+    ["Groove Run", "rhythm", 0.95],
+    ["Soul Melody", "heal", 0],
+    ["Midnight Jazz Storm", "ultimate", 1.85]
   ],
-
 
   Cello: [
-
-    [
-      'Deep Bow',
-      'attack',
-      1
-    ],
-
-    [
-      'Resonant Pulse',
-      'rhythm',
-      .9
-    ],
-
-    [
-      'Cello Sanctuary',
-      'shield',
-      0
-    ],
-
-    [
-      'Titan Concerto',
-      'ultimate',
-      1.82
-    ]
+    ["Deep Bow", "attack", 1],
+    ["Resonant Pulse", "rhythm", 0.9],
+    ["Cello Sanctuary", "shield", 0],
+    ["Titan Concerto", "ultimate", 1.82]
   ],
-
 
   Xylophone: [
-
-    [
-      'Bright Strike',
-      'attack',
-      1
-    ],
-
-    [
-      'Rainbow Scale',
-      'rhythm',
-      .96
-    ],
-
-    [
-      'Resonance Guard',
-      'shield',
-      0
-    ],
-
-    [
-      'Crystal Cascade',
-      'ultimate',
-      1.82
-    ]
+    ["Bright Strike", "attack", 1],
+    ["Rainbow Scale", "rhythm", 0.96],
+    ["Resonance Guard", "shield", 0],
+    ["Crystal Cascade", "ultimate", 1.82]
   ],
-
 
   Trombone: [
-
-    [
-      'Slide Blast',
-      'attack',
-      1
-    ],
-
-    [
-      'Brass Glide',
-      'rhythm',
-      .9
-    ],
-
-    [
-      'Fortress Tone',
-      'shield',
-      0
-    ],
-
-    [
-      'Titan Slide',
-      'ultimate',
-      1.85
-    ]
+    ["Slide Blast", "attack", 1],
+    ["Brass Glide", "rhythm", 0.9],
+    ["Fortress Tone", "shield", 0],
+    ["Titan Slide", "ultimate", 1.85]
   ],
-
 
   Synthesizer: [
-
-    [
-      'Synth Pulse',
-      'attack',
-      1
-    ],
-
-    [
-      'Neon Sequence',
-      'rhythm',
-      .96
-    ],
-
-    [
-      'Digital Barrier',
-      'shield',
-      0
-    ],
-
-    [
-      'Cyber Drop',
-      'ultimate',
-      1.9
-    ]
+    ["Synth Pulse", "attack", 1],
+    ["Neon Sequence", "rhythm", 0.96],
+    ["Digital Barrier", "shield", 0],
+    ["Cyber Drop", "ultimate", 1.9]
   ],
 
-
-  'French Horn': [
-
-    [
-      'Royal Call',
-      'attack',
-      1
-    ],
-
-    [
-      'Noble Fanfare',
-      'rhythm',
-      .9
-    ],
-
-    [
-      'Castle Guard',
-      'shield',
-      0
-    ],
-
-    [
-      'Kingdom Anthem',
-      'ultimate',
-      1.85
-    ]
+  "French Horn": [
+    ["Royal Call", "attack", 1],
+    ["Noble Fanfare", "rhythm", 0.9],
+    ["Castle Guard", "shield", 0],
+    ["Kingdom Anthem", "ultimate", 1.85]
   ],
-
 
   Oboe: [
-
-    [
-      'Piercing Reed',
-      'attack',
-      1
-    ],
-
-    [
-      'Graceful Scale',
-      'rhythm',
-      .92
-    ],
-
-    [
-      'Serene Breath',
-      'heal',
-      0
-    ],
-
-    [
-      'Forest Elegy',
-      'ultimate',
-      1.82
-    ]
+    ["Piercing Reed", "attack", 1],
+    ["Graceful Scale", "rhythm", 0.92],
+    ["Serene Breath", "heal", 0],
+    ["Forest Elegy", "ultimate", 1.82]
   ],
 
-
-  'Digital Piano': [
-
-    [
-      'Digital Chord',
-      'attack',
-      1
-    ],
-
-    [
-      'Velocity Keys',
-      'rhythm',
-      .95
-    ],
-
-    [
-      'Sustain Matrix',
-      'shield',
-      0
-    ],
-
-    [
-      'Digital Crescendo',
-      'ultimate',
-      1.85
-    ]
+  "Digital Piano": [
+    ["Digital Chord", "attack", 1],
+    ["Velocity Keys", "rhythm", 0.95],
+    ["Sustain Matrix", "shield", 0],
+    ["Digital Crescendo", "ultimate", 1.85]
   ],
-
 
   Organ: [
-
-    [
-      'Cathedral Chord',
-      'attack',
-      1
-    ],
-
-    [
-      'Pipe Resonance',
-      'rhythm',
-      .88
-    ],
-
-    [
-      'Sanctuary',
-      'heal',
-      0
-    ],
-
-    [
-      'Divine Symphony',
-      'ultimate',
-      1.9
-    ]
+    ["Cathedral Chord", "attack", 1],
+    ["Pipe Resonance", "rhythm", 0.88],
+    ["Sanctuary", "heal", 0],
+    ["Divine Symphony", "ultimate", 1.9]
   ],
 
-
-  'Drum Machine': [
-
-    [
-      'Beat Drop',
-      'attack',
-      1
-    ],
-
-    [
-      'Pad Rush',
-      'rhythm',
-      .98
-    ],
-
-    [
-      'Bass Sequence',
-      'shield',
-      0
-    ],
-
-    [
-      'Mega Beat Drop',
-      'ultimate',
-      1.9
-    ]
+  "Drum Machine": [
+    ["Beat Drop", "attack", 1],
+    ["Pad Rush", "rhythm", 0.98],
+    ["Bass Sequence", "shield", 0],
+    ["Mega Beat Drop", "ultimate", 1.9]
   ],
 
-
-  'Electric Guitar': [
-
-    [
-      'Voltage Slash',
-      'attack',
-      1.05
-    ],
-
-    [
-      'Lightning Riff',
-      'rhythm',
-      .98
-    ],
-
-    [
-      'Amp Shield',
-      'shield',
-      0
-    ],
-
-    [
-      'Thunderstorm Solo',
-      'ultimate',
-      1.95
-    ]
+  "Electric Guitar": [
+    ["Voltage Slash", "attack", 1.05],
+    ["Lightning Riff", "rhythm", 0.98],
+    ["Amp Shield", "shield", 0],
+    ["Thunderstorm Solo", "ultimate", 1.95]
   ],
 
-
-  'Bass Guitar': [
-
-    [
-      'Bass Slam',
-      'attack',
-      1
-    ],
-
-    [
-      'Groove Line',
-      'rhythm',
-      .98
-    ],
-
-    [
-      'Low-End Guard',
-      'shield',
-      0
-    ],
-
-    [
-      'Earthquake Bass',
-      'ultimate',
-      1.88
-    ]
+  "Bass Guitar": [
+    ["Bass Slam", "attack", 1],
+    ["Groove Line", "rhythm", 0.98],
+    ["Low-End Guard", "shield", 0],
+    ["Earthquake Bass", "ultimate", 1.88]
   ],
-
 
   Harp: [
-
-    [
-      'Crystal Pluck',
-      'attack',
-      1
-    ],
-
-    [
-      'Angel Strings',
-      'rhythm',
-      .92
-    ],
-
-    [
-      'Celestial Healing',
-      'heal',
-      0
-    ],
-
-    [
-      'Heavenly Cascade',
-      'ultimate',
-      1.85
-    ]
+    ["Crystal Pluck", "attack", 1],
+    ["Angel Strings", "rhythm", 0.92],
+    ["Celestial Healing", "heal", 0],
+    ["Heavenly Cascade", "ultimate", 1.85]
   ],
-
 
   Banjo: [
-
-    [
-      'Country Snap',
-      'attack',
-      1
-    ],
-
-    [
-      'Bluegrass Rush',
-      'rhythm',
-      .98
-    ],
-
-    [
-      'Porch Harmony',
-      'heal',
-      0
-    ],
-
-    [
-      'Wild West Finale',
-      'ultimate',
-      1.82
-    ]
+    ["Country Snap", "attack", 1],
+    ["Bluegrass Rush", "rhythm", 0.98],
+    ["Porch Harmony", "heal", 0],
+    ["Wild West Finale", "ultimate", 1.82]
   ],
-
 
   Mandolin: [
-
-    [
-      'Twin Pluck',
-      'attack',
-      1
-    ],
-
-    [
-      'Tremolo Rush',
-      'rhythm',
-      .98
-    ],
-
-    [
-      'Folk Harmony',
-      'heal',
-      0
-    ],
-
-    [
-      'Festival Storm',
-      'ultimate',
-      1.85
-    ]
+    ["Twin Pluck", "attack", 1],
+    ["Tremolo Rush", "rhythm", 0.98],
+    ["Folk Harmony", "heal", 0],
+    ["Festival Storm", "ultimate", 1.85]
   ],
 
-
-  'Double Bass': [
-
-    [
-      'Deep Resonance',
-      'attack',
-      1
-    ],
-
-    [
-      'Bass Bow Rush',
-      'rhythm',
-      .88
-    ],
-
-    [
-      'Low Frequency Guard',
-      'shield',
-      0
-    ],
-
-    [
-      'Colossal Symphony',
-      'ultimate',
-      1.88
-    ]
+  "Double Bass": [
+    ["Deep Resonance", "attack", 1],
+    ["Bass Bow Rush", "rhythm", 0.88],
+    ["Low Frequency Guard", "shield", 0],
+    ["Colossal Symphony", "ultimate", 1.88]
   ],
-
 
   Accordion: [
-
-    [
-      'Squeeze Beat',
-      'attack',
-      1
-    ],
-
-    [
-      'Polka Rush',
-      'rhythm',
-      .95
-    ],
-
-    [
-      'Bellows Guard',
-      'shield',
-      0
-    ],
-
-    [
-      'Festival Frenzy',
-      'ultimate',
-      1.85
-    ]
+    ["Squeeze Beat", "attack", 1],
+    ["Polka Rush", "rhythm", 0.95],
+    ["Bellows Guard", "shield", 0],
+    ["Festival Frenzy", "ultimate", 1.85]
   ],
-
 
   Keytar: [
-
-    [
-      'Keytar Blast',
-      'attack',
-      1
-    ],
-
-    [
-      'Stage Rush',
-      'rhythm',
-      .98
-    ],
-
-    [
-      'Synth Guard',
-      'shield',
-      0
-    ],
-
-    [
-      'Rockstar Overdrive',
-      'ultimate',
-      1.9
-    ]
+    ["Keytar Blast", "attack", 1],
+    ["Stage Rush", "rhythm", 0.98],
+    ["Synth Guard", "shield", 0],
+    ["Rockstar Overdrive", "ultimate", 1.9]
   ],
-
 
   Harpsichord: [
-
-    [
-      'Baroque Strike',
-      'attack',
-      1
-    ],
-
-    [
-      'Royal Scale',
-      'rhythm',
-      .94
-    ],
-
-    [
-      'Courtly Guard',
-      'shield',
-      0
-    ],
-
-    [
-      'Golden Fugue',
-      'ultimate',
-      1.85
-    ]
+    ["Baroque Strike", "attack", 1],
+    ["Royal Scale", "rhythm", 0.94],
+    ["Courtly Guard", "shield", 0],
+    ["Golden Fugue", "ultimate", 1.85]
   ],
-
 
   Marimba: [
-
-    [
-      'Mallet Strike',
-      'attack',
-      1
-    ],
-
-    [
-      'Marimba Run',
-      'rhythm',
-      .98
-    ],
-
-    [
-      'Wooden Resonance',
-      'heal',
-      0
-    ],
-
-    [
-      'Tropical Cascade',
-      'ultimate',
-      1.85
-    ]
+    ["Mallet Strike", "attack", 1],
+    ["Marimba Run", "rhythm", 0.98],
+    ["Wooden Resonance", "heal", 0],
+    ["Tropical Cascade", "ultimate", 1.85]
   ],
-
 
   Timpani: [
-
-    [
-      'War Drum',
-      'attack',
-      1
-    ],
-
-    [
-      'Rolling Thunder',
-      'rhythm',
-      .9
-    ],
-
-    [
-      'Battle Guard',
-      'shield',
-      0
-    ],
-
-    [
-      'Titan Thunder',
-      'ultimate',
-      1.9
-    ]
+    ["War Drum", "attack", 1],
+    ["Rolling Thunder", "rhythm", 0.9],
+    ["Battle Guard", "shield", 0],
+    ["Titan Thunder", "ultimate", 1.9]
   ],
-
 
   Bongos: [
-
-    [
-      'Bongo Strike',
-      'attack',
-      1
-    ],
-
-    [
-      'Jungle Rhythm',
-      'rhythm',
-      1
-    ],
-
-    [
-      'Tribal Guard',
-      'shield',
-      0
-    ],
-
-    [
-      'Jungle Frenzy',
-      'ultimate',
-      1.82
-    ]
+    ["Bongo Strike", "attack", 1],
+    ["Jungle Rhythm", "rhythm", 1],
+    ["Tribal Guard", "shield", 0],
+    ["Jungle Frenzy", "ultimate", 1.82]
   ],
-
 
   Congas: [
-
-    [
-      'Conga Slam',
-      'attack',
-      1
-    ],
-
-    [
-      'Latin Rush',
-      'rhythm',
-      .98
-    ],
-
-    [
-      'Rhythm Spirit',
-      'heal',
-      0
-    ],
-
-    [
-      'Carnival Inferno',
-      'ultimate',
-      1.85
-    ]
+    ["Conga Slam", "attack", 1],
+    ["Latin Rush", "rhythm", 0.98],
+    ["Rhythm Spirit", "heal", 0],
+    ["Carnival Inferno", "ultimate", 1.85]
   ],
-
 
   Tambourine: [
-
-    [
-      'Rhythm Shake',
-      'attack',
-      1
-    ],
-
-    [
-      'Jingle Rush',
-      'rhythm',
-      1
-    ],
-
-    [
-      'Tempo Guard',
-      'shield',
-      0
-    ],
-
-    [
-      'Carnival Storm',
-      'ultimate',
-      1.8
-    ]
+    ["Rhythm Shake", "attack", 1],
+    ["Jingle Rush", "rhythm", 1],
+    ["Tempo Guard", "shield", 0],
+    ["Carnival Storm", "ultimate", 1.8]
   ],
 
-
-  'Steel Pan': [
-
-    [
-      'Island Strike',
-      'attack',
-      1
-    ],
-
-    [
-      'Calypso Rush',
-      'rhythm',
-      .96
-    ],
-
-    [
-      'Tropical Resonance',
-      'heal',
-      0
-    ],
-
-    [
-      'Caribbean Sunrise',
-      'ultimate',
-      1.85
-    ]
+  "Steel Pan": [
+    ["Island Strike", "attack", 1],
+    ["Calypso Rush", "rhythm", 0.96],
+    ["Tropical Resonance", "heal", 0],
+    ["Caribbean Sunrise", "ultimate", 1.85]
   ],
-
 
   Tuba: [
-
-    [
-      'Heavy Brass',
-      'attack',
-      1.05
-    ],
-
-    [
-      'Low Brass Pulse',
-      'rhythm',
-      .82
-    ],
-
-    [
-      'Iron Lung Guard',
-      'shield',
-      0
-    ],
-
-    [
-      'Colossal Fanfare',
-      'ultimate',
-      1.9
-    ]
+    ["Heavy Brass", "attack", 1.05],
+    ["Low Brass Pulse", "rhythm", 0.82],
+    ["Iron Lung Guard", "shield", 0],
+    ["Colossal Fanfare", "ultimate", 1.9]
   ],
-
 
   Euphonium: [
-
-    [
-      'Warm Brass',
-      'attack',
-      1
-    ],
-
-    [
-      'Smooth Fanfare',
-      'rhythm',
-      .9
-    ],
-
-    [
-      'Golden Guard',
-      'shield',
-      0
-    ],
-
-    [
-      'Majestic Anthem',
-      'ultimate',
-      1.85
-    ]
+    ["Warm Brass", "attack", 1],
+    ["Smooth Fanfare", "rhythm", 0.9],
+    ["Golden Guard", "shield", 0],
+    ["Majestic Anthem", "ultimate", 1.85]
   ],
-
 
   Cornet: [
-
-    [
-      'Sharp Fanfare',
-      'attack',
-      1
-    ],
-
-    [
-      'Cornet Rush',
-      'rhythm',
-      .94
-    ],
-
-    [
-      'Brass Guard',
-      'shield',
-      0
-    ],
-
-    [
-      'Royal Trumpet Storm',
-      'ultimate',
-      1.85
-    ]
+    ["Sharp Fanfare", "attack", 1],
+    ["Cornet Rush", "rhythm", 0.94],
+    ["Brass Guard", "shield", 0],
+    ["Royal Trumpet Storm", "ultimate", 1.85]
   ],
-
 
   Piccolo: [
-
-    [
-      'High Note',
-      'attack',
-      1
-    ],
-
-    [
-      'Sky Scale',
-      'rhythm',
-      1
-    ],
-
-    [
-      'Wind Blessing',
-      'heal',
-      0
-    ],
-
-    [
-      'Sonic Whirlwind',
-      'ultimate',
-      1.82
-    ]
+    ["High Note", "attack", 1],
+    ["Sky Scale", "rhythm", 1],
+    ["Wind Blessing", "heal", 0],
+    ["Sonic Whirlwind", "ultimate", 1.82]
   ],
-
 
   Bassoon: [
-
-    [
-      'Deep Reed',
-      'attack',
-      1
-    ],
-
-    [
-      'Woodwind Pulse',
-      'rhythm',
-      .86
-    ],
-
-    [
-      'Forest Guard',
-      'shield',
-      0
-    ],
-
-    [
-      'Ancient Woodland Song',
-      'ultimate',
-      1.85
-    ]
+    ["Deep Reed", "attack", 1],
+    ["Woodwind Pulse", "rhythm", 0.86],
+    ["Forest Guard", "shield", 0],
+    ["Ancient Woodland Song", "ultimate", 1.85]
   ],
-
 
   Recorder: [
-
-    [
-      'Clear Note',
-      'attack',
-      1
-    ],
-
-    [
-      'Quick Fingering',
-      'rhythm',
-      .96
-    ],
-
-    [
-      'Gentle Breath',
-      'heal',
-      0
-    ],
-
-    [
-      'Schoolyard Symphony',
-      'ultimate',
-      1.8
-    ]
+    ["Clear Note", "attack", 1],
+    ["Quick Fingering", "rhythm", 0.96],
+    ["Gentle Breath", "heal", 0],
+    ["Schoolyard Symphony", "ultimate", 1.8]
   ],
-
 
   Erhu: [
-
-    [
-      'Silk Bow',
-      'attack',
-      1
-    ],
-
-    [
-      'Dragon Bow Rush',
-      'rhythm',
-      .96
-    ],
-
-    [
-      'Spirit Strings',
-      'heal',
-      0
-    ],
-
-    [
-      'Celestial Dragon Song',
-      'ultimate',
-      1.88
-    ]
+    ["Silk Bow", "attack", 1],
+    ["Dragon Bow Rush", "rhythm", 0.96],
+    ["Spirit Strings", "heal", 0],
+    ["Celestial Dragon Song", "ultimate", 1.88]
   ],
-
 
   Guzheng: [
-
-    [
-      'Silk Pluck',
-      'attack',
-      1
-    ],
-
-    [
-      'River Cascade',
-      'rhythm',
-      .98
-    ],
-
-    [
-      'Mountain Harmony',
-      'heal',
-      0
-    ],
-
-    [
-      'Ten Thousand Strings',
-      'ultimate',
-      1.9
-    ]
+    ["Silk Pluck", "attack", 1],
+    ["River Cascade", "rhythm", 0.98],
+    ["Mountain Harmony", "heal", 0],
+    ["Ten Thousand Strings", "ultimate", 1.9]
   ],
-
 
   Pipa: [
-
-    [
-      'Moon Pluck',
-      'attack',
-      1
-    ],
-
-    [
-      'Flying Fingers',
-      'rhythm',
-      1
-    ],
-
-    [
-      'Jade Harmony',
-      'shield',
-      0
-    ],
-
-    [
-      'Ambush Symphony',
-      'ultimate',
-      1.9
-    ]
+    ["Moon Pluck", "attack", 1],
+    ["Flying Fingers", "rhythm", 1],
+    ["Jade Harmony", "shield", 0],
+    ["Ambush Symphony", "ultimate", 1.9]
   ],
-
 
   Kalimba: [
-
-    [
-      'Crystal Thumb',
-      'attack',
-      1
-    ],
-
-    [
-      'Dream Rhythm',
-      'rhythm',
-      .96
-    ],
-
-    [
-      'Peaceful Resonance',
-      'heal',
-      0
-    ],
-
-    [
-      'Starlight Lullaby',
-      'ultimate',
-      1.82
-    ]
+    ["Crystal Thumb", "attack", 1],
+    ["Dream Rhythm", "rhythm", 0.96],
+    ["Peaceful Resonance", "heal", 0],
+    ["Starlight Lullaby", "ultimate", 1.82]
   ],
-
 
   Sitar: [
-
-    [
-      'Raga Strike',
-      'attack',
-      1
-    ],
-
-    [
-      'Mystic Scale',
-      'rhythm',
-      .94
-    ],
-
-    [
-      'Meditation Aura',
-      'heal',
-      0
-    ],
-
-    [
-      'Cosmic Raga',
-      'ultimate',
-      1.88
-    ]
+    ["Raga Strike", "attack", 1],
+    ["Mystic Scale", "rhythm", 0.94],
+    ["Meditation Aura", "heal", 0],
+    ["Cosmic Raga", "ultimate", 1.88]
   ],
 
-
   Shamisen: [
-
-    [
-      'Samurai Pluck',
-      'attack',
-      1.05
-    ],
-
-    [
-      'Rapid Tsugaru',
-      'rhythm',
-      1
-    ],
-
-    [
-      'Spirit Guard',
-      'shield',
-      0
-    ],
-
-    [
-      'Shogun Finale',
-      'ultimate',
-      1.9
-    ]
+    ["Samurai Pluck", "attack", 1.05],
+    ["Rapid Tsugaru", "rhythm", 1],
+    ["Spirit Guard", "shield", 0],
+    ["Shogun Finale", "ultimate", 1.9]
   ]
 };
 
 
-/* ============================
-   GET INDIVIDUAL MOVE SET
-============================ */
+/* =========================================================
+   GET AN INSTRUMENT'S MOVE SET
+========================================================= */
 
-function getInstrumentMoves(
-  name
-) {
+function getInstrumentMoves(name) {
 
-  const inst =
-    getInstrument(
-      name
-    );
+  const instrument =
+    getInstrument(name);
 
 
   return (
     instrumentMoves[
-      inst.name
+      instrument.name
     ] ||
-
     moveSets[
-      inst.play
+      instrument.play
     ] ||
-
     moveSets.strum
   );
 }
 
 
-/* ============================
-   INSTRUMENT SOUND TYPES
-============================ */
-
-const instrumentSoundTypes = {
-
-  strum: {
-    wave: 'triangle',
-    octave: 1
-  },
-
-  keys: {
-    wave: 'sine',
-    octave: 1
-  },
-
-  drums: {
-    wave: 'square',
-    octave: .5
-  },
-
-  wind: {
-    wave: 'sine',
-    octave: 2
-  },
-
-  brass: {
-    wave: 'sawtooth',
-    octave: 1
-  },
-
-  bow: {
-    wave: 'triangle',
-    octave: 1
-  },
-
-  mallet: {
-    wave: 'sine',
-    octave: 2
-  },
-
-  pads: {
-    wave: 'square',
-    octave: .5
-  },
-
-  pluck: {
-    wave: 'triangle',
-    octave: 2
-  },
-
-  bellows: {
-    wave: 'sawtooth',
-    octave: 1
-  },
-
-  shake: {
-    wave: 'square',
-    octave: 2
-  }
-};
-
-
-/* ============================
-   PLAY INSTRUMENT
-============================ */
+/* =========================================================
+   PLAY INSTRUMENT SOUND
+========================================================= */
 
 function playInstrument(
   name,
   note = 440
 ) {
 
-  const inst =
-    getInstrument(
-      name
-    );
+  const playType =
+    getInstrument(name).play;
 
 
-  const sound =
-    instrumentSoundTypes[
-      inst.play
-    ] ||
-    instrumentSoundTypes.strum;
+  const soundMap = {
+
+    strum: [
+      "triangle",
+      0.22
+    ],
+
+    keys: [
+      "sine",
+      0.3
+    ],
+
+    drums: [
+      "square",
+      0.1
+    ],
+
+    wind: [
+      "sine",
+      0.42
+    ],
+
+    brass: [
+      "sawtooth",
+      0.28
+    ],
+
+    bow: [
+      "triangle",
+      0.5
+    ],
+
+    mallet: [
+      "sine",
+      0.15
+    ],
+
+    pads: [
+      "square",
+      0.16
+    ],
+
+    pluck: [
+      "triangle",
+      0.18
+    ],
+
+    bellows: [
+      "sawtooth",
+      0.38
+    ],
+
+    shake: [
+      "square",
+      0.08
+    ]
+  };
 
 
-  const f =
-    note *
-    sound.octave;
-
-
-  switch (
-    inst.play
+  if (
+    playType === "drums" ||
+    playType === "shake"
   ) {
 
-
-    case 'drums':
-
-      SoundEngine.noise(
-        .08,
-        .11
-      );
-
-
-      SoundEngine.tone(
-        90,
-        .1,
-        'square',
-        .08
-      );
-
-      break;
-
-
-    case 'pads':
-
-      SoundEngine.tone(
-        f,
-        .11,
-        'square',
-        .07
-      );
-
-
-      SoundEngine.tone(
-        f *
-        1.5,
-        .1,
-        'sine',
-        .05,
-        .02
-      );
-
-      break;
-
-
-    case 'shake':
-
-      SoundEngine.noise(
-        .1,
-        .08
-      );
-
-
-      SoundEngine.tone(
-        f *
-        2,
-        .05,
-        'triangle',
-        .04
-      );
-
-      break;
-
-
-    case 'strum':
-
-      SoundEngine.tone(
-        f,
-        .2,
-        sound.wave,
-        .09
-      );
-
-
-      SoundEngine.tone(
-        f *
-        1.5,
-        .18,
-        sound.wave,
-        .05,
-        .02
-      );
-
-      break;
-
-
-    case 'pluck':
-
-      SoundEngine.tone(
-        f,
-        .17,
-        sound.wave,
-        .09
-      );
-
-
-      SoundEngine.tone(
-        f *
-        2,
-        .09,
-        'sine',
-        .04,
-        .02
-      );
-
-      break;
-
-
-    case 'keys':
-
-      SoundEngine.tone(
-        f,
-        .26,
-        sound.wave,
-        .08
-      );
-
-
-      SoundEngine.tone(
-        f *
-        1.25,
-        .23,
-        'triangle',
-        .04,
-        .02
-      );
-
-      break;
-
-
-    case 'wind':
-
-      SoundEngine.tone(
-        f,
-        .3,
-        'sine',
-        .08
-      );
-
-
-      SoundEngine.tone(
-        f *
-        2,
-        .18,
-        'sine',
-        .025
-      );
-
-      break;
-
-
-    case 'brass':
-
-      SoundEngine.tone(
-        f,
-        .24,
-        'sawtooth',
-        .07
-      );
-
-
-      SoundEngine.tone(
-        f *
-        .5,
-        .22,
-        'triangle',
-        .03
-      );
-
-      break;
-
-
-    case 'bow':
-
-      SoundEngine.tone(
-        f,
-        .32,
-        'triangle',
-        .07
-      );
-
-
-      SoundEngine.tone(
-        f *
-        2,
-        .24,
-        'sine',
-        .025
-      );
-
-      break;
-
-
-    case 'mallet':
-
-      SoundEngine.tone(
-        f,
-        .13,
-        'sine',
-        .1
-      );
-
-
-      SoundEngine.tone(
-        f *
-        2,
-        .1,
-        'sine',
-        .05,
-        .01
-      );
-
-      break;
-
-
-    case 'bellows':
-
-      SoundEngine.tone(
-        f,
-        .28,
-        'sawtooth',
-        .06
-      );
-
-
-      SoundEngine.tone(
-        f *
-        1.5,
-        .25,
-        'triangle',
-        .04
-      );
-
-      break;
-
-
-    default:
-
-      SoundEngine.tone(
-        f,
-        .2,
-        sound.wave,
-        .08
-      );
+    SoundEngine.noise(
+      0.12,
+      0.12
+    );
   }
+
+
+  const [
+    type,
+    duration
+  ] =
+    soundMap[
+      playType
+    ] ||
+    [
+      "sine",
+      0.2
+    ];
+
+
+  SoundEngine.tone(
+    note,
+    duration,
+    type,
+    0.08
+  );
 }
-/* ============================
-   DEFAULT PROFILE
-============================ */
+/* =========================================================
+   DEFAULT PLAYER PROFILE
+========================================================= */
 
 const defaultProfile = {
 
-  name: '',
+  name: "",
 
   level: 1,
 
@@ -3493,10 +1907,11 @@ const defaultProfile = {
   dust: 0,
 
   owned: [
-    'Guitar'
+    "Guitar"
   ],
 
-  equipped: 'Guitar',
+  equipped:
+    "Guitar",
 
   mastery: {},
 
@@ -3510,13 +1925,17 @@ const defaultProfile = {
 
   avatar: {
 
-    preset: 'Hero',
+    preset:
+      "Hero",
 
-    skin: '#dca57b',
+    skin:
+      "#dca57b",
 
-    hair: '#201915',
+    hair:
+      "#201915",
 
-    outfit: '#19345b'
+    outfit:
+      "#19345b"
   },
 
   inventory: [],
@@ -3524,17 +1943,31 @@ const defaultProfile = {
   equipmentInventory: [
 
     {
-      name: 'Starter Headphones',
-      slot: 'Head',
-      attack: 1,
-      defense: 0
+      name:
+        "Starter Headphones",
+
+      slot:
+        "Head",
+
+      attack:
+        1,
+
+      defense:
+        0
     },
 
     {
-      name: 'Canvas Jacket',
-      slot: 'Body',
-      attack: 0,
-      defense: 2
+      name:
+        "Canvas Jacket",
+
+      slot:
+        "Body",
+
+      attack:
+        0,
+
+      defense:
+        2
     }
   ],
 
@@ -3544,7 +1977,8 @@ const defaultProfile = {
 
   petEggs: [],
 
-  equippedPet: null,
+  equippedPet:
+    null,
 
   materials: {},
 
@@ -3552,67 +1986,84 @@ const defaultProfile = {
 
   rpg: {
 
-    zone: 0,
+    zone:
+      0,
 
-    x: 1,
+    x:
+      1,
 
-    y: 1,
+    y:
+      1,
 
-    hp: 100,
+    hp:
+      100,
 
-    maxHp: 100,
+    maxHp:
+      100,
 
-    storyStep: 0
+    storyStep:
+      0
   },
 
   dailyRewards: {
 
-    lastClaim: '',
+    lastClaim:
+      "",
 
-    streak: 0
+    streak:
+      0
   },
 
   skillTree: {
 
-    power1: 0,
+    power1:
+      0,
 
-    power2: 0,
+    power2:
+      0,
 
-    power3: 0,
+    power3:
+      0,
 
-    rhythm1: 0,
+    rhythm1:
+      0,
 
-    rhythm2: 0,
+    rhythm2:
+      0,
 
-    rhythm3: 0,
+    rhythm3:
+      0,
 
-    harmony1: 0,
+    harmony1:
+      0,
 
-    harmony2: 0,
+    harmony2:
+      0,
 
-    harmony3: 0
+    harmony3:
+      0
   }
 };
 
 
-/* ============================
-   LOAD PROFILE
-============================ */
+/* =========================================================
+   LOAD PLAYER PROFILE
+========================================================= */
 
 let profile = {
 
   ...defaultProfile,
 
   ...load(
-    'musicverseProfile',
+    "musicverseProfile",
     {}
   )
 };
 
 
-/* ============================
-   PROFILE HYDRATION
-============================ */
+/* =========================================================
+   REPAIR / NORMALIZE SAVED PROFILE
+========================================================= */
 
 profile.avatar = {
 
@@ -3629,22 +2080,20 @@ profile.owned =
   Array.isArray(
     profile.owned
   )
-
     ? profile.owned
-
     : [
-        'Guitar'
+        "Guitar"
       ];
 
 
 if (
   !profile.owned.includes(
-    'Guitar'
+    "Guitar"
   )
 ) {
 
   profile.owned.unshift(
-    'Guitar'
+    "Guitar"
   );
 }
 
@@ -3673,9 +2122,7 @@ profile.equipmentInventory =
   Array.isArray(
     profile.equipmentInventory
   )
-
     ? profile.equipmentInventory
-
     : defaultProfile.equipmentInventory;
 
 
@@ -3688,9 +2135,7 @@ profile.pets =
   Array.isArray(
     profile.pets
   )
-
     ? profile.pets
-
     : [];
 
 
@@ -3698,9 +2143,7 @@ profile.petEggs =
   Array.isArray(
     profile.petEggs
   )
-
     ? profile.petEggs
-
     : [];
 
 
@@ -3749,9 +2192,7 @@ profile.skillTree = {
 
 profile.coins =
   Math.max(
-
     0,
-
     Number(
       profile.coins
     ) ||
@@ -3759,37 +2200,35 @@ profile.coins =
   );
 
 
-/* ============================
-   SAVE PROFILE
-============================ */
+/* =========================================================
+   SAVE PLAYER PROFILE
+========================================================= */
 
 function persist() {
 
   save(
-    'musicverseProfile',
+    "musicverseProfile",
     profile
   );
 }
 
 
-/* ============================
+/* =========================================================
    TOAST MESSAGE
-============================ */
+========================================================= */
 
-function toast(
-  t
-) {
+function toast(text) {
 
-  const el =
-    $('#toast');
+  const element =
+    $("#toast");
 
 
-  el.textContent =
-    t;
+  element.textContent =
+    text;
 
 
-  el.classList.add(
-    'show'
+  element.classList.add(
+    "show"
   );
 
 
@@ -3800,20 +2239,18 @@ function toast(
 
   toast.t =
     setTimeout(
-
       () =>
-        el.classList.remove(
-          'show'
+        element.classList.remove(
+          "show"
         ),
-
       2200
     );
 }
 
 
-/* ============================
+/* =========================================================
    PLAYER EXP
-============================ */
+========================================================= */
 
 function getPlayerXPNeeded() {
 
@@ -3830,15 +2267,15 @@ function getPlayerXPNeeded() {
 }
 
 
-function addXP(
-  amount
-) {
+/* =========================================================
+   ADD PLAYER EXP
+========================================================= */
+
+function addXP(amount) {
 
   amount =
     Math.max(
-
       0,
-
       Math.round(
         amount
       )
@@ -3860,6 +2297,10 @@ function addXP(
   let needed =
     getPlayerXPNeeded();
 
+
+/* =========================================================
+   LEVEL UP LOOP
+========================================================= */
 
   while (
     profile.xp >=
@@ -3887,21 +2328,23 @@ function addXP(
 
   persist();
 
-
   updateProfileUI();
-
 
   renderLeaderboard();
 
 
   if (
     typeof renderSkillTree ===
-    'function'
+    "function"
   ) {
 
     renderSkillTree();
   }
 
+
+/* =========================================================
+   LEVEL UP SOUND
+========================================================= */
 
   if (
     levels
@@ -3915,6 +2358,11 @@ function addXP(
     );
   }
 
+
+/* =========================================================
+   NORMAL EXP SOUND
+========================================================= */
+
   else if (
     amount
   ) {
@@ -3927,9 +2375,9 @@ function addXP(
 }
 
 
-/* ============================
+/* =========================================================
    INSTRUMENT MASTERY
-============================ */
+========================================================= */
 
 function addMastery(
   name,
@@ -3945,11 +2393,8 @@ function addMastery(
       ] ||
       0
     ) +
-
     Math.max(
-
       0,
-
       Math.round(
         amount
       )
@@ -3960,9 +2405,9 @@ function addMastery(
 }
 
 
-/* ============================
-   INSTRUMENT UPGRADE DATA
-============================ */
+/* =========================================================
+   GET INSTRUMENT UPGRADE DATA
+========================================================= */
 
 function getInstrumentUpgradeData(
   name
@@ -3978,9 +2423,11 @@ function getInstrumentUpgradeData(
       name
     ] = {
 
-      level: 1,
+      level:
+        1,
 
-      xp: 0
+      xp:
+        0
     };
   }
 
@@ -3991,15 +2438,15 @@ function getInstrumentUpgradeData(
 }
 
 
-/* ============================
-   INSTRUMENT XP REQUIREMENT
-============================ */
+/* =========================================================
+   INSTRUMENT EXP NEEDED
+========================================================= */
 
 function getInstrumentXPNeeded(
   name
 ) {
 
-  const d =
+  const data =
     getInstrumentUpgradeData(
       name
     );
@@ -4010,7 +2457,7 @@ function getInstrumentXPNeeded(
     120 +
 
     (
-      d.level -
+      data.level -
       1
     ) *
     90
@@ -4018,23 +2465,23 @@ function getInstrumentXPNeeded(
 }
 
 
-/* ============================
+/* =========================================================
    ADD INSTRUMENT EXP
-============================ */
+========================================================= */
 
 function addInstrumentXP(
   name,
   amount
 ) {
 
-  const d =
+  const data =
     getInstrumentUpgradeData(
       name
     );
 
 
   if (
-    d.level >=
+    data.level >=
     20
   ) {
 
@@ -4042,11 +2489,9 @@ function addInstrumentXP(
   }
 
 
-  d.xp +=
+  data.xp +=
     Math.max(
-
       0,
-
       Math.round(
         amount
       )
@@ -4057,7 +2502,7 @@ function addInstrumentXP(
 
 
   if (
-    d.xp >=
+    data.xp >=
     getInstrumentXPNeeded(
       name
     )
@@ -4071,33 +2516,32 @@ function addInstrumentXP(
 
   renderInstruments();
 
-
   renderInstrumentUpgradePanel();
 }
 
 
-/* ============================
+/* =========================================================
    UPGRADE INSTRUMENT
-============================ */
+========================================================= */
 
 function upgradeInstrument(
   name
 ) {
 
-  const d =
+  const data =
     getInstrumentUpgradeData(
       name
     );
 
 
-  const need =
+  const needed =
     getInstrumentXPNeeded(
       name
     );
 
 
   if (
-    d.level >=
+    data.level >=
     20
   ) {
 
@@ -4108,21 +2552,24 @@ function upgradeInstrument(
 
 
   if (
-    d.xp <
-    need
+    data.xp <
+    needed
   ) {
 
     return toast(
-      `Need ${need - d.xp} more Instrument EXP.`
+      `Need ${
+        needed -
+        data.xp
+      } more Instrument EXP.`
     );
   }
 
 
-  d.xp -=
-    need;
+  data.xp -=
+    needed;
 
 
-  d.level++;
+  data.level++;
 
 
   persist();
@@ -4132,20 +2579,17 @@ function upgradeInstrument(
 
 
   toast(
-    `🎉 ${name} upgraded to Level ${d.level}!`
+    `🎉 ${name} upgraded to Level ${data.level}!`
   );
 
 
   renderInstruments();
 
-
   refreshBattle(
     false
   );
 
-
   renderEvolutionPanel();
-
 
   renderInstrumentUpgradePanel(
     name
@@ -4153,126 +2597,131 @@ function upgradeInstrument(
 }
 
 
-/* ============================
+/* =========================================================
    EVOLUTION BONUS
-============================ */
+========================================================= */
 
 function getEvolutionBonus(
   name
 ) {
 
-  const evo =
+  const evolution =
     profile.instrumentEvolutions[
       name
     ];
 
 
-  return evo
+  return evolution
     ? 1.1
     : 1;
 }
 
 
-/* ============================
-   EQUIPMENT BONUSES
-============================ */
+/* =========================================================
+   EQUIPPED GEAR BONUSES
+========================================================= */
 
 function getGearBonuses() {
 
   return Object.values(
     profile.equippedGear ||
     {}
-  )
-  .reduce(
+  ).reduce(
 
     (
-      a,
-      g
+      bonuses,
+      gear
     ) => {
 
       if (
-        g
+        gear
       ) {
 
-        a.attack +=
-          g.attack ||
+        bonuses.attack +=
+          gear.attack ||
           0;
 
 
-        a.defense +=
-          g.defense ||
+        bonuses.defense +=
+          gear.defense ||
           0;
 
 
-        a.melody +=
-          g.melody ||
+        bonuses.melody +=
+          gear.melody ||
           0;
 
 
-        a.rhythm +=
-          g.rhythm ||
+        bonuses.rhythm +=
+          gear.rhythm ||
           0;
       }
 
 
-      return a;
+      return bonuses;
     },
 
     {
 
-      attack: 0,
+      attack:
+        0,
 
-      defense: 0,
+      defense:
+        0,
 
-      melody: 0,
+      melody:
+        0,
 
-      rhythm: 0
+      rhythm:
+        0
     }
   );
 }
 
 
-/* ============================
-   PET BONUS
-============================ */
+/* =========================================================
+   EQUIPPED PET BONUS
+========================================================= */
 
 function getPetBonus() {
 
-  const p =
+  const pet =
     profile.pets.find(
-      x =>
-        x.id ===
+      pet =>
+        pet.id ===
         profile.equippedPet
     );
 
 
   if (
-    !p
+    !pet
   ) {
 
     return {
 
-      attack: 0,
+      attack:
+        0,
 
-      defense: 0,
+      defense:
+        0,
 
-      melody: 0,
+      melody:
+        0,
 
-      rhythm: 0
+      rhythm:
+        0
     };
   }
 
 
   const level =
-    p.level ||
+    pet.level ||
     1;
 
 
   const base =
     Math.max(
-
       1,
-
       Math.floor(
         level /
         2
@@ -4280,64 +2729,92 @@ function getPetBonus() {
     );
 
 
-  return p.type ===
-    'attack'
+  if (
+    pet.type ===
+    "attack"
+  ) {
 
-    ? {
+    return {
 
-        attack: base,
+      attack:
+        base,
 
-        defense: 0,
+      defense:
+        0,
 
-        melody: 0,
+      melody:
+        0,
 
-        rhythm: 0
-      }
+      rhythm:
+        0
+    };
+  }
 
-    : p.type ===
-      'melody'
 
-      ? {
+  if (
+    pet.type ===
+    "melody"
+  ) {
 
-          attack: 0,
+    return {
 
-          defense: 0,
+      attack:
+        0,
 
-          melody: base,
+      defense:
+        0,
 
-          rhythm: 0
-        }
+      melody:
+        base,
 
-      : p.type ===
-        'defense'
+      rhythm:
+        0
+    };
+  }
 
-        ? {
 
-            attack: 0,
+  if (
+    pet.type ===
+    "defense"
+  ) {
 
-            defense: base,
+    return {
 
-            melody: 0,
+      attack:
+        0,
 
-            rhythm: 0
-          }
+      defense:
+        base,
 
-        : {
+      melody:
+        0,
 
-            attack: base,
+      rhythm:
+        0
+    };
+  }
 
-            defense: base,
 
-            melody: base,
+  return {
 
-            rhythm: base
-          };
+    attack:
+      base,
+
+    defense:
+      base,
+
+    melody:
+      base,
+
+    rhythm:
+      base
+  };
 }
 
 
-/* ============================
-   FINAL INSTRUMENT STATS
-============================ */
+/* =========================================================
+   GET FULL UPGRADED INSTRUMENT STATS
+========================================================= */
 
 function getUpgradedInstrument(
   name
@@ -4349,22 +2826,21 @@ function getUpgradedInstrument(
     );
 
 
-  const u =
+  const upgrade =
     getInstrumentUpgradeData(
       name
     );
 
 
-  const mult =
+  const multiplier =
 
     (
       1 +
-
       (
-        u.level -
+        upgrade.level -
         1
       ) *
-      .01
+      0.01
     ) *
 
     getEvolutionBonus(
@@ -4372,11 +2848,11 @@ function getUpgradedInstrument(
     );
 
 
-  const g =
+  const gear =
     getGearBonuses();
 
 
-  const p =
+  const pet =
     getPetBonus();
 
 
@@ -4384,76 +2860,72 @@ function getUpgradedInstrument(
 
     ...base,
 
-
     attack:
       Math.round(
 
         base.attack *
-        mult +
+        multiplier +
 
-        g.attack +
+        gear.attack +
 
-        p.attack
+        pet.attack
       ),
-
 
     defense:
       Math.round(
 
         base.defense *
-        mult +
+        multiplier +
 
-        g.defense +
+        gear.defense +
 
-        p.defense
+        pet.defense
       ),
-
 
     melody:
       Math.round(
 
         base.melody *
-        mult +
+        multiplier +
 
-        g.melody +
+        gear.melody +
 
-        p.melody
+        pet.melody
       ),
-
 
     rhythm:
       Math.round(
 
         base.rhythm *
-        mult +
+        multiplier +
 
-        g.rhythm +
+        gear.rhythm +
 
-        p.rhythm
+        pet.rhythm
       )
   };
 }
 
 
-/* ============================
+/* =========================================================
    PET EXP
-============================ */
+========================================================= */
 
 function addPetXP(
   id,
   amount
 ) {
 
-  const p =
+  const pet =
     profile.pets.find(
-      x =>
-        x.id ===
+      pet =>
+        pet.id ===
         id
     );
 
 
   if (
-    !p
+    !pet
   ) {
 
     return;
@@ -4463,10 +2935,10 @@ function addPetXP(
   const petBonus =
 
     typeof getSkillBonuses ===
-    'function'
+    "function"
 
       ? getSkillBonuses()
-          .petXpPct
+        .petXpPct
 
       : 0;
 
@@ -4482,73 +2954,70 @@ function addPetXP(
     );
 
 
-  p.xp =
+  pet.xp =
     (
-      p.xp ||
+      pet.xp ||
       0
     ) +
-
     Math.max(
-
       0,
-
       Math.round(
         amount
       )
     );
 
 
-  let need =
-
+  let needed =
     (
-      p.level ||
+      pet.level ||
       1
     ) *
     40;
 
 
+/* =========================================================
+   PET LEVEL UP LOOP
+========================================================= */
+
   while (
-
-    p.xp >=
-      need &&
-
-    p.level <
+    pet.xp >=
+      needed &&
+    pet.level <
       20
   ) {
 
-    p.xp -=
-      need;
+    pet.xp -=
+      needed;
 
 
-    p.level++;
+    pet.level++;
 
 
-    need =
-      p.level *
+    needed =
+      pet.level *
       40;
 
 
     toast(
-      `🐾 ${p.name} reached Level ${p.level}!`
+      `🐾 ${pet.name} reached Level ${pet.level}!`
     );
   }
 
 
   persist();
 
-
   renderPets();
 }
 
 
-/* ============================
+/* =========================================================
    REWARD HELPER
-============================ */
+========================================================= */
 
 function reward(
   xp,
   coins = 0,
-  msg = 'Reward earned!'
+  message = "Reward earned!"
 ) {
 
   addXP(
@@ -4562,7 +3031,6 @@ function reward(
 
   persist();
 
-
   updateProfileUI();
 
 
@@ -4575,92 +3043,76 @@ function reward(
 
 
   toast(
-
-    `${msg} +${xp} EXP${
+    `${message} +${xp} EXP${
       coins
         ? ` • +${coins} Coins`
-        : ''
+        : ""
     }`
   );
 }
 
 
-/* ============================
+/* =========================================================
    UPDATE PROFILE UI
-============================ */
+========================================================= */
 
 function updateProfileUI() {
 
   [
-    'coinTop',
-    'heroCoins',
-    'gachaCoins'
-  ]
-  .forEach(
+    "coinTop",
+    "heroCoins",
+    "gachaCoins"
+  ].forEach(
     id => {
 
       if (
-        $('#' + id)
+        $("#" + id)
       ) {
 
-        $('#' + id)
-        .textContent =
-          profile.coins
-          .toLocaleString();
+        $("#" + id).textContent =
+          profile.coins.toLocaleString();
       }
     }
   );
 
 
-  $('#levelTop')
-  .textContent =
+  $("#levelTop").textContent =
     profile.level;
 
 
-  $('#heroName')
-  .textContent =
+  $("#heroName").textContent =
     profile.name ||
-    'Player';
+    "Player";
 
 
-  $('#heroLevel')
-  .textContent =
+  $("#heroLevel").textContent =
     profile.level;
 
 
-  $('#heroDust')
-  .textContent =
+  $("#heroDust").textContent =
     profile.dust;
 
 
-  $('#gachaDust')
-  .textContent =
+  $("#gachaDust").textContent =
     profile.dust;
 
 
-  $('#heroLifetime')
-  .textContent =
-    profile.totalXp
-    .toLocaleString();
+  $("#heroLifetime").textContent =
+    profile.totalXp.toLocaleString();
 
 
   const needed =
     getPlayerXPNeeded();
 
 
-  $('#xpText')
-  .textContent =
+  $("#xpText").textContent =
     `${profile.xp} / ${needed}`;
 
 
-  $('#xpFill')
-  .style.width =
-
+  $("#xpFill").style.width =
     `${
       Math.min(
-
         100,
-
         profile.xp /
         needed *
         100
@@ -4671,9 +3123,7 @@ function updateProfileUI() {
   document.documentElement
   .style
   .setProperty(
-
-    '--avatar-skin',
-
+    "--avatar-skin",
     profile.avatar.skin
   );
 
@@ -4681,61 +3131,54 @@ function updateProfileUI() {
   document.documentElement
   .style
   .setProperty(
-
-    '--avatar-outfit',
-
+    "--avatar-outfit",
     profile.avatar.outfit
   );
 }
 
 
-/* ============================
-   SETUP
-============================ */
+/* =========================================================
+   PROFILE SETUP
+========================================================= */
 
 function setupProfile() {
 
   const presets = [
 
-    'Hero',
-
-    'Swift',
-
-    'Power',
-
-    'Star',
-
-    'Neo',
-
-    'Legend'
+    "Hero",
+    "Swift",
+    "Power",
+    "Star",
+    "Neo",
+    "Legend"
   ];
 
 
   const skins = [
 
     [
-      'Light',
-      '#f2c8a8'
+      "Light",
+      "#f2c8a8"
     ],
 
     [
-      'Warm',
-      '#dca57b'
+      "Warm",
+      "#dca57b"
     ],
 
     [
-      'Tan',
-      '#bd8058'
+      "Tan",
+      "#bd8058"
     ],
 
     [
-      'Deep',
-      '#8d5d42'
+      "Deep",
+      "#8d5d42"
     ],
 
     [
-      'Dark',
-      '#5d3a2c'
+      "Dark",
+      "#5d3a2c"
     ]
   ];
 
@@ -4743,28 +3186,28 @@ function setupProfile() {
   const hairs = [
 
     [
-      'Black',
-      '#151515'
+      "Black",
+      "#151515"
     ],
 
     [
-      'Dark Brown',
-      '#201915'
+      "Dark Brown",
+      "#201915"
     ],
 
     [
-      'Brown',
-      '#4c2e20'
+      "Brown",
+      "#4c2e20"
     ],
 
     [
-      'Blonde',
-      '#c49a5a'
+      "Blonde",
+      "#c49a5a"
     ],
 
     [
-      'Silver',
-      '#aeb6c0'
+      "Silver",
+      "#aeb6c0"
     ]
   ];
 
@@ -4772,196 +3215,174 @@ function setupProfile() {
   const outfits = [
 
     [
-      'Royal Navy',
-      '#19345b'
+      "Royal Navy",
+      "#19345b"
     ],
 
     [
-      'Crimson',
-      '#6c2636'
+      "Crimson",
+      "#6c2636"
     ],
 
     [
-      'Emerald',
-      '#1f5a48'
+      "Emerald",
+      "#1f5a48"
     ],
 
     [
-      'Purple',
-      '#52376f'
+      "Purple",
+      "#52376f"
     ],
 
     [
-      'Midnight',
-      '#111827'
+      "Midnight",
+      "#111827"
     ]
   ];
 
 
-/* ============================
+/* =========================================================
    SETUP SELECT OPTIONS
-============================ */
+========================================================= */
 
-  $('#avatarPresetSelect')
-  .innerHTML =
-
+  $("#avatarPresetSelect").innerHTML =
     presets
     .map(
-      x =>
-        `<option>${x}</option>`
+      preset =>
+        `<option>${preset}</option>`
     )
-    .join('');
+    .join("");
 
 
-  $('#skinSelect')
-  .innerHTML =
-
+  $("#skinSelect").innerHTML =
     skins
     .map(
-      x =>
-        `<option value="${x[1]}">${x[0]}</option>`
+      option =>
+        `<option value="${option[1]}">${option[0]}</option>`
     )
-    .join('');
+    .join("");
 
 
-  $('#hairSelect')
-  .innerHTML =
-
+  $("#hairSelect").innerHTML =
     hairs
     .map(
-      x =>
-        `<option value="${x[1]}">${x[0]}</option>`
+      option =>
+        `<option value="${option[1]}">${option[0]}</option>`
     )
-    .join('');
+    .join("");
 
 
-  $('#outfitSelect')
-  .innerHTML =
-
+  $("#outfitSelect").innerHTML =
     outfits
     .map(
-      x =>
-        `<option value="${x[1]}">${x[0]}</option>`
+      option =>
+        `<option value="${option[1]}">${option[0]}</option>`
     )
-    .join('');
+    .join("");
 
 
-/* ============================
-   LOAD CURRENT AVATAR VALUES
-============================ */
+/* =========================================================
+   LOAD SAVED AVATAR VALUES
+========================================================= */
 
-  $('#avatarPresetSelect')
-  .value =
+  $("#avatarPresetSelect").value =
     profile.avatar.preset;
 
 
-  $('#skinSelect')
-  .value =
+  $("#skinSelect").value =
     profile.avatar.skin;
 
 
-  $('#hairSelect')
-  .value =
+  $("#hairSelect").value =
     profile.avatar.hair;
 
 
-  $('#outfitSelect')
-  .value =
+  $("#outfitSelect").value =
     profile.avatar.outfit;
 
 
-/* ============================
-   AVATAR PREVIEW
-============================ */
+/* =========================================================
+   UPDATE AVATAR PREVIEW
+========================================================= */
 
-  const prev =
+  const preview =
     () => {
 
-      $('#previewHead')
-      .style.background =
-        $('#skinSelect')
-        .value;
+      $("#previewHead").style.background =
+        $("#skinSelect").value;
 
 
-      $('#previewHair')
-      .style.background =
-        $('#hairSelect')
-        .value;
+      $("#previewHair").style.background =
+        $("#hairSelect").value;
 
 
-      $('#previewBody')
-      .style.background =
-        $('#outfitSelect')
-        .value;
+      $("#previewBody").style.background =
+        $("#outfitSelect").value;
 
 
-      $$(
-        '.preview-arm,.preview-leg'
-      )
+      $$(".preview-arm, .preview-leg")
       .forEach(
-        x =>
-          x.style.background =
-            $('#outfitSelect')
-            .value
+        part => {
+
+          part.style.background =
+            $("#outfitSelect").value;
+        }
       );
     };
 
 
   [
-    'avatarPresetSelect',
-    'skinSelect',
-    'hairSelect',
-    'outfitSelect'
-  ]
-  .forEach(
-    id =>
+    "avatarPresetSelect",
+    "skinSelect",
+    "hairSelect",
+    "outfitSelect"
+  ].forEach(
+    id => {
 
-      $('#' + id)
-      .onchange =
-        prev
+      $("#" + id).onchange =
+        preview;
+    }
   );
 
 
-  prev();
+  preview();
 
 
-/* ============================
-   FIRST-TIME SETUP
-============================ */
+/* =========================================================
+   SHOW SETUP IF NO NAME
+========================================================= */
 
   if (
     !profile.name
   ) {
 
-    $('#setupOverlay')
+    $("#setupOverlay")
     .classList
     .remove(
-      'hidden'
+      "hidden"
     );
   }
 
 
-/* ============================
+/* =========================================================
    START GAME BUTTON
-============================ */
+========================================================= */
 
-  $('#startBtn')
-  .onclick =
+  $("#startBtn").onclick =
     () => {
 
-      const n =
-        $('#playerNameInput')
+      const name =
+        $("#playerNameInput")
         .value
         .trim();
 
 
       if (
-        !n
+        !name
       ) {
 
-        $('#setupError')
-        .textContent =
-          'Please enter a stage name.';
+        $("#setupError").textContent =
+          "Please enter a stage name.";
 
 
         return;
@@ -4969,36 +3390,32 @@ function setupProfile() {
 
 
       profile.name =
-        n;
+        name;
 
 
       profile.avatar = {
 
         preset:
-          $('#avatarPresetSelect')
-          .value,
+          $("#avatarPresetSelect").value,
 
         skin:
-          $('#skinSelect')
-          .value,
+          $("#skinSelect").value,
 
         hair:
-          $('#hairSelect')
-          .value,
+          $("#hairSelect").value,
 
         outfit:
-          $('#outfitSelect')
-          .value
+          $("#outfitSelect").value
       };
 
 
       persist();
 
 
-      $('#setupOverlay')
+      $("#setupOverlay")
       .classList
       .add(
-        'hidden'
+        "hidden"
       );
 
 
@@ -5014,197 +3431,202 @@ function setupProfile() {
     };
 
 
-/* ============================
-   ENTER KEY TO START
-============================ */
+/* =========================================================
+   ENTER KEY START
+========================================================= */
 
-  $('#playerNameInput')
+  $("#playerNameInput")
   .addEventListener(
+    "keydown",
+    event => {
 
-    'keydown',
+      if (
+        event.key ===
+        "Enter"
+      ) {
 
-    e => {/* ============================
-   INSTRUMENTS
-============================ */
+        $("#startBtn")
+        .click();
+      }
+    }
+  );
+}
+/* =========================================================
+   INSTRUMENT LIBRARY
+========================================================= */
 
 let activeFamily =
-  'All';
+  "All";
 
 
-/* ============================
-   INSTRUMENT FAMILY FILTERS
-============================ */
+/* =========================================================
+   RENDER INSTRUMENT FAMILIES
+========================================================= */
 
 function renderFamilies() {
 
-  const fam = [
-
-    'All',
-
+  const families = [
+    "All",
     ...new Set(
       instruments.map(
-        i =>
-          i.family
+        instrument =>
+          instrument.family
       )
     )
   ];
 
 
-  $('#familyTabs')
-  .innerHTML =
-    fam
+  $("#familyTabs").innerHTML =
+    families
     .map(
-      f => `
+      family => `
 
         <button
           class="${
-            f ===
-            activeFamily
-              ? 'active'
-              : ''
+            family === activeFamily
+              ? "active"
+              : ""
           }"
-          data-family="${f}"
+          data-family="${family}"
         >
-          ${f}
+          ${family}
         </button>
       `
     )
-    .join('');
+    .join("");
 
 
-  $$(
-    '[data-family]'
-  )
+  $$("[data-family]")
   .forEach(
-    b =>
-      b.onclick =
+    button => {
+
+      button.onclick =
         () => {
 
           activeFamily =
-            b.dataset.family;
+            button.dataset.family;
 
 
           renderFamilies();
 
           renderInstruments();
-        }
+        };
+    }
   );
 }
 
 
-/* ============================
-   RENDER INSTRUMENT COLLECTION
-============================ */
+/* =========================================================
+   RENDER INSTRUMENTS
+========================================================= */
 
 function renderInstruments() {
 
-  const q =
-    $('#instrumentSearch')
+  const query =
+    $("#instrumentSearch")
     .value
     .toLowerCase();
 
 
   const list =
     instruments.filter(
-      i =>
+      instrument =>
+
         (
           activeFamily ===
-          'All' ||
-          i.family ===
-          activeFamily
+            "All" ||
+
+          instrument.family ===
+            activeFamily
         ) &&
-        i.name
+
+        instrument.name
         .toLowerCase()
         .includes(
-          q
+          query
         )
     );
 
 
-  $('#instrumentGrid')
-  .innerHTML =
+  $("#instrumentGrid").innerHTML =
     list
     .map(
-      i => {
+      instrument => {
 
         const owned =
           profile.owned.includes(
-            i.name
+            instrument.name
           );
 
 
-        const eq =
+        const equipped =
           profile.equipped ===
-          i.name;
+          instrument.name;
 
 
-        const u =
+        const upgrade =
           getInstrumentUpgradeData(
-            i.name
+            instrument.name
           );
 
 
-        const need =
+        const needed =
           getInstrumentXPNeeded(
-            i.name
+            instrument.name
           );
 
 
-        const up =
+        const upgraded =
           getUpgradedInstrument(
-            i.name
+            instrument.name
           );
 
 
-        const evo =
+        const evolution =
           profile.instrumentEvolutions[
-            i.name
+            instrument.name
           ];
 
 
         return `
 
           <article
-            class="
-              instrument-card
-              ${
-                eq
-                  ? 'equipped'
-                  : ''
-              }
-            "
+            class="instrument-card ${
+              equipped
+                ? "equipped"
+                : ""
+            }"
           >
 
             <div class="instrument-icon">
-              ${i.icon}
+              ${instrument.icon}
             </div>
 
 
             <h3>
               ${
-                evo
-                  ? evo.name
-                  : i.name
+                evolution
+                  ? evolution.name
+                  : instrument.name
               }
             </h3>
 
 
             <p>
 
-              ${i.family}
+              ${instrument.family}
 
-              • Mastery
-              ${
+              • Mastery ${
                 profile.mastery[
-                  i.name
+                  instrument.name
                 ] ||
                 0
               }
 
               ${
-                evo
-                  ? ' • EVOLVED'
-                  : ''
+                evolution
+                  ? " • EVOLVED"
+                  : ""
               }
 
             </p>
@@ -5212,24 +3634,24 @@ function renderInstruments() {
 
             ${
               owned
-
                 ? `
 
                   <div class="instrument-level-row">
 
                     <strong>
-                      Level ${u.level}
+                      Level ${upgrade.level}
                     </strong>
+
 
                     <span>
 
                       ${
-                        u.level >=
+                        upgrade.level >=
                         20
 
-                          ? 'MAX'
+                          ? "MAX"
 
-                          : `${u.xp} / ${need} EXP`
+                          : `${upgrade.xp} / ${needed} EXP`
                       }
 
                     </span>
@@ -5242,15 +3664,15 @@ function renderInstruments() {
                     <i
                       style="
                         width:${
-                          u.level >=
+                          upgrade.level >=
                           20
 
                             ? 100
 
                             : Math.min(
                                 100,
-                                u.xp /
-                                need *
+                                upgrade.xp /
+                                needed *
                                 100
                               )
                         }%
@@ -5260,26 +3682,26 @@ function renderInstruments() {
                   </div>
                 `
 
-                : ''
+                : ""
             }
 
 
             <div class="stat-line">
 
               <span>
-                ATK ${up.attack}
+                ATK ${upgraded.attack}
               </span>
 
               <span>
-                DEF ${up.defense}
+                DEF ${upgraded.defense}
               </span>
 
               <span>
-                MEL ${up.melody}
+                MEL ${upgraded.melody}
               </span>
 
               <span>
-                RHY ${up.rhythm}
+                RHY ${upgraded.rhythm}
               </span>
 
             </div>
@@ -5293,59 +3715,56 @@ function renderInstruments() {
                   ? `
 
                     <button
-                      class="
-                        btn
-                        ${
-                          eq
-                            ? 'gold'
-                            : 'ghost'
-                        }
-                      "
-                      data-equip="${i.name}"
+                      class="btn ${
+                        equipped
+                          ? "gold"
+                          : "ghost"
+                      }"
+                      data-equip="${instrument.name}"
                     >
+
                       ${
-                        eq
-                          ? 'Equipped'
-                          : 'Equip'
+                        equipped
+                          ? "Equipped"
+                          : "Equip"
                       }
+
                     </button>
 
 
                     <button
-                      class="
-                        btn
-                        ${
-                          u.xp >=
-                            need &&
-                          u.level <
-                            20
-
-                            ? 'gold'
-
-                            : 'ghost'
-                        }
-                      "
-                      data-upgrade-instrument="${i.name}"
-
-                      ${
-                        u.xp <
-                          need ||
-                        u.level >=
+                      class="btn ${
+                        upgrade.xp >=
+                          needed &&
+                        upgrade.level <
                           20
 
-                          ? 'disabled'
+                          ? "gold"
 
-                          : ''
+                          : "ghost"
+                      }"
+
+                      data-upgrade-instrument="${instrument.name}"
+
+                      ${
+                        upgrade.xp <
+                          needed ||
+                        upgrade.level >=
+                          20
+
+                          ? "disabled"
+
+                          : ""
                       }
                     >
 
                       ${
-                        u.level >=
+                        upgrade.level >=
                         20
 
-                          ? 'MAX'
+                          ? "MAX"
 
-                          : 'Upgrade'
+                          : "Upgrade"
                       }
 
                     </button>
@@ -5355,9 +3774,11 @@ function renderInstruments() {
 
                     <button
                       class="btn gold"
-                      data-buy="${i.name}"
+                      data-buy="${instrument.name}"
                     >
-                      🪙 ${i.price}
+
+                      🪙 ${instrument.price}
+
                     </button>
                   `
               }
@@ -5368,49 +3789,48 @@ function renderInstruments() {
         `;
       }
     )
-    .join('');
+    .join("");
 
 
-/* ============================
+/* =========================================================
    BUY INSTRUMENT
-============================ */
+========================================================= */
 
-  $$(
-    '[data-buy]'
-  )
+  $$("[data-buy]")
   .forEach(
-    b =>
-      b.onclick =
+    button => {
+
+      button.onclick =
         () => {
 
-          const i =
+          const instrument =
             getInstrument(
-              b.dataset.buy
+              button.dataset.buy
             );
 
 
           if (
             profile.coins <
-            i.price
+            instrument.price
           ) {
 
             return toast(
-              'Not enough coins.'
+              "Not enough coins."
             );
           }
 
 
           profile.coins -=
-            i.price;
+            instrument.price;
 
 
           profile.owned.push(
-            i.name
+            instrument.name
           );
 
 
           profile.equipped =
-            i.name;
+            instrument.name;
 
 
           persist();
@@ -5423,58 +3843,66 @@ function renderInstruments() {
             true
           );
 
+
           S.coin();
-        }
+        };
+    }
   );
 
 
-/* ============================
+/* =========================================================
    EQUIP INSTRUMENT
-============================ */
+========================================================= */
 
-  $$(
-    '[data-equip]'
-  )
+  $$("[data-equip]")
   .forEach(
-    b =>
-      b.onclick =
+    button => {
+
+      button.onclick =
         () => {
 
           profile.equipped =
-            b.dataset.equip;
+            button.dataset.equip;
 
 
           persist();
 
+
           renderInstruments();
+
 
           refreshBattle(
             true
           );
 
+
           renderEvolutionPanel();
+
 
           renderInstrumentUpgradePanel();
 
+
           S.click();
-        }
+        };
+    }
   );
 
 
-/* ============================
+/* =========================================================
    UPGRADE INSTRUMENT BUTTON
-============================ */
+========================================================= */
 
-  $$(
-    '[data-upgrade-instrument]'
-  )
+  $$("[data-upgrade-instrument]")
   .forEach(
-    b =>
-      b.onclick =
+    button => {
+
+      button.onclick =
         () =>
           upgradeInstrument(
-            b.dataset.upgradeInstrument
-          )
+            button.dataset
+            .upgradeInstrument
+          );
+    }
   );
 
 
@@ -5482,74 +3910,76 @@ function renderInstruments() {
 }
 
 
-/* ============================
+/* =========================================================
    INSTRUMENT SEARCH
-============================ */
+========================================================= */
 
-$('#instrumentSearch')
-.oninput =
+$("#instrumentSearch").oninput =
   renderInstruments;
 
 
-/* ============================
+/* =========================================================
    BATTLE INSTRUMENT SELECT
-============================ */
+========================================================= */
 
 function renderBattleInstrumentSelect() {
 
-  const old =
-    $('#battleInstrumentSelect')
+  const oldSelection =
+    $("#battleInstrumentSelect")
     .value;
 
 
-  $('#battleInstrumentSelect')
-  .innerHTML =
+  $("#battleInstrumentSelect").innerHTML =
     profile.owned
     .map(
-      n => `
+      name => `
 
         <option
           ${
-            n ===
+            name ===
             profile.equipped
 
-              ? 'selected'
+              ? "selected"
 
-              : ''
+              : ""
           }
         >
-          ${n}
+          ${name}
         </option>
       `
     )
-    .join('');
+    .join("");
 
 
   if (
     profile.owned.includes(
-      old
+      oldSelection
     )
   ) {
 
-    $('#battleInstrumentSelect')
-    .value =
-      old;
+    $("#battleInstrumentSelect").value =
+      oldSelection;
   }
 }
 
 
-$('#battleInstrumentSelect')
-.onchange =
+/* =========================================================
+   CHANGE BATTLE INSTRUMENT
+========================================================= */
+
+$("#battleInstrumentSelect").onchange =
   () => {
 
     profile.equipped =
-      $('#battleInstrumentSelect')
+      $("#battleInstrumentSelect")
       .value;
 
 
     persist();
 
+
     renderInstruments();
+
 
     refreshBattle(
       true
@@ -5557,44 +3987,45 @@ $('#battleInstrumentSelect')
   };
 
 
-/* ============================
+/* =========================================================
    SOLO BATTLE
-============================ */
+========================================================= */
 
-let battle = {};
+let battle =
+  {};
 
 
 const botNames = [
 
-  'BeatKnight',
+  "BeatKnight",
 
-  'PianoNova',
+  "PianoNova",
 
-  'RhythmFox',
+  "RhythmFox",
 
-  'StringStorm',
+  "StringStorm",
 
-  'TempoAce',
+  "TempoAce",
 
-  'ChordKing',
+  "ChordKing",
 
-  'MelodyMint',
+  "MelodyMint",
 
-  'BassOrbit',
+  "BassOrbit",
 
-  'JazzPixel'
+  "JazzPixel"
 ];
 
 
-/* ============================
+/* =========================================================
    CREATE / REFRESH SOLO BATTLE
-============================ */
+========================================================= */
 
 function refreshBattle(
   newEnemy = false
 ) {
 
-  const pi =
+  const playerInstrument =
     getInstrument(
       profile.equipped
     );
@@ -5605,7 +4036,7 @@ function refreshBattle(
     !battle.enemy
   ) {
 
-    const ei =
+    const enemyInstrument =
       pick(
         instruments
       );
@@ -5616,29 +4047,29 @@ function refreshBattle(
       playerHp:
         Math.round(
           100 +
-          pi.defense *
-          .4
+          playerInstrument.defense *
+          0.4
         ),
 
       playerMax:
         Math.round(
           100 +
-          pi.defense *
-          .4
+          playerInstrument.defense *
+          0.4
         ),
 
       enemyHp:
         Math.round(
           100 +
-          ei.defense *
-          .4
+          enemyInstrument.defense *
+          0.4
         ),
 
       enemyMax:
         Math.round(
           100 +
-          ei.defense *
-          .4
+          enemyInstrument.defense *
+          0.4
         ),
 
       enemy: {
@@ -5649,7 +4080,7 @@ function refreshBattle(
           ),
 
         instrument:
-          ei.name
+          enemyInstrument.name
       },
 
       energy:
@@ -5664,24 +4095,20 @@ function refreshBattle(
   }
 
 
-  $('#playerBattleName')
-  .textContent =
+  $("#playerBattleName").textContent =
     profile.name ||
-    'Player';
+    "Player";
 
 
-  $('#playerInstrumentLabel')
-  .textContent =
+  $("#playerInstrumentLabel").textContent =
     profile.equipped;
 
 
-  $('#cpuBattleName')
-  .textContent =
+  $("#cpuBattleName").textContent =
     battle.enemy.name;
 
 
-  $('#cpuInstrumentLabel')
-  .textContent =
+  $("#cpuInstrumentLabel").textContent =
     battle.enemy.instrument;
 
 
@@ -5689,13 +4116,13 @@ function refreshBattle(
 }
 
 
-/* ============================
+/* =========================================================
    RENDER SOLO BATTLE
-============================ */
+========================================================= */
 
 function renderSoloBattle() {
 
-  const pi =
+  const playerInstrument =
     getInstrument(
       profile.equipped
     );
@@ -5707,8 +4134,11 @@ function renderSoloBattle() {
     );
 
 
-  $('#playerHpFill')
-  .style.width =
+/* =========================================================
+   HP BARS
+========================================================= */
+
+  $("#playerHpFill").style.width =
     `${
       100 *
       battle.playerHp /
@@ -5716,8 +4146,7 @@ function renderSoloBattle() {
     }%`;
 
 
-  $('#cpuHpFill')
-  .style.width =
+  $("#cpuHpFill").style.width =
     `${
       100 *
       battle.enemyHp /
@@ -5725,87 +4154,92 @@ function renderSoloBattle() {
     }%`;
 
 
-  $('#playerHpText')
-  .textContent =
+  $("#playerHpText").textContent =
     `${battle.playerHp} / ${battle.playerMax}`;
 
 
-  $('#cpuHpText')
-  .textContent =
+  $("#cpuHpText").textContent =
     `${battle.enemyHp} / ${battle.enemyMax}`;
 
 
-  $('#energyPips')
-  .innerHTML =
+/* =========================================================
+   ENERGY
+========================================================= */
+
+  $("#energyPips").innerHTML =
     [
       0,
       1,
       2
     ]
     .map(
-      i => `
+      index => `
 
         <i
           class="${
-            i <
+            index <
             battle.energy
-              ? 'on'
-              : ''
+
+              ? "on"
+
+              : ""
           }"
         ></i>
       `
     )
-    .join('');
+    .join("");
 
 
-  $('#moveButtons')
-  .innerHTML =
+/* =========================================================
+   MOVE BUTTONS
+========================================================= */
+
+  $("#moveButtons").innerHTML =
     moves
     .map(
       (
-        m,
-        i
+        move,
+        index
       ) => `
 
         <button
           class="
             move-btn
             ${
-              i === 3
-                ? 'ultimate'
-                : ''
+              index === 3
+                ? "ultimate"
+                : ""
             }
           "
 
-          data-solo-move="${i}"
+          data-solo-move="${index}"
 
           ${
             battle.busy ||
             (
-              i === 3 &&
-              battle.energy <
-              3
+              index === 3 &&
+              battle.energy < 3
             )
 
-              ? 'disabled'
+              ? "disabled"
 
-              : ''
+              : ""
           }
         >
 
           <strong>
-            ${m[0]}
+            ${move[0]}
           </strong>
 
 
           <span>
 
             ${
-              i === 3
+              index === 3
 
-                ? 'ULTIMATE • 3 ENERGY'
+                ? "ULTIMATE • 3 ENERGY"
 
-                : m[1]
+                : move[1]
                   .toUpperCase()
             }
 
@@ -5815,17 +4249,17 @@ function renderSoloBattle() {
           <small>
 
             ${
-              m[1] ===
-              'heal'
+              move[1] ===
+              "heal"
 
-                ? 'Restore HP'
+                ? "Restore HP"
 
-                : m[1] ===
-                  'shield'
+                : move[1] ===
+                  "shield"
 
-                  ? 'Block next hit'
+                  ? "Block next hit"
 
-                  : 'Deal musical damage'
+                  : "Deal musical damage"
             }
 
           </small>
@@ -5833,29 +4267,30 @@ function renderSoloBattle() {
         </button>
       `
     )
-    .join('');
+    .join("");
 
 
-  $$(
-    '[data-solo-move]'
-  )
+  $$("[data-solo-move]")
   .forEach(
-    b =>
-      b.onclick =
+    button => {
+
+      button.onclick =
         () =>
           soloMove(
-            +b.dataset.soloMove
-          )
+            +button.dataset
+            .soloMove
+          );
+    }
   );
 }
 
 
-/* ============================
+/* =========================================================
    SOLO BATTLE MOVE
-============================ */
+========================================================= */
 
 async function soloMove(
-  idx
+  index
 ) {
 
   if (
@@ -5870,7 +4305,7 @@ async function soloMove(
     true;
 
 
-  const inst =
+  const instrument =
     getUpgradedInstrument(
       profile.equipped
     );
@@ -5880,43 +4315,38 @@ async function soloMove(
     getInstrumentMoves(
       profile.equipped
     )[
-      idx
+      index
     ];
 
 
   let text =
-    '';
+    "";
 
-
-/* ============================
-   PLAY MOVE SOUND
-============================ */
 
   playInstrument(
 
-    inst.name,
+    instrument.name,
 
-    idx === 3
+    index === 3
       ? 660
       : 440
   );
 
 
-/* ============================
+/* =========================================================
    HEAL MOVE
-============================ */
+========================================================= */
 
   if (
     move[1] ===
-    'heal'
+    "heal"
   ) {
 
-    const h =
+    const healing =
       Math.round(
 
-        inst.melody *
-        .25 +
-
+        instrument.melody *
+        0.25 +
         12
       );
 
@@ -5925,7 +4355,7 @@ async function soloMove(
       clamp(
 
         battle.playerHp +
-        h,
+        healing,
 
         0,
 
@@ -5946,20 +4376,20 @@ async function soloMove(
 
 
     text =
-      `${move[0]} restored ${h} HP.`;
+      `${move[0]} restored ${healing} HP.`;
 
 
     S.heal();
   }
 
 
-/* ============================
+/* =========================================================
    SHIELD MOVE
-============================ */
+========================================================= */
 
   else if (
     move[1] ===
-    'shield'
+    "shield"
   ) {
 
     battle.shield =
@@ -5986,19 +4416,22 @@ async function soloMove(
   }
 
 
-/* ============================
-   ATTACK MOVE
-============================ */
+/* =========================================================
+   ATTACK / RHYTHM / ULTIMATE
+========================================================= */
 
   else {
 
-    let mult =
+    let multiplier =
       move[2];
 
 
+/* =========================================================
+   ULTIMATE
+========================================================= */
+
     if (
-      idx ===
-      3
+      index === 3
     ) {
 
       battle.energy =
@@ -6007,6 +4440,11 @@ async function soloMove(
 
       S.ultimate();
     }
+
+
+/* =========================================================
+   NORMAL MOVE
+========================================================= */
 
     else {
 
@@ -6023,7 +4461,11 @@ async function soloMove(
     }
 
 
-    let dmg =
+/* =========================================================
+   DAMAGE
+========================================================= */
+
+    let damage =
       Math.max(
 
         6,
@@ -6031,11 +4473,11 @@ async function soloMove(
         Math.round(
 
           (
-            inst.attack *
-            .32 +
+            instrument.attack *
+            0.32 +
 
-            inst.rhythm *
-            .12 +
+            instrument.rhythm *
+            0.12 +
 
             rand(
               -3,
@@ -6043,37 +4485,34 @@ async function soloMove(
             )
           ) *
 
-          mult -
+          multiplier -
 
           getInstrument(
             battle.enemy.instrument
-          )
-          .defense *
-          .06
+          ).defense *
+          0.06
         )
       );
 
 
-/* ============================
+/* =========================================================
    CRITICAL HIT
-============================ */
+========================================================= */
 
-    const crit =
+    const critical =
       Math.random() <
-
-      .08 +
-
-      inst.melody /
+      0.08 +
+      instrument.melody /
       1200;
 
 
     if (
-      crit
+      critical
     ) {
 
-      dmg =
+      damage =
         Math.round(
-          dmg *
+          damage *
           1.5
         );
 
@@ -6091,7 +4530,7 @@ async function soloMove(
       clamp(
 
         battle.enemyHp -
-        dmg,
+        damage,
 
         0,
 
@@ -6100,40 +4539,40 @@ async function soloMove(
 
 
     text =
-      `${move[0]} dealt ${dmg}${
-        crit
-          ? ' CRITICAL'
-          : ''
+      `${move[0]} dealt ${damage}${
+        critical
+          ? " CRITICAL"
+          : ""
       } damage.`;
 
 
     addMastery(
-      inst.name,
+
+      instrument.name,
+
       2
     );
   }
 
 
-/* ============================
+/* =========================================================
    UPDATE BATTLE TEXT
-============================ */
+========================================================= */
 
-  $('#battleStatus')
-  .textContent =
+  $("#battleStatus").textContent =
     text;
 
 
-  $('#battleLog')
-  .textContent =
+  $("#battleLog").textContent =
     text;
 
 
   renderSoloBattle();
 
 
-/* ============================
-   PLAYER WINS
-============================ */
+/* =========================================================
+   PLAYER VICTORY
+========================================================= */
 
   if (
     battle.enemyHp <=
@@ -6148,20 +4587,27 @@ async function soloMove(
 
 
     progressQuest(
-      'battle',
+
+      "battle",
+
       1
     );
 
 
     reward(
+
       24,
+
       18,
-      'Battle won!'
+
+      "Battle won!"
     );
 
 
     addInstrumentXP(
+
       profile.equipped,
+
       6
     );
 
@@ -6170,12 +4616,10 @@ async function soloMove(
 
 
     setTimeout(
-
       () =>
         refreshBattle(
           true
         ),
-
       1000
     );
 
@@ -6184,54 +4628,54 @@ async function soloMove(
   }
 
 
-/* ============================
+/* =========================================================
    ENEMY TURN
-============================ */
+========================================================= */
 
   await wait(
     700
   );
 
 
-  const ei =
+  const enemyInstrument =
     getInstrument(
       battle.enemy.instrument
     );
 
 
-  let edmg =
+  let enemyDamage =
     Math.max(
 
       5,
 
       Math.round(
 
-        ei.attack *
-        .28 +
+        enemyInstrument.attack *
+        0.28 +
 
         rand(
           -3,
           5
         ) -
 
-        inst.defense *
-        .05
+        instrument.defense *
+        0.05
       )
     );
 
 
-/* ============================
+/* =========================================================
    PLAYER SHIELD
-============================ */
+========================================================= */
 
   if (
     battle.shield
   ) {
 
-    edmg =
+    enemyDamage =
       Math.round(
-        edmg *
-        .5
+        enemyDamage *
+        0.5
       );
 
 
@@ -6244,7 +4688,7 @@ async function soloMove(
     clamp(
 
       battle.playerHp -
-      edmg,
+      enemyDamage,
 
       0,
 
@@ -6253,7 +4697,9 @@ async function soloMove(
 
 
   playInstrument(
-    ei.name,
+
+    enemyInstrument.name,
+
     330
   );
 
@@ -6261,14 +4707,12 @@ async function soloMove(
   S.attack();
 
 
-  $('#battleStatus')
-  .textContent =
-    `${battle.enemy.name} dealt ${edmg} damage.`;
+  $("#battleStatus").textContent =
+    `${battle.enemy.name} dealt ${enemyDamage} damage.`;
 
 
-  $('#battleLog')
-  .textContent =
-    `${text} • Enemy hit for ${edmg}.`;
+  $("#battleLog").textContent =
+    `${text} • Enemy hit for ${enemyDamage}.`;
 
 
   battle.busy =
@@ -6278,9 +4722,9 @@ async function soloMove(
   renderSoloBattle();
 
 
-/* ============================
-   PLAYER LOSES
-============================ */
+/* =========================================================
+   PLAYER DEFEAT
+========================================================= */
 
   if (
     battle.playerHp <=
@@ -6299,36 +4743,33 @@ async function soloMove(
 
 
     toast(
-      'Defeat. +4 EXP'
+      "Defeat. +4 EXP"
     );
 
 
     setTimeout(
-
       () =>
         refreshBattle(
           true
         ),
-
       1000
     );
   }
 }
 
 
-/* ============================
-   NEW OPPONENT
-============================ */
+/* =========================================================
+   NEW OPPONENT BUTTON
+========================================================= */
 
-$('#newOpponentBtn')
-.onclick =
+$("#newOpponentBtn").onclick =
   () =>
     refreshBattle(
       true
     );
-      /* ============================
+/* =========================================================
    TEAM BATTLE
-============================ */
+========================================================= */
 
 let multiplayerState = {
 
@@ -6356,9 +4797,9 @@ let multiplayerState = {
 };
 
 
-/* ============================
+/* =========================================================
    CREATE TEAM PLAYER
-============================ */
+========================================================= */
 
 function makeTeamPlayer(
   team,
@@ -6366,11 +4807,11 @@ function makeTeamPlayer(
 ) {
 
   const human =
-    team === 'blue' &&
+    team === "blue" &&
     index === 0;
 
 
-  const inst =
+  const instrument =
     human
 
       ? getInstrument(
@@ -6396,7 +4837,7 @@ function makeTeamPlayer(
 
         ? (
             profile.name ||
-            'Player'
+            "Player"
           )
 
         : pick(
@@ -6408,29 +4849,29 @@ function makeTeamPlayer(
           ),
 
     instrument:
-      inst.name,
+      instrument.name,
 
     icon:
-      inst.icon,
+      instrument.icon,
 
     attack:
-      inst.attack,
+      instrument.attack,
 
     defense:
-      inst.defense,
+      instrument.defense,
 
     melody:
-      inst.melody,
+      instrument.melody,
 
     rhythm:
-      inst.rhythm
+      instrument.rhythm
   };
 }
 
 
-/* ============================
+/* =========================================================
    OPEN TEAM BATTLE LOBBY
-============================ */
+========================================================= */
 
 function openLobby(
   size
@@ -6456,11 +4897,11 @@ function openLobby(
 
       (
         _,
-        i
+        index
       ) =>
         makeTeamPlayer(
-          'blue',
-          i
+          "blue",
+          index
         )
     );
 
@@ -6473,19 +4914,19 @@ function openLobby(
 
       (
         _,
-        i
+        index
       ) =>
         makeTeamPlayer(
-          'red',
-          i
+          "red",
+          index
         )
     );
 
 
   multiplayerState.blueHP =
     multiplayerState.redHP =
-      multiplayerState.maxTeamHP =
-        10000;
+    multiplayerState.maxTeamHP =
+    10000;
 
 
   multiplayerState.playerEnergy =
@@ -6496,25 +4937,22 @@ function openLobby(
     0;
 
 
-  $('#concertRoundLabel')
-  .textContent =
-    'LOBBY';
+  $("#concertRoundLabel").textContent =
+    "LOBBY";
 
 
-  $('#startTeamBattleBtn')
-  .disabled =
+  $("#startTeamBattleBtn").disabled =
     false;
 
 
-  $('#startTeamBattleBtn')
-  .textContent =
-    'Start Concert Battle';
+  $("#startTeamBattleBtn").textContent =
+    "Start Concert Battle";
 
 
-  $('#teamMovePanel')
+  $("#teamMovePanel")
   .classList
   .add(
-    'hidden'
+    "hidden"
   );
 
 
@@ -6524,104 +4962,105 @@ function openLobby(
 
 
   setMP(
-    `<strong>${size}v${size} Concert Battle ready.</strong><span>Both teams share 10,000 HP.</span>`
+    `<strong>${size}v${size} Concert Battle ready.</strong>
+     <span>Both teams share 10,000 HP.</span>`
   );
 
 
-  $$(
-    '.mp-start'
-  )
+  $$(".mp-start")
   .forEach(
-    b =>
-      b.classList.toggle(
-        'active',
+    button => {
 
-        +b.dataset.team ===
+      button.classList.toggle(
+
+        "active",
+
+        +button.dataset.team ===
         size
-      )
+      );
+    }
   );
 }
 
 
-/* ============================
+/* =========================================================
    RENDER TEAM PLAYERS
-============================ */
+========================================================= */
 
 function renderConcertTeams(
-  activeId = ''
+  activeId = ""
 ) {
 
   const render =
     (
-      arr,
+      players,
       team
     ) =>
-      arr
+      players
       .map(
-        p => `
+        player => `
 
           <div
             class="
               concert-player
               ${team}
               ${
-                p.id ===
+                player.id ===
                 activeId
 
-                  ? 'active'
+                  ? "active"
 
-                  : ''
+                  : ""
               }
             "
           >
 
             <div
               class="body"
-              data-icon="${p.icon}"
+              data-icon="${player.icon}"
             ></div>
 
+
             <div class="name">
-              ${p.name}
+              ${player.name}
             </div>
 
           </div>
         `
       )
-      .join('');
+      .join("");
 
 
-  $('#blueConcertPlayers')
-  .innerHTML =
+  $("#blueConcertPlayers").innerHTML =
     render(
       multiplayerState.blue,
-      'blue'
+      "blue"
     );
 
 
-  $('#redConcertPlayers')
-  .innerHTML =
+  $("#redConcertPlayers").innerHTML =
     render(
       multiplayerState.red,
-      'red'
+      "red"
     );
 }
 
 
-/* ============================
-   UPDATE TEAM HP
-============================ */
+/* =========================================================
+   UPDATE TEAM HP BARS
+========================================================= */
 
 function updateTeamHPBars() {
 
-  const m =
+  const max =
     multiplayerState.maxTeamHP;
 
 
-  const b =
+  const bluePercent =
     clamp(
 
       multiplayerState.blueHP /
-      m *
+      max *
       100,
 
       0,
@@ -6630,11 +5069,11 @@ function updateTeamHPBars() {
     );
 
 
-  const r =
+  const redPercent =
     clamp(
 
       multiplayerState.redHP /
-      m *
+      max *
       100,
 
       0,
@@ -6643,46 +5082,49 @@ function updateTeamHPBars() {
     );
 
 
-  $('#blueTeamHPFill')
-  .style.width =
-    b +
-    '%';
+  $("#blueTeamHPFill").style.width =
+    bluePercent +
+    "%";
 
 
-  $('#redTeamHPFill')
-  .style.width =
-    r +
-    '%';
+  $("#redTeamHPFill").style.width =
+    redPercent +
+    "%";
 
 
-  $('#blueTeamHPText')
-  .textContent =
-    `${Math.round(multiplayerState.blueHP).toLocaleString()} / ${m.toLocaleString()} HP`;
+  $("#blueTeamHPText").textContent =
+    `${
+      Math.round(
+        multiplayerState.blueHP
+      )
+      .toLocaleString()
+    } / ${max.toLocaleString()} HP`;
 
 
-  $('#redTeamHPText')
-  .textContent =
-    `${Math.round(multiplayerState.redHP).toLocaleString()} / ${m.toLocaleString()} HP`;
+  $("#redTeamHPText").textContent =
+    `${
+      Math.round(
+        multiplayerState.redHP
+      )
+      .toLocaleString()
+    } / ${max.toLocaleString()} HP`;
 }
 
 
-/* ============================
+/* =========================================================
    TEAM BATTLE MESSAGE
-============================ */
+========================================================= */
 
-function setMP(
-  html
-) {
+function setMP(html) {
 
-  $('#multiplayerBattleMessage')
-  .innerHTML =
+  $("#multiplayerBattleMessage").innerHTML =
     html;
 }
 
 
-/* ============================
+/* =========================================================
    TEAM DAMAGE
-============================ */
+========================================================= */
 
 function teamDamage(
   attacker,
@@ -6691,14 +5133,14 @@ function teamDamage(
 
   const targetTeam =
     attacker.team ===
-    'blue'
+    "blue"
 
-      ? 'red'
+      ? "red"
 
-      : 'blue';
+      : "blue";
 
 
-  let dmg =
+  let damage =
     Math.max(
 
       120,
@@ -6725,9 +5167,7 @@ function teamDamage(
 
   const critical =
     Math.random() <
-
-    .05 +
-
+    0.05 +
     attacker.melody /
     1000;
 
@@ -6736,9 +5176,9 @@ function teamDamage(
     critical
   ) {
 
-    dmg =
+    damage =
       Math.round(
-        dmg *
+        damage *
         1.5
       );
   }
@@ -6746,7 +5186,7 @@ function teamDamage(
 
   multiplayerState[
     targetTeam +
-    'HP'
+    "HP"
   ] =
     Math.max(
 
@@ -6754,9 +5194,9 @@ function teamDamage(
 
       multiplayerState[
         targetTeam +
-        'HP'
+        "HP"
       ] -
-      dmg
+      damage
     );
 
 
@@ -6765,16 +5205,17 @@ function teamDamage(
 
   return {
 
-    dmg,
+    dmg:
+      damage,
 
     critical
   };
 }
 
 
-/* ============================
-   WAIT FOR PLAYER MOVE
-============================ */
+/* =========================================================
+   WAIT FOR HUMAN MOVE
+========================================================= */
 
 function waitHumanMove() {
 
@@ -6791,27 +5232,27 @@ function waitHumanMove() {
 }
 
 
-/* ============================
-   SHOW PLAYER TEAM MOVES
-============================ */
+/* =========================================================
+   SHOW TEAM MOVE BUTTONS
+========================================================= */
 
 function showTeamMoves() {
 
-  const p =
+  const player =
     multiplayerState.blue[
       0
     ];
 
 
-  const inst =
+  const instrument =
     getInstrument(
-      p.instrument
+      player.instrument
     );
 
 
   const moves =
     getInstrumentMoves(
-      p.instrument
+      player.instrument
     );
 
 
@@ -6819,91 +5260,85 @@ function showTeamMoves() {
     true;
 
 
-  $('#teamMovePanel')
+  $("#teamMovePanel")
   .classList
   .remove(
-    'hidden'
+    "hidden"
   );
 
 
-  $('#teamTurnTitle')
-  .textContent =
-    `${p.name}, choose your move`;
+  $("#teamTurnTitle").textContent =
+    `${player.name}, choose your move`;
 
 
-  $('#teamEnergyLabel')
-  .textContent =
+  $("#teamEnergyLabel").textContent =
     `${multiplayerState.playerEnergy} / 3`;
 
 
-  $('#teamMoveButtons')
-  .innerHTML =
+  $("#teamMoveButtons").innerHTML =
     moves
     .map(
       (
-        m,
-        i
+        move,
+        index
       ) => `
 
         <button
           class="
             move-btn
             ${
-              i ===
-              3
-
-                ? 'ultimate'
-
-                : ''
+              index === 3
+                ? "ultimate"
+                : ""
             }
           "
 
-          data-team-move="${i}"
+          data-team-move="${index}"
 
           ${
-            i ===
-              3 &&
+            index === 3 &&
             multiplayerState.playerEnergy <
-              3
+            3
 
-              ? 'disabled'
+              ? "disabled"
 
-              : ''
+              : ""
           }
         >
 
           <strong>
-            ${m[0]}
+            ${move[0]}
           </strong>
+
 
           <span>
 
             ${
-              i ===
-              3
+              index === 3
 
-                ? 'ULTIMATE • 3 ENERGY'
+                ? "ULTIMATE • 3 ENERGY"
 
-                : m[1]
+                : move[1]
                   .toUpperCase()
             }
 
           </span>
 
+
           <small>
 
             ${
-              m[1] ===
-              'heal'
+              move[1] ===
+              "heal"
 
-                ? 'Restore team HP'
+                ? "Restore team HP"
 
-                : m[1] ===
-                  'shield'
+                : move[1] ===
+                  "shield"
 
-                  ? 'Reduce next enemy hit'
+                  ? "Reduce next enemy hit"
 
-                  : 'Damage Team Red'
+                  : "Damage Team Red"
             }
 
           </small>
@@ -6911,15 +5346,14 @@ function showTeamMoves() {
         </button>
       `
     )
-    .join('');
+    .join("");
 
 
-  $$(
-    '[data-team-move]'
-  )
+  $$("[data-team-move]")
   .forEach(
-    b =>
-      b.onclick =
+    button => {
+
+      button.onclick =
         () => {
 
           if (
@@ -6934,14 +5368,14 @@ function showTeamMoves() {
             false;
 
 
-          $('#teamMovePanel')
+          $("#teamMovePanel")
           .classList
           .add(
-            'hidden'
+            "hidden"
           );
 
 
-          const r =
+          const resolve =
             multiplayerState.resolve;
 
 
@@ -6949,73 +5383,72 @@ function showTeamMoves() {
             null;
 
 
-          r(
-            +b.dataset.teamMove
+          resolve(
+            +button.dataset
+            .teamMove
           );
-        }
+        };
+    }
   );
 }
 
 
-/* ============================
+/* =========================================================
    EXECUTE HUMAN TEAM MOVE
-============================ */
+========================================================= */
 
 async function executeTeamMove(
-  idx
+  index
 ) {
 
-  const p =
+  const player =
     multiplayerState.blue[
       0
     ];
 
 
-  const inst =
+  const instrument =
     getInstrument(
-      p.instrument
+      player.instrument
     );
 
 
   const move =
     getInstrumentMoves(
-      p.instrument
+      player.instrument
     )[
-      idx
+      index
     ];
 
 
   renderConcertTeams(
-    p.id
+    player.id
   );
 
 
   playInstrument(
 
-    inst.name,
+    instrument.name,
 
-    idx ===
-    3
-
+    index === 3
       ? 659
-
       : 440
   );
 
 
-/* ============================
-   TEAM HEAL MOVE
-============================ */
+/* =========================================================
+   TEAM HEAL
+========================================================= */
 
   if (
     move[1] ===
-    'heal'
+    "heal"
   ) {
 
-    const h =
+    const healing =
       Math.round(
 
-        inst.melody *
+        instrument.melody *
         7 +
 
         220
@@ -7026,7 +5459,7 @@ async function executeTeamMove(
       clamp(
 
         multiplayerState.blueHP +
-        h,
+        healing,
 
         0,
 
@@ -7050,19 +5483,19 @@ async function executeTeamMove(
 
 
     setMP(
-
-      `<strong>💚 ${move[0]}</strong><span>Team Blue restored ${h} HP.</span>`
+      `<strong>💚 ${move[0]}</strong>
+       <span>Team Blue restored ${healing} HP.</span>`
     );
   }
 
 
-/* ============================
-   TEAM SHIELD MOVE
-============================ */
+/* =========================================================
+   TEAM SHIELD
+========================================================= */
 
   else if (
     move[1] ===
-    'shield'
+    "shield"
   ) {
 
     multiplayerState.teamShield =
@@ -7085,28 +5518,31 @@ async function executeTeamMove(
 
 
     setMP(
-
-      `<strong>🛡️ ${move[0]}</strong><span>Team Blue is shielded against the next attack.</span>`
+      `<strong>🛡️ ${move[0]}</strong>
+       <span>Team Blue is shielded against the next attack.</span>`
     );
   }
 
 
-/* ============================
-   TEAM ATTACK MOVE
-============================ */
+/* =========================================================
+   TEAM ATTACK
+========================================================= */
 
   else {
 
-    let mult =
+    let multiplier =
       move[2];
 
 
+/* =========================================================
+   TEAM ULTIMATE
+========================================================= */
+
     if (
-      idx ===
-      3
+      index === 3
     ) {
 
-      mult *=
+      multiplier *=
         1.5;
 
 
@@ -7116,11 +5552,15 @@ async function executeTeamMove(
 
       S.ultimate();
 
-
       crowd(
         1
       );
     }
+
+
+/* =========================================================
+   NORMAL TEAM ATTACK
+========================================================= */
 
     else {
 
@@ -7142,10 +5582,16 @@ async function executeTeamMove(
 
     const hit =
       teamDamage(
-        p,
-        mult
+
+        player,
+
+        multiplier
       );
 
+
+/* =========================================================
+   TEAM CRITICAL
+========================================================= */
 
     if (
       hit.critical
@@ -7155,19 +5601,25 @@ async function executeTeamMove(
 
 
       crowd(
-        .8
+        0.8
       );
     }
 
 
     setMP(
-
-      `<strong>🔵 ${p.name} used ${move[0]}!</strong><span>${hit.dmg} damage${hit.critical ? ' • CRITICAL PERFORMANCE!' : ''}</span>`
+      `<strong>🔵 ${player.name} used ${move[0]}!</strong>
+       <span>${hit.dmg} damage${
+         hit.critical
+           ? " • CRITICAL PERFORMANCE!"
+           : ""
+       }</span>`
     );
 
 
     addMastery(
-      inst.name,
+
+      instrument.name,
+
       3
     );
   }
@@ -7185,25 +5637,25 @@ async function executeTeamMove(
 }
 
 
-/* ============================
+/* =========================================================
    AI TEAM TURN
-============================ */
+========================================================= */
 
 async function aiTeamTurn(
-  p
+  player
 ) {
 
   renderConcertTeams(
-    p.id
+    player.id
   );
 
 
   playInstrument(
 
-    p.instrument,
+    player.instrument,
 
-    p.team ===
-    'blue'
+    player.team ===
+    "blue"
 
       ? 420
 
@@ -7216,25 +5668,29 @@ async function aiTeamTurn(
 
   let hit =
     teamDamage(
-      p,
-      .8
+
+      player,
+
+      0.8
     );
 
 
-/* ============================
-   APPLY TEAM SHIELD
-============================ */
+/* =========================================================
+   APPLY BLUE TEAM SHIELD
+========================================================= */
 
   if (
-    p.team ===
-      'red' &&
+    player.team ===
+      "red" &&
+
     multiplayerState.teamShield
   ) {
 
     const restore =
       Math.round(
+
         hit.dmg *
-        .45
+        0.45
       );
 
 
@@ -7263,6 +5719,10 @@ async function aiTeamTurn(
   }
 
 
+/* =========================================================
+   AI CRITICAL HIT
+========================================================= */
+
   if (
     hit.critical
   ) {
@@ -7272,8 +5732,19 @@ async function aiTeamTurn(
 
 
   setMP(
+    `<strong>${
+      player.team ===
+      "blue"
 
-    `<strong>${p.team === 'blue' ? '🔵' : '🔴'} ${p.name} performs!</strong><span>${p.instrument} deals ${hit.dmg} team damage${hit.critical ? ' • CRITICAL!' : ''}</span>`
+        ? "🔵"
+
+        : "🔴"
+    } ${player.name} performs!</strong>
+     <span>${player.instrument} deals ${hit.dmg} team damage${
+       hit.critical
+         ? " • CRITICAL!"
+         : ""
+     }</span>`
   );
 
 
@@ -7289,9 +5760,9 @@ async function aiTeamTurn(
 }
 
 
-/* ============================
+/* =========================================================
    START TEAM BATTLE
-============================ */
+========================================================= */
 
 async function startTeamBattle() {
 
@@ -7307,19 +5778,21 @@ async function startTeamBattle() {
     true;
 
 
-  $('#startTeamBattleBtn')
-  .disabled =
+  $("#startTeamBattleBtn").disabled =
     true;
 
 
-  $('#startTeamBattleBtn')
-  .textContent =
-    'Concert in Progress...';
+  $("#startTeamBattleBtn").textContent =
+    "Concert in Progress...";
 
 
   let round =
     1;
 
+
+/* =========================================================
+   TEAM BATTLE ROUND LOOP
+========================================================= */
 
   while (
 
@@ -7337,20 +5810,19 @@ async function startTeamBattle() {
       round;
 
 
-    $('#concertRoundLabel')
-    .textContent =
+    $("#concertRoundLabel").textContent =
       `ROUND ${round}`;
 
 
     setMP(
-
-      `<strong>🎵 Round ${round}: Your turn!</strong><span>Choose one of your instrument moves.</span>`
+      `<strong>🎵 Round ${round}: Your turn!</strong>
+       <span>Choose one of your instrument moves.</span>`
     );
 
 
-/* ============================
+/* =========================================================
    HUMAN TURN
-============================ */
+========================================================= */
 
     const move =
       await waitHumanMove();
@@ -7370,19 +5842,19 @@ async function startTeamBattle() {
     }
 
 
-/* ============================
-   BLUE AI TURNS
-============================ */
+/* =========================================================
+   BLUE AI TEAMMATES
+========================================================= */
 
     for (
-      const p of
+      const player of
       multiplayerState.blue.slice(
         1
       )
     ) {
 
       await aiTeamTurn(
-        p
+        player
       );
 
 
@@ -7405,17 +5877,17 @@ async function startTeamBattle() {
     }
 
 
-/* ============================
-   RED TEAM TURNS
-============================ */
+/* =========================================================
+   RED TEAM
+========================================================= */
 
     for (
-      const p of
+      const player of
       multiplayerState.red
     ) {
 
       await aiTeamTurn(
-        p
+        player
       );
 
 
@@ -7433,18 +5905,18 @@ async function startTeamBattle() {
   }
 
 
-/* ============================
+/* =========================================================
    END TEAM BATTLE
-============================ */
+========================================================= */
 
   multiplayerState.playing =
     false;
 
 
-  $('#teamMovePanel')
+  $("#teamMovePanel")
   .classList
   .add(
-    'hidden'
+    "hidden"
   );
 
 
@@ -7453,18 +5925,15 @@ async function startTeamBattle() {
     multiplayerState.redHP;
 
 
-  $('#concertRoundLabel')
-  .textContent =
+  $("#concertRoundLabel").textContent =
     won
-
-      ? 'VICTORY'
-
-      : 'DEFEAT';
+      ? "VICTORY"
+      : "DEFEAT";
 
 
-/* ============================
+/* =========================================================
    TEAM VICTORY
-============================ */
+========================================================= */
 
   if (
     won
@@ -7479,7 +5948,9 @@ async function startTeamBattle() {
 
 
     progressQuest(
-      'battle',
+
+      "battle",
+
       1
     );
 
@@ -7494,7 +5965,7 @@ async function startTeamBattle() {
       multiplayerState.size *
       2,
 
-      'Concert victory!'
+      "Concert victory!"
     );
 
 
@@ -7507,15 +5978,20 @@ async function startTeamBattle() {
 
 
     setMP(
-
-      `<strong>🏆 TEAM BLUE WINS!</strong><span>${Math.round(multiplayerState.blueHP).toLocaleString()} HP remaining.</span>`
+      `<strong>🏆 TEAM BLUE WINS!</strong>
+       <span>${
+         Math.round(
+           multiplayerState.blueHP
+         )
+         .toLocaleString()
+       } HP remaining.</span>`
     );
   }
 
 
-/* ============================
+/* =========================================================
    TEAM DEFEAT
-============================ */
+========================================================= */
 
   else {
 
@@ -7528,1311 +6004,2050 @@ async function startTeamBattle() {
 
 
     setMP(
-
-      `<strong>Team Red wins the concert.</strong><span>+18 EXP for performing.</span>`
+      `<strong>Team Red wins the concert.</strong>
+       <span>+6 EXP for performing.</span>`
     );
   }
 
 
-  $('#startTeamBattleBtn')
-  .disabled =
+/* =========================================================
+   RESET START BUTTON
+========================================================= */
+
+  $("#startTeamBattleBtn").disabled =
     false;
 
 
-  $('#startTeamBattleBtn')
-  .textContent =
-    'Play Again';
+  $("#startTeamBattleBtn").textContent =
+    "Play Again";
 }
 
 
-/* ============================
+/* =========================================================
    TEAM SIZE BUTTONS
-============================ */
+========================================================= */
 
-$$(
-  '.mp-start'
-)
+$$(".mp-start")
 .forEach(
-  b =>
-    b.onclick =
+  button => {
+
+    button.onclick =
       () =>
         openLobby(
-          +b.dataset.team
-        )
+          +button.dataset.team
+        );
+  }
 );
 
 
-/* ============================
-   START TEAM BATTLE BUTTON
-============================ */
+/* =========================================================
+   TEAM BATTLE START BUTTON
+========================================================= */
 
-$('#startTeamBattleBtn')
-.onclick =
+$("#startTeamBattleBtn").onclick =
   startTeamBattle;
-      /* ============================
-   TEAM BATTLE
-============================ */
+/* ============================ DAILY REWARDS ============================ */
 
-let multiplayerState = {
-
-  size: 10,
-
-  blue: [],
-
-  red: [],
-
-  playing: false,
-
-  round: 0,
-
-  playerEnergy: 0,
-
-  waiting: false,
-
-  resolve: null,
-
-  blueHP: 10000,
-
-  redHP: 10000,
-
-  maxTeamHP: 10000
-};
-
-
-/* ============================
-   CREATE TEAM PLAYER
-============================ */
-
-function makeTeamPlayer(
-  team,
-  index
-) {
-
-  const human =
-    team === 'blue' &&
-    index === 0;
-
-
-  const inst =
-    human
-
-      ? getInstrument(
-          profile.equipped
-        )
-
-      : pick(
-          instruments
-        );
+const dailyRewardTable = [
+  {
+    day: 1,
+    label: '15 Coins',
+    icon: '🪙',
+    coins: 15
+  },
+  {
+    day: 2,
+    label: '10 EXP',
+    icon: '⭐',
+    xp: 10
+  },
+  {
+    day: 3,
+    label: '8 Instrument EXP',
+    icon: '🎵',
+    instrumentXP: 8
+  },
+  {
+    day: 4,
+    label: '25 Coins + 10 EXP',
+    icon: '🎁',
+    coins: 25,
+    xp: 10
+  },
+  {
+    day: 5,
+    label: '15 Star Dust',
+    icon: '💫',
+    dust: 15
+  },
+  {
+    day: 6,
+    label: 'Pet Egg',
+    icon: '🥚',
+    petEgg: true
+  },
+  {
+    day: 7,
+    label: 'Weekly Chest',
+    icon: '👑',
+    coins: 50,
+    xp: 30,
+    instrumentXP: 15,
+    weeklyChest: true
+  }
+];
 
 
-  return {
+function getLocalDateKey(date = new Date()) {
 
-    id:
-      `${team}-${index}-${Math.random()}`,
+  const y =
+    date.getFullYear();
 
-    team,
+  const m =
+    String(
+      date.getMonth() + 1
+    ).padStart(
+      2,
+      '0'
+    );
 
-    human,
+  const d =
+    String(
+      date.getDate()
+    ).padStart(
+      2,
+      '0'
+    );
 
-    name:
-      human
-
-        ? (
-            profile.name ||
-            'Player'
-          )
-
-        : pick(
-            botNames
-          ) +
-          rand(
-            1,
-            99
-          ),
-
-    instrument:
-      inst.name,
-
-    icon:
-      inst.icon,
-
-    attack:
-      inst.attack,
-
-    defense:
-      inst.defense,
-
-    melody:
-      inst.melody,
-
-    rhythm:
-      inst.rhythm
-  };
+  return `${y}-${m}-${d}`;
 }
 
 
-/* ============================
-   OPEN TEAM BATTLE LOBBY
-============================ */
+function getYesterdayDateKey() {
 
-function openLobby(
-  size
-) {
+  const d =
+    new Date();
+
+  d.setDate(
+    d.getDate() - 1
+  );
+
+  return getLocalDateKey(
+    d
+  );
+}
+
+
+function canClaimDailyReward() {
+
+  return (
+    profile.dailyRewards.lastClaim !==
+    getLocalDateKey()
+  );
+}
+
+
+function getNextDailyRewardDay() {
+
+  const today =
+    getLocalDateKey();
+
+  const yesterday =
+    getYesterdayDateKey();
+
 
   if (
-    multiplayerState.playing
+    profile.dailyRewards.lastClaim ===
+    today
+  ) {
+
+    return (
+      profile.dailyRewards.streak ||
+      1
+    );
+  }
+
+
+  if (
+    profile.dailyRewards.lastClaim ===
+    yesterday
+  ) {
+
+    return (
+      profile.dailyRewards.streak %
+      7
+    ) + 1;
+  }
+
+
+  return 1;
+}
+
+
+/* =========================================================
+   DAILY PET EGG
+========================================================= */
+
+function giveDailyPetEgg() {
+
+  const eggs = [
+    {
+      egg: 'Meadow Egg',
+      icon: '🌱',
+      pet: 'Music Bunny',
+      layer: 'Daily Reward'
+    },
+    {
+      egg: 'Cave Egg',
+      icon: '🪨',
+      pet: 'Mole Beat',
+      layer: 'Daily Reward'
+    },
+    {
+      egg: 'Stone Egg',
+      icon: '🐾',
+      pet: 'Rock Pup',
+      layer: 'Daily Reward'
+    },
+    {
+      egg: 'Golden Egg',
+      icon: '🪙',
+      pet: 'Gold Chick',
+      layer: 'Daily Reward'
+    },
+    {
+      egg: 'Crystal Egg',
+      icon: '💎',
+      pet: 'Crystal Fox',
+      layer: 'Daily Reward'
+    }
+  ];
+
+
+  const egg =
+    pick(
+      Math.random() < 0.08
+        ? eggs.slice(3)
+        : eggs.slice(0, 3)
+    );
+
+
+  profile.petEggs.push({
+    id:
+      `daily-${Date.now()}-${Math.random()}`,
+
+    ...egg,
+
+    hatched:
+      false
+  });
+
+
+  toast(
+    `${egg.icon} You received a ${egg.egg}!`
+  );
+}
+
+
+/* =========================================================
+   WEEKLY CHEST BONUS
+========================================================= */
+
+function rollWeeklyChestBonus() {
+
+  const r =
+    Math.random();
+
+
+  if (
+    r < 0.03
+  ) {
+
+    profile.petEggs.push({
+      id:
+        `weekly-${Date.now()}-${Math.random()}`,
+
+      egg:
+        'Celestial Egg',
+
+      icon:
+        '✨',
+
+      pet:
+        'Star Phoenix',
+
+      layer:
+        'Weekly Chest',
+
+      hatched:
+        false
+    });
+
+
+    toast(
+      '✨ JACKPOT! Celestial Egg!'
+    );
+  }
+
+
+  else if (
+    r < 0.15
+  ) {
+
+    profile.dust +=
+      25;
+
+
+    toast(
+      '💫 Weekly Chest bonus: +25 Star Dust!'
+    );
+  }
+}
+
+
+/* =========================================================
+   CLAIM DAILY REWARD
+========================================================= */
+
+function claimDailyReward() {
+
+  if (
+    !canClaimDailyReward()
+  ) {
+
+    return toast(
+      "You already claimed today's reward!"
+    );
+  }
+
+
+  profile.dailyRewards.streak =
+    profile.dailyRewards.lastClaim ===
+    getYesterdayDateKey()
+
+      ? (
+          profile.dailyRewards.streak %
+          7
+        ) + 1
+
+      : 1;
+
+
+  const rewardData =
+    dailyRewardTable[
+      profile.dailyRewards.streak -
+      1
+    ];
+
+
+  if (
+    rewardData.coins
+  ) {
+
+    profile.coins +=
+      rewardData.coins;
+  }
+
+
+  if (
+    rewardData.xp
+  ) {
+
+    addXP(
+      rewardData.xp
+    );
+  }
+
+
+  if (
+    rewardData.dust
+  ) {
+
+    profile.dust +=
+      rewardData.dust;
+  }
+
+
+  if (
+    rewardData.instrumentXP
+  ) {
+
+    addInstrumentXP(
+      profile.equipped,
+      rewardData.instrumentXP
+    );
+  }
+
+
+  if (
+    rewardData.petEgg
+  ) {
+
+    giveDailyPetEgg();
+  }
+
+
+  if (
+    rewardData.weeklyChest
+  ) {
+
+    rollWeeklyChestBonus();
+  }
+
+
+  profile.dailyRewards.lastClaim =
+    getLocalDateKey();
+
+
+  persist();
+
+  updateProfileUI();
+
+  renderDailyRewards();
+
+  renderCraftEggs();
+
+  S.treasure();
+
+
+  toast(
+    `${rewardData.icon} Day ${rewardData.day}: ${rewardData.label}!`
+  );
+}
+
+
+/* =========================================================
+   RENDER DAILY REWARDS
+========================================================= */
+
+function renderDailyRewards() {
+
+  const grid =
+    $('#dailyRewardGrid');
+
+
+  if (
+    !grid
   ) {
 
     return;
   }
 
 
-  multiplayerState.size =
-    size;
+  const next =
+    getNextDailyRewardDay();
 
 
-  multiplayerState.blue =
-    Array.from(
-      {
-        length: size
-      },
-
-      (
-        _,
-        i
-      ) =>
-        makeTeamPlayer(
-          'blue',
-          i
-        )
-    );
+  const claimable =
+    canClaimDailyReward();
 
 
-  multiplayerState.red =
-    Array.from(
-      {
-        length: size
-      },
-
-      (
-        _,
-        i
-      ) =>
-        makeTeamPlayer(
-          'red',
-          i
-        )
-    );
-
-
-  multiplayerState.blueHP =
-    multiplayerState.redHP =
-      multiplayerState.maxTeamHP =
-        10000;
-
-
-  multiplayerState.playerEnergy =
+  $('#dailyStreakLabel').textContent =
+    profile.dailyRewards.streak ||
     0;
 
 
-  multiplayerState.round =
-    0;
-
-
-  $('#concertRoundLabel')
-  .textContent =
-    'LOBBY';
-
-
-  $('#startTeamBattleBtn')
-  .disabled =
-    false;
-
-
-  $('#startTeamBattleBtn')
-  .textContent =
-    'Start Concert Battle';
-
-
-  $('#teamMovePanel')
-  .classList
-  .add(
-    'hidden'
-  );
-
-
-  renderConcertTeams();
-
-  updateTeamHPBars();
-
-
-  setMP(
-    `<strong>${size}v${size} Concert Battle ready.</strong><span>Both teams share 10,000 HP.</span>`
-  );
-
-
-  $$(
-    '.mp-start'
-  )
-  .forEach(
-    b =>
-      b.classList.toggle(
-        'active',
-
-        +b.dataset.team ===
-        size
-      )
-  );
-}
-
-
-/* ============================
-   RENDER TEAM PLAYERS
-============================ */
-
-function renderConcertTeams(
-  activeId = ''
-) {
-
-  const render =
-    (
-      arr,
-      team
-    ) =>
-      arr
-      .map(
-        p => `
-
-          <div
-            class="
-              concert-player
-              ${team}
-              ${
-                p.id ===
-                activeId
-
-                  ? 'active'
-
-                  : ''
-              }
-            "
-          >
-
-            <div
-              class="body"
-              data-icon="${p.icon}"
-            ></div>
-
-            <div class="name">
-              ${p.name}
-            </div>
-
-          </div>
-        `
-      )
-      .join('');
-
-
-  $('#blueConcertPlayers')
-  .innerHTML =
-    render(
-      multiplayerState.blue,
-      'blue'
-    );
-
-
-  $('#redConcertPlayers')
-  .innerHTML =
-    render(
-      multiplayerState.red,
-      'red'
-    );
-}
-
-
-/* ============================
-   UPDATE TEAM HP
-============================ */
-
-function updateTeamHPBars() {
-
-  const m =
-    multiplayerState.maxTeamHP;
-
-
-  const b =
-    clamp(
-
-      multiplayerState.blueHP /
-      m *
-      100,
-
-      0,
-
-      100
-    );
-
-
-  const r =
-    clamp(
-
-      multiplayerState.redHP /
-      m *
-      100,
-
-      0,
-
-      100
-    );
-
-
-  $('#blueTeamHPFill')
-  .style.width =
-    b +
-    '%';
-
-
-  $('#redTeamHPFill')
-  .style.width =
-    r +
-    '%';
-
-
-  $('#blueTeamHPText')
-  .textContent =
-    `${Math.round(multiplayerState.blueHP).toLocaleString()} / ${m.toLocaleString()} HP`;
-
-
-  $('#redTeamHPText')
-  .textContent =
-    `${Math.round(multiplayerState.redHP).toLocaleString()} / ${m.toLocaleString()} HP`;
-}
-
-
-/* ============================
-   TEAM BATTLE MESSAGE
-============================ */
-
-function setMP(
-  html
-) {
-
-  $('#multiplayerBattleMessage')
-  .innerHTML =
-    html;
-}
-
-
-/* ============================
-   TEAM DAMAGE
-============================ */
-
-function teamDamage(
-  attacker,
-  mult = 1
-) {
-
-  const targetTeam =
-    attacker.team ===
-    'blue'
-
-      ? 'red'
-
-      : 'blue';
-
-
-  let dmg =
-    Math.max(
-
-      120,
-
-      Math.round(
-
-        (
-          attacker.attack *
-          4.2 +
-
-          attacker.rhythm *
-          1.7 +
-
-          rand(
-            -40,
-            70
-          )
-        ) *
-
-        mult
-      )
-    );
-
-
-  const critical =
-    Math.random() <
-
-    .05 +
-
-    attacker.melody /
-    1000;
-
-
-  if (
-    critical
-  ) {
-
-    dmg =
-      Math.round(
-        dmg *
-        1.5
-      );
-  }
-
-
-  multiplayerState[
-    targetTeam +
-    'HP'
-  ] =
-    Math.max(
-
-      0,
-
-      multiplayerState[
-        targetTeam +
-        'HP'
-      ] -
-      dmg
-    );
-
-
-  updateTeamHPBars();
-
-
-  return {
-
-    dmg,
-
-    critical
-  };
-}
-
-
-/* ============================
-   WAIT FOR PLAYER MOVE
-============================ */
-
-function waitHumanMove() {
-
-  return new Promise(
-    resolve => {
-
-      multiplayerState.resolve =
-        resolve;
-
-
-      showTeamMoves();
-    }
-  );
-}
-
-
-/* ============================
-   SHOW PLAYER TEAM MOVES
-============================ */
-
-function showTeamMoves() {
-
-  const p =
-    multiplayerState.blue[
-      0
-    ];
-
-
-  const inst =
-    getInstrument(
-      p.instrument
-    );
-
-
-  const moves =
-    getInstrumentMoves(
-      p.instrument
-    );
-
-
-  multiplayerState.waiting =
-    true;
-
-
-  $('#teamMovePanel')
-  .classList
-  .remove(
-    'hidden'
-  );
-
-
-  $('#teamTurnTitle')
-  .textContent =
-    `${p.name}, choose your move`;
-
-
-  $('#teamEnergyLabel')
-  .textContent =
-    `${multiplayerState.playerEnergy} / 3`;
-
-
-  $('#teamMoveButtons')
-  .innerHTML =
-    moves
+  grid.innerHTML =
+    dailyRewardTable
     .map(
-      (
-        m,
-        i
-      ) => `
+      rewardData => `
 
-        <button
+        <div
           class="
-            move-btn
+            daily-reward-card
             ${
-              i ===
-              3
+              claimable &&
+              rewardData.day === next
+                ? 'current'
+                : ''
+            }
 
-                ? 'ultimate'
+            ${
+              !claimable &&
+              rewardData.day ===
+              profile.dailyRewards.streak
+                ? 'claimed'
+                : ''
+            }
 
+            ${
+              rewardData.day === 7
+                ? 'day-seven'
                 : ''
             }
           "
-
-          data-team-move="${i}"
-
-          ${
-            i ===
-              3 &&
-            multiplayerState.playerEnergy <
-              3
-
-              ? 'disabled'
-
-              : ''
-          }
         >
 
-          <strong>
-            ${m[0]}
-          </strong>
-
-          <span>
-
-            ${
-              i ===
-              3
-
-                ? 'ULTIMATE • 3 ENERGY'
-
-                : m[1]
-                  .toUpperCase()
-            }
-
+          <span class="daily-day">
+            DAY ${rewardData.day}
           </span>
 
-          <small>
+          <div class="daily-icon">
+            ${rewardData.icon}
+          </div>
 
-            ${
-              m[1] ===
-              'heal'
+          <strong>
+            ${rewardData.label}
+          </strong>
 
-                ? 'Restore team HP'
-
-                : m[1] ===
-                  'shield'
-
-                  ? 'Reduce next enemy hit'
-
-                  : 'Damage Team Red'
-            }
-
-          </small>
-
-        </button>
+        </div>
       `
     )
     .join('');
 
 
-  $$(
-    '[data-team-move]'
-  )
-  .forEach(
-    b =>
-      b.onclick =
-        () => {
-
-          if (
-            !multiplayerState.waiting
-          ) {
-
-            return;
-          }
+  const button =
+    $('#claimDailyBtn');
 
 
-          multiplayerState.waiting =
-            false;
+  button.disabled =
+    !claimable;
 
 
-          $('#teamMovePanel')
-          .classList
-          .add(
-            'hidden'
-          );
+  button.textContent =
+    claimable
+      ? `CLAIM DAY ${next}`
+      : 'COME BACK TOMORROW';
+}
 
 
-          const r =
-            multiplayerState.resolve;
+/* ============================ QUESTS / GEAR / PETS ============================ */
+
+const questDefs = [
+
+  {
+    id: 'fight',
+    name: 'Battle Practice',
+    goal: 3,
+    label: 'Defeat 3 RPG enemies',
+    xp: 10,
+    coins: 6
+  },
+
+  {
+    id: 'mine',
+    name: 'Deep Miner',
+    goal: 20,
+    label: 'Mine 20 MusicCraft blocks',
+    xp: 10,
+    coins: 6
+  },
+
+  {
+    id: 'battle',
+    name: 'Arena Winner',
+    goal: 1,
+    label: 'Win 1 Solo or Team Battle',
+    xp: 12,
+    coins: 8
+  }
+];
 
 
-          multiplayerState.resolve =
-            null;
+/* =========================================================
+   ENSURE QUEST DATA EXISTS
+========================================================= */
 
+function ensureQuests() {
 
-          r(
-            +b.dataset.teamMove
-          );
-        }
+  questDefs.forEach(
+    quest => {
+
+      if (
+        !profile.quests[
+          quest.id
+        ]
+      ) {
+
+        profile.quests[
+          quest.id
+        ] = {
+
+          progress:
+            0,
+
+          claimed:
+            false
+        };
+      }
+    }
   );
 }
 
 
-/* ============================
-   EXECUTE HUMAN TEAM MOVE
-============================ */
+/* =========================================================
+   PROGRESS QUEST
+========================================================= */
 
-async function executeTeamMove(
-  idx
+function progressQuest(
+  id,
+  amount = 1
 ) {
 
-  const p =
-    multiplayerState.blue[
-      0
+  ensureQuests();
+
+
+  const quest =
+    questDefs.find(
+      quest =>
+        quest.id ===
+        id
+    );
+
+
+  const state =
+    profile.quests[
+      id
     ];
 
 
-  const inst =
-    getInstrument(
-      p.instrument
-    );
-
-
-  const move =
-    getInstrumentMoves(
-      p.instrument
-    )[
-      idx
-    ];
-
-
-  renderConcertTeams(
-    p.id
-  );
-
-
-  playInstrument(
-
-    inst.name,
-
-    idx ===
-    3
-
-      ? 659
-
-      : 440
-  );
-
-
-/* ============================
-   TEAM HEAL MOVE
-============================ */
-
   if (
-    move[1] ===
-    'heal'
-  ) {
-
-    const h =
-      Math.round(
-
-        inst.melody *
-        7 +
-
-        220
-      );
-
-
-    multiplayerState.blueHP =
-      clamp(
-
-        multiplayerState.blueHP +
-        h,
-
-        0,
-
-        10000
-      );
-
-
-    multiplayerState.playerEnergy =
-      clamp(
-
-        multiplayerState.playerEnergy +
-        1,
-
-        0,
-
-        3
-      );
-
-
-    S.heal();
-
-
-    setMP(
-
-      `<strong>💚 ${move[0]}</strong><span>Team Blue restored ${h} HP.</span>`
-    );
-  }
-
-
-/* ============================
-   TEAM SHIELD MOVE
-============================ */
-
-  else if (
-    move[1] ===
-    'shield'
-  ) {
-
-    multiplayerState.teamShield =
-      true;
-
-
-    multiplayerState.playerEnergy =
-      clamp(
-
-        multiplayerState.playerEnergy +
-        1,
-
-        0,
-
-        3
-      );
-
-
-    S.shield();
-
-
-    setMP(
-
-      `<strong>🛡️ ${move[0]}</strong><span>Team Blue is shielded against the next attack.</span>`
-    );
-  }
-
-
-/* ============================
-   TEAM ATTACK MOVE
-============================ */
-
-  else {
-
-    let mult =
-      move[2];
-
-
-    if (
-      idx ===
-      3
-    ) {
-
-      mult *=
-        1.5;
-
-
-      multiplayerState.playerEnergy =
-        0;
-
-
-      S.ultimate();
-
-
-      crowd(
-        1
-      );
-    }
-
-    else {
-
-      multiplayerState.playerEnergy =
-        clamp(
-
-          multiplayerState.playerEnergy +
-          1,
-
-          0,
-
-          3
-        );
-
-
-      S.attack();
-    }
-
-
-    const hit =
-      teamDamage(
-        p,
-        mult
-      );
-
-
-    if (
-      hit.critical
-    ) {
-
-      S.critical();
-
-
-      crowd(
-        .8
-      );
-    }
-
-
-    setMP(
-
-      `<strong>🔵 ${p.name} used ${move[0]}!</strong><span>${hit.dmg} damage${hit.critical ? ' • CRITICAL PERFORMANCE!' : ''}</span>`
-    );
-
-
-    addMastery(
-      inst.name,
-      3
-    );
-  }
-
-
-  updateTeamHPBars();
-
-
-  await wait(
-    500
-  );
-
-
-  renderConcertTeams();
-}
-
-
-/* ============================
-   AI TEAM TURN
-============================ */
-
-async function aiTeamTurn(
-  p
-) {
-
-  renderConcertTeams(
-    p.id
-  );
-
-
-  playInstrument(
-
-    p.instrument,
-
-    p.team ===
-    'blue'
-
-      ? 420
-
-      : 320
-  );
-
-
-  S.attack();
-
-
-  let hit =
-    teamDamage(
-      p,
-      .8
-    );
-
-
-/* ============================
-   APPLY TEAM SHIELD
-============================ */
-
-  if (
-    p.team ===
-      'red' &&
-    multiplayerState.teamShield
-  ) {
-
-    const restore =
-      Math.round(
-        hit.dmg *
-        .45
-      );
-
-
-    multiplayerState.blueHP =
-      Math.min(
-
-        10000,
-
-        multiplayerState.blueHP +
-        restore
-      );
-
-
-    hit.dmg -=
-      restore;
-
-
-    multiplayerState.teamShield =
-      false;
-
-
-    S.shield();
-
-
-    updateTeamHPBars();
-  }
-
-
-  if (
-    hit.critical
-  ) {
-
-    S.critical();
-  }
-
-
-  setMP(
-
-    `<strong>${p.team === 'blue' ? '🔵' : '🔴'} ${p.name} performs!</strong><span>${p.instrument} deals ${hit.dmg} team damage${hit.critical ? ' • CRITICAL!' : ''}</span>`
-  );
-
-
-  await wait(
-
-    multiplayerState.size >=
-    10
-
-      ? 150
-
-      : 350
-  );
-}
-
-
-/* ============================
-   START TEAM BATTLE
-============================ */
-
-async function startTeamBattle() {
-
-  if (
-    multiplayerState.playing
+    !quest ||
+    state.claimed
   ) {
 
     return;
   }
 
 
-  multiplayerState.playing =
-    true;
+  state.progress =
+    Math.min(
 
+      quest.goal,
 
-  $('#startTeamBattleBtn')
-  .disabled =
-    true;
-
-
-  $('#startTeamBattleBtn')
-  .textContent =
-    'Concert in Progress...';
-
-
-  let round =
-    1;
-
-
-  while (
-
-    multiplayerState.blueHP >
-      0 &&
-
-    multiplayerState.redHP >
-      0 &&
-
-    round <=
-      50
-  ) {
-
-    multiplayerState.round =
-      round;
-
-
-    $('#concertRoundLabel')
-    .textContent =
-      `ROUND ${round}`;
-
-
-    setMP(
-
-      `<strong>🎵 Round ${round}: Your turn!</strong><span>Choose one of your instrument moves.</span>`
+      state.progress +
+      amount
     );
 
 
-/* ============================
-   HUMAN TURN
-============================ */
+  persist();
 
-    const move =
-      await waitHumanMove();
-
-
-    await executeTeamMove(
-      move
-    );
-
-
-    if (
-      multiplayerState.redHP <=
-      0
-    ) {
-
-      break;
-    }
-
-
-/* ============================
-   BLUE AI TURNS
-============================ */
-
-    for (
-      const p of
-      multiplayerState.blue.slice(
-        1
-      )
-    ) {
-
-      await aiTeamTurn(
-        p
-      );
-
-
-      if (
-        multiplayerState.redHP <=
-        0
-      ) {
-
-        break;
-      }
-    }
-
-
-    if (
-      multiplayerState.redHP <=
-      0
-    ) {
-
-      break;
-    }
-
-
-/* ============================
-   RED TEAM TURNS
-============================ */
-
-    for (
-      const p of
-      multiplayerState.red
-    ) {
-
-      await aiTeamTurn(
-        p
-      );
-
-
-      if (
-        multiplayerState.blueHP <=
-        0
-      ) {
-
-        break;
-      }
-    }
-
-
-    round++;
-  }
-
-
-/* ============================
-   END TEAM BATTLE
-============================ */
-
-  multiplayerState.playing =
-    false;
-
-
-  $('#teamMovePanel')
-  .classList
-  .add(
-    'hidden'
-  );
-
-
-  const won =
-    multiplayerState.blueHP >
-    multiplayerState.redHP;
-
-
-  $('#concertRoundLabel')
-  .textContent =
-    won
-
-      ? 'VICTORY'
-
-      : 'DEFEAT';
-
-
-/* ============================
-   TEAM VICTORY
-============================ */
-
-  if (
-    won
-  ) {
-
-    crowd(
-      1
-    );
-
-
-    S.victory();
-
-
-    progressQuest(
-      'battle',
-      1
-    );
-
-
-    reward(
-
-      24 +
-      multiplayerState.size *
-      2,
-
-      18 +
-      multiplayerState.size *
-      2,
-
-      'Concert victory!'
-    );
-
-
-    addInstrumentXP(
-
-      profile.equipped,
-
-      10
-    );
-
-
-    setMP(
-
-      `<strong>🏆 TEAM BLUE WINS!</strong><span>${Math.round(multiplayerState.blueHP).toLocaleString()} HP remaining.</span>`
-    );
-  }
-
-
-/* ============================
-   TEAM DEFEAT
-============================ */
-
-  else {
-
-    S.defeat();
-
-
-    addXP(
-      6
-    );
-
-
-    setMP(
-
-      `<strong>Team Red wins the concert.</strong><span>+18 EXP for performing.</span>`
-    );
-  }
-
-
-  $('#startTeamBattleBtn')
-  .disabled =
-    false;
-
-
-  $('#startTeamBattleBtn')
-  .textContent =
-    'Play Again';
+  renderQuests();
 }
 
 
-/* ============================
-   TEAM SIZE BUTTONS
-============================ */
+/* =========================================================
+   CLAIM QUEST
+========================================================= */
 
-$$(
-  '.mp-start'
-)
-.forEach(
-  b =>
-    b.onclick =
-      () =>
-        openLobby(
-          +b.dataset.team
+function claimQuest(
+  id
+) {
+
+  const quest =
+    questDefs.find(
+      quest =>
+        quest.id ===
+        id
+    );
+
+
+  const state =
+    profile.quests[
+      id
+    ];
+
+
+  if (
+    !quest ||
+    !state ||
+    state.progress <
+      quest.goal ||
+    state.claimed
+  ) {
+
+    return;
+  }
+
+
+  state.claimed =
+    true;
+
+
+  reward(
+
+    quest.xp,
+
+    quest.coins,
+
+    `${quest.name} complete!`
+  );
+
+
+  renderQuests();
+}
+
+
+/* =========================================================
+   RENDER QUESTS
+========================================================= */
+
+function renderQuests() {
+
+  const element =
+    $('#questList');
+
+
+  if (
+    !element
+  ) {
+
+    return;
+  }
+
+
+  ensureQuests();
+
+
+  element.innerHTML =
+    questDefs
+    .map(
+      quest => {
+
+        const state =
+          profile.quests[
+            quest.id
+          ];
+
+
+        const percent =
+          Math.min(
+
+            100,
+
+            state.progress /
+            quest.goal *
+            100
+          );
+
+
+        return `
+
+          <div class="quest-card">
+
+            <strong>
+              ${quest.name}
+            </strong>
+
+            <span>
+              ${quest.label}
+            </span>
+
+            <div class="quest-progress">
+
+              <i
+                style="width:${percent}%"
+              ></i>
+
+            </div>
+
+            <small>
+              ${state.progress}/${quest.goal}
+              • ${quest.xp} EXP
+              • ${quest.coins} Coins
+            </small>
+
+            ${
+              state.progress >=
+                quest.goal &&
+              !state.claimed
+
+                ? `
+
+                  <button
+                    class="btn gold small"
+                    data-quest-claim="${quest.id}"
+                  >
+                    Claim
+                  </button>
+                `
+
+                : state.claimed
+
+                  ? '<small> ✓ Claimed</small>'
+
+                  : ''
+            }
+
+          </div>
+        `;
+      }
+    )
+    .join('');
+
+
+  $$('[data-quest-claim]')
+  .forEach(
+    button => {
+
+      button.onclick =
+        () =>
+          claimQuest(
+            button.dataset
+            .questClaim
+          );
+    }
+  );
+}
+
+
+/* =========================================================
+   EQUIPMENT
+========================================================= */
+
+function renderEquipment() {
+
+  const element =
+    $('#equipmentList');
+
+
+  if (
+    !element
+  ) {
+
+    return;
+  }
+
+
+  element.innerHTML =
+    profile.equipmentInventory
+    .map(
+      (
+        gear,
+        index
+      ) => {
+
+        const equipped =
+          profile.equippedGear[
+            gear.slot
+          ]?.name ===
+          gear.name;
+
+
+        return `
+
+          <div class="gear-card">
+
+            <div>
+
+              <strong>
+                ${gear.name}
+              </strong>
+
+              <small>
+
+                ${gear.slot}
+
+                •
+
+                ${
+                  gear.attack
+                    ? `+${gear.attack} ATK `
+                    : ''
+                }
+
+                ${
+                  gear.defense
+                    ? `+${gear.defense} DEF`
+                    : ''
+                }
+
+              </small>
+
+            </div>
+
+
+            <button
+              class="
+                btn
+                small
+                ${
+                  equipped
+                    ? 'gold'
+                    : 'ghost'
+                }
+              "
+
+              data-gear="${index}"
+            >
+
+              ${
+                equipped
+                  ? 'Equipped'
+                  : 'Equip'
+              }
+
+            </button>
+
+          </div>
+        `;
+      }
+    )
+    .join('');
+
+
+  $$('[data-gear]')
+  .forEach(
+    button => {
+
+      button.onclick =
+        () => {
+
+          const gear =
+            profile.equipmentInventory[
+              +button.dataset.gear
+            ];
+
+
+          profile.equippedGear[
+            gear.slot
+          ] =
+            gear;
+
+
+          persist();
+
+          renderEquipment();
+
+          renderInstruments();
+
+          S.click();
+        };
+    }
+  );
+}
+
+
+/* =========================================================
+   PET TYPES
+========================================================= */
+
+const petTypes = {
+
+  'Music Bunny':
+    'melody',
+
+  'Mole Beat':
+    'defense',
+
+  'Rock Pup':
+    'attack',
+
+  'Shadow Bat':
+    'attack',
+
+  'Gear Fox':
+    'defense',
+
+  'Echo Spider':
+    'melody',
+
+  'Gold Chick':
+    'all',
+
+  'Crystal Fox':
+    'melody',
+
+  'Diamond Dragon':
+    'attack',
+
+  'Obsidian Wolf':
+    'defense',
+
+  'Relic Guardian':
+    'defense',
+
+  'Lava Dragon':
+    'attack',
+
+  'Echo Spirit':
+    'melody',
+
+  'Star Phoenix':
+    'all',
+
+  'Harmony Dragon':
+    'all'
+};
+
+
+/* =========================================================
+   HATCH PET EGG
+========================================================= */
+
+function hatchCraftEgg(
+  id
+) {
+
+  const egg =
+    profile.petEggs.find(
+      egg =>
+        egg.id ===
+        id
+    );
+
+
+  if (
+    !egg ||
+    egg.hatched
+  ) {
+
+    return;
+  }
+
+
+  egg.hatched =
+    true;
+
+
+  const existing =
+    profile.pets.find(
+      pet =>
+        pet.name ===
+        egg.pet
+    );
+
+
+  if (
+    existing
+  ) {
+
+    profile.dust +=
+      10;
+
+
+    toast(
+      `✨ Duplicate ${egg.pet}! +10 Star Dust`
+    );
+  }
+
+
+  else {
+
+    profile.pets.push({
+
+      id:
+        `pet-${Date.now()}-${Math.random()}`,
+
+      name:
+        egg.pet,
+
+      level:
+        1,
+
+      xp:
+        0,
+
+      type:
+        petTypes[
+          egg.pet
+        ] ||
+        'all',
+
+      source:
+        egg.layer
+    });
+
+
+    toast(
+      `🐾 ${egg.pet} hatched!`
+    );
+  }
+
+
+  persist();
+
+  renderCraftEggs();
+
+  renderPets();
+
+  updateProfileUI();
+
+  S.gacha();
+}
+
+
+/* =========================================================
+   RENDER PETS
+========================================================= */
+
+function renderPets() {
+
+  const element =
+    $('#petList');
+
+
+  if (
+    !element
+  ) {
+
+    return;
+  }
+
+
+  if (
+    !profile.pets.length
+  ) {
+
+    element.innerHTML =
+      '<p class="muted">Hatch eggs in MusicCraft to collect pets.</p>';
+
+
+    return;
+  }
+
+
+  element.innerHTML =
+    profile.pets
+    .map(
+      pet => {
+
+        const needed =
+          (
+            pet.level ||
+            1
+          ) *
+          40;
+
+
+        const equipped =
+          profile.equippedPet ===
+          pet.id;
+
+
+        return `
+
+          <div class="pet-card">
+
+            <div>
+
+              <strong>
+                ${pet.name}
+                • Lv.${pet.level || 1}
+              </strong>
+
+              <small>
+                ${pet.type} pet
+              </small>
+
+              <div class="pet-xp">
+
+                <i
+                  style="
+                    width:${
+                      Math.min(
+                        100,
+                        (pet.xp || 0) /
+                        needed *
+                        100
+                      )
+                    }%
+                  "
+                ></i>
+
+              </div>
+
+            </div>
+
+
+            <button
+              class="
+                btn
+                small
+                ${
+                  equipped
+                    ? 'gold'
+                    : 'ghost'
+                }
+              "
+
+              data-pet="${pet.id}"
+            >
+
+              ${
+                equipped
+                  ? 'Active'
+                  : 'Equip'
+              }
+
+            </button>
+
+          </div>
+        `;
+      }
+    )
+    .join('');
+
+
+  $$('[data-pet]')
+  .forEach(
+    button => {
+
+      button.onclick =
+        () => {
+
+          profile.equippedPet =
+            button.dataset.pet;
+
+
+          persist();
+
+          renderPets();
+
+          renderInstruments();
+
+          S.click();
+        };
+    }
+  );
+}
+
+
+/* =========================================================
+   INSTRUMENT WORKSHOP
+========================================================= */
+
+let workshopInstrument =
+  profile.equipped;
+
+
+/* =========================================================
+   GET NEXT LEVEL STATS
+========================================================= */
+
+function getNextInstrumentStats(
+  name
+) {
+
+  const base =
+    getInstrument(
+      name
+    );
+
+
+  const data =
+    getInstrumentUpgradeData(
+      name
+    );
+
+
+  const nextLevel =
+    Math.min(
+
+      20,
+
+      data.level +
+      1
+    );
+
+
+  const multiplier =
+
+    (
+      1 +
+      (
+        nextLevel -
+        1
+      ) *
+      0.01
+    ) *
+
+    getEvolutionBonus(
+      name
+    );
+
+
+  const gear =
+    getGearBonuses();
+
+
+  const pet =
+    getPetBonus();
+
+
+  return {
+
+    attack:
+      Math.round(
+
+        base.attack *
+        multiplier +
+
+        gear.attack +
+
+        pet.attack
+      ),
+
+    defense:
+      Math.round(
+
+        base.defense *
+        multiplier +
+
+        gear.defense +
+
+        pet.defense
+      ),
+
+    melody:
+      Math.round(
+
+        base.melody *
+        multiplier +
+
+        gear.melody +
+
+        pet.melody
+      ),
+
+    rhythm:
+      Math.round(
+
+        base.rhythm *
+        multiplier +
+
+        gear.rhythm +
+
+        pet.rhythm
+      )
+  };
+}
+
+
+/* =========================================================
+   RENDER INSTRUMENT WORKSHOP
+========================================================= */
+
+function renderInstrumentWorkshop(
+  selected =
+    workshopInstrument
+) {
+
+  const element =
+    $('#instrumentWorkshop');
+
+
+  if (
+    !element
+  ) {
+
+    return;
+  }
+
+
+  const owned =
+    profile.owned ||
+    [];
+
+
+  if (
+    !owned.length
+  ) {
+
+    element.innerHTML =
+      '<p class="muted">Buy an instrument first to unlock the workshop.</p>';
+
+
+    return;
+  }
+
+
+  if (
+    !owned.includes(
+      selected
+    )
+  ) {
+
+    selected =
+      owned[0];
+  }
+
+
+  workshopInstrument =
+    selected;
+
+
+  const base =
+    getInstrument(
+      selected
+    );
+
+
+  const data =
+    getInstrumentUpgradeData(
+      selected
+    );
+
+
+  const current =
+    getUpgradedInstrument(
+      selected
+    );
+
+
+  const next =
+    getNextInstrumentStats(
+      selected
+    );
+
+
+  const needed =
+    getInstrumentXPNeeded(
+      selected
+    );
+
+
+  const maxed =
+    data.level >=
+    20;
+
+
+  const ready =
+
+    !maxed &&
+
+    data.xp >=
+    needed;
+
+
+  const percent =
+    maxed
+
+      ? 100
+
+      : Math.min(
+
+          100,
+
+          data.xp /
+          needed *
+          100
+        );
+
+
+  const evolved =
+    profile.instrumentEvolutions[
+      selected
+    ];
+
+
+  element.innerHTML = `
+
+    <div class="workshop-instrument-list">
+
+      ${
+        owned
+        .map(
+          name => {
+
+            const instrument =
+              getInstrument(
+                name
+              );
+
+
+            const upgrade =
+              getInstrumentUpgradeData(
+                name
+              );
+
+
+            return `
+
+              <button
+                class="
+                  workshop-instrument-option
+                  ${
+                    name ===
+                    selected
+
+                      ? 'active'
+
+                      : ''
+                  }
+                "
+
+                data-workshop-instrument="${name}"
+              >
+
+                <span class="icon">
+                  ${instrument.icon}
+                </span>
+
+                <strong>
+                  ${name}
+                </strong>
+
+                <small>
+                  LV.${upgrade.level}
+                </small>
+
+              </button>
+            `;
+          }
         )
-);
+        .join('')
+      }
+
+    </div>
 
 
-/* ============================
-   START TEAM BATTLE BUTTON
-============================ */
+    <div class="workshop-machine">
 
-$('#startTeamBattleBtn')
-.onclick =
-  startTeamBattle;
-      /* ============================
-   MUSICVERSE ADVENTURE RPG
-============================ */
+      <div class="workshop-main">
+
+        <div class="workshop-big-icon">
+          ${base.icon}
+        </div>
 
 
-/* ============================
-   SKILL TREE
-============================ */
+        <div class="workshop-name">
+
+          <h4>
+
+            ${
+              evolved
+                ? evolved.name
+                : selected
+            }
+
+          </h4>
+
+          <span>
+
+            ${base.family}
+
+            •
+
+            ${
+              selected ===
+              profile.equipped
+
+                ? 'Currently Equipped'
+
+                : 'Owned Instrument'
+            }
+
+          </span>
+
+        </div>
+
+
+        <div class="workshop-level">
+
+          <strong>
+            LV.${data.level}
+          </strong>
+
+          <span>
+            MAX 20
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <div class="workshop-exp-head">
+
+        <span>
+          Instrument EXP
+        </span>
+
+        <b>
+
+          ${
+            maxed
+
+              ? 'MAX'
+
+              : `${data.xp} / ${needed}`
+          }
+
+        </b>
+
+      </div>
+
+
+      <div class="workshop-exp-bar">
+
+        <i
+          style="width:${percent}%"
+        ></i>
+
+      </div>
+
+
+      <div class="workshop-level-preview">
+
+        <div class="workshop-level-box">
+          LEVEL ${data.level}
+        </div>
+
+        <span class="workshop-arrow">
+          ➜
+        </span>
+
+        <div class="workshop-level-box next">
+
+          ${
+            maxed
+              ? 'MAX LEVEL'
+              : `LEVEL ${data.level + 1}`
+          }
+
+        </div>
+
+      </div>
+
+
+      <div class="workshop-stat-table">
+
+        <div class="workshop-stat-row">
+
+          <span>
+            ATTACK
+          </span>
+
+          <b>
+            ${current.attack}
+          </b>
+
+          <div class="workshop-stat-arrow">
+            →
+          </div>
+
+          <b class="next-stat">
+
+            ${
+              maxed
+                ? current.attack
+                : next.attack
+            }
+
+          </b>
+
+        </div>
+
+
+        <div class="workshop-stat-row">
+
+          <span>
+            DEFENSE
+          </span>
+
+          <b>
+            ${current.defense}
+          </b>
+
+          <div class="workshop-stat-arrow">
+            →
+          </div>
+
+          <b class="next-stat">
+
+            ${
+              maxed
+                ? current.defense
+                : next.defense
+            }
+
+          </b>
+
+        </div>
+
+
+        <div class="workshop-stat-row">
+
+          <span>
+            MELODY
+          </span>
+
+          <b>
+            ${current.melody}
+          </b>
+
+          <div class="workshop-stat-arrow">
+            →
+          </div>
+
+          <b class="next-stat">
+
+            ${
+              maxed
+                ? current.melody
+                : next.melody
+            }
+
+          </b>
+
+        </div>
+
+
+        <div class="workshop-stat-row">
+
+          <span>
+            RHYTHM
+          </span>
+
+          <b>
+            ${current.rhythm}
+          </b>
+
+          <div class="workshop-stat-arrow">
+            →
+          </div>
+
+          <b class="next-stat">
+
+            ${
+              maxed
+                ? current.rhythm
+                : next.rhythm
+            }
+
+          </b>
+
+        </div>
+
+      </div>
+
+
+      <div class="workshop-footer">
+
+        <p>
+
+          ${
+            maxed
+
+              ? `⭐ ${selected} has reached maximum level.`
+
+              : ready
+
+                ? `✨ Enough Instrument EXP! Upgrade ${selected} now.`
+
+                : `🎵 Need ${Math.max(
+                    0,
+                    needed -
+                    data.xp
+                  )} more EXP to upgrade ${selected}.`
+          }
+
+        </p>
+
+
+        <button
+          id="workshopUpgradeBtn"
+
+          class="
+            btn
+            workshop-upgrade-btn
+            ${
+              ready
+                ? 'gold'
+                : 'ghost'
+            }
+          "
+
+          ${
+            ready
+              ? ''
+              : 'disabled'
+          }
+        >
+
+          ${
+            maxed
+
+              ? 'MAX LEVEL'
+
+              : `UPGRADE ${selected.toUpperCase()}`
+          }
+
+        </button>
+
+      </div>
+
+
+      ${
+        evolved
+
+          ? `
+
+            <div
+              class="upgrade-evolved-note"
+              style="margin-top:10px"
+            >
+
+              ✨ Harmonic Evolution Active
+              • +10% Base Stats
+
+            </div>
+          `
+
+          : ''
+      }
+
+    </div>
+  `;
+
+
+/* =========================================================
+   WORKSHOP INSTRUMENT BUTTONS
+========================================================= */
+
+  $$('[data-workshop-instrument]')
+  .forEach(
+    button => {
+
+      button.onclick =
+        () => {
+
+          workshopInstrument =
+            button.dataset
+            .workshopInstrument;
+
+
+          renderInstrumentWorkshop(
+            workshopInstrument
+          );
+
+
+          S.click();
+        };
+    }
+  );
+
+
+/* =========================================================
+   WORKSHOP UPGRADE BUTTON
+========================================================= */
+
+  if (
+    ready &&
+    $('#workshopUpgradeBtn')
+  ) {
+
+    $('#workshopUpgradeBtn').onclick =
+      () =>
+        upgradeInstrument(
+          workshopInstrument
+        );
+  }
+}
+
+
+/* =========================================================
+   UPGRADE PANEL WRAPPER
+========================================================= */
+
+function renderInstrumentUpgradePanel(
+  selectedName =
+    profile.equipped
+) {
+
+  renderInstrumentWorkshop(
+    selectedName
+  );
+}
+
+
+/* =========================================================
+   INSTRUMENT EVOLUTION
+========================================================= */
+
+function renderEvolutionPanel() {
+
+  const element =
+    $('#evolutionPanel');
+
+
+  if (
+    !element
+  ) {
+
+    return;
+  }
+
+
+  const name =
+    profile.equipped;
+
+
+  const upgrade =
+    getInstrumentUpgradeData(
+      name
+    );
+
+
+  const done =
+    profile.instrumentEvolutions[
+      name
+    ];
+
+
+  const requirements = {
+
+    Stone:
+      20,
+
+    Crystal:
+      5
+  };
+
+
+/* =========================================================
+   ALREADY EVOLVED
+========================================================= */
+
+  if (
+    done
+  ) {
+
+    element.innerHTML = `
+
+      <div class="evolution-card">
+
+        <strong>
+          ${done.name}
+        </strong>
+
+        <span>
+          Evolution complete
+          • +10% base stats
+        </span>
+
+      </div>
+    `;
+
+
+    return;
+  }
+
+
+/* =========================================================
+   CHECK REQUIREMENTS
+========================================================= */
+
+  const canEvolve =
+
+    upgrade.level >=
+      10 &&
+
+    (
+      profile.materials.Stone ||
+      0
+    ) >=
+      requirements.Stone &&
+
+    (
+      profile.materials.Crystal ||
+      0
+    ) >=
+      requirements.Crystal;
+
+
+/* =========================================================
+   EVOLUTION PANEL HTML
+========================================================= */
+
+  element.innerHTML = `
+
+    <div class="evolution-card">
+
+      <strong>
+        ${name} Evolution
+      </strong>
+
+      <span>
+        Requires Instrument Lv.10
+        + 20 Stone
+        + 5 Crystal
+      </span>
+
+      <button
+        id="evolveInstrumentBtn"
+
+        class="
+          btn
+          ${
+            canEvolve
+              ? 'gold'
+              : 'ghost'
+          }
+          small
+        "
+
+        ${
+          canEvolve
+            ? ''
+            : 'disabled'
+        }
+      >
+        Evolve
+      </button>
+
+    </div>
+  `;
+
+
+/* =========================================================
+   EVOLVE INSTRUMENT
+========================================================= */
+
+  if (
+    canEvolve
+  ) {
+
+    $('#evolveInstrumentBtn').onclick =
+      () => {
+
+        profile.materials.Stone -=
+          20;
+
+
+        profile.materials.Crystal -=
+          5;
+
+
+        profile.instrumentEvolutions[
+          name
+        ] = {
+
+          name:
+            `${name} ★ Harmonic`
+        };
+
+
+        persist();
+
+
+        S.ultimate();
+
+
+        toast(
+          `✨ ${name} evolved!`
+        );
+
+
+        renderEvolutionPanel();
+
+        renderInstruments();
+      };
+  }
+}
+
+
+/* ============================ MUSICVERSE ADVENTURE RPG ============================ */
+/* ============================ MUSICVERSE ADVENTURE RPG ============================ */
+/* ============================ SKILL TREE ============================ */
 
 const skillTreeDefs = {
-
   power: {
-
     name: 'Power',
-
     icon: '⚔️',
-
     desc: 'Stronger attacks and special moves.',
-
     nodes: [
-
       {
         id: 'power1',
         icon: '🎸',
@@ -8841,7 +8056,6 @@ const skillTreeDefs = {
         max: 3,
         requires: null
       },
-
       {
         id: 'power2',
         icon: '💥',
@@ -8850,7 +8064,6 @@ const skillTreeDefs = {
         max: 3,
         requires: 'power1'
       },
-
       {
         id: 'power3',
         icon: '🔥',
@@ -8862,17 +8075,11 @@ const skillTreeDefs = {
     ]
   },
 
-
   rhythm: {
-
     name: 'Rhythm',
-
     icon: '🥁',
-
     desc: 'Defence, dodging and tempo control.',
-
     nodes: [
-
       {
         id: 'rhythm1',
         icon: '🛡️',
@@ -8881,7 +8088,6 @@ const skillTreeDefs = {
         max: 3,
         requires: null
       },
-
       {
         id: 'rhythm2',
         icon: '💨',
@@ -8890,7 +8096,6 @@ const skillTreeDefs = {
         max: 3,
         requires: 'rhythm1'
       },
-
       {
         id: 'rhythm3',
         icon: '⚡',
@@ -8902,17 +8107,11 @@ const skillTreeDefs = {
     ]
   },
 
-
   harmony: {
-
     name: 'Harmony',
-
     icon: '🎼',
-
     desc: 'More HP, healing and pet growth.',
-
     nodes: [
-
       {
         id: 'harmony1',
         icon: '❤️',
@@ -8921,7 +8120,6 @@ const skillTreeDefs = {
         max: 3,
         requires: null
       },
-
       {
         id: 'harmony2',
         icon: '✨',
@@ -8930,7 +8128,6 @@ const skillTreeDefs = {
         max: 3,
         requires: 'harmony1'
       },
-
       {
         id: 'harmony3',
         icon: '🐾',
@@ -8944,18 +8141,13 @@ const skillTreeDefs = {
 };
 
 
-/* ============================
+/* =========================================================
    SKILL POINTS
-============================ */
+========================================================= */
 
 function totalSkillPointsEarned() {
-
   return Math.floor(
-    (
-      profile.level -
-      1
-    ) /
-    2
+    (profile.level - 1) / 2
   );
 }
 
@@ -8963,22 +8155,10 @@ function totalSkillPointsEarned() {
 function spentSkillPoints() {
 
   return Object.values(
-    profile.skillTree ||
-    {}
-  )
-  .reduce(
-    (
-      a,
-      b
-    ) =>
-      a +
-      (
-        Number(
-          b
-        ) ||
-        0
-      ),
-
+    profile.skillTree || {}
+  ).reduce(
+    (a, b) =>
+      a + (Number(b) || 0),
     0
   );
 }
@@ -8988,62 +8168,44 @@ function availableSkillPoints() {
 
   return Math.max(
     0,
-
     totalSkillPointsEarned() -
     spentSkillPoints()
   );
 }
 
 
-function skillRank(
-  id
-) {
+function skillRank(id) {
 
   return Number(
-    profile.skillTree?.[
-      id
-    ] ||
-    0
+    profile.skillTree?.[id] || 0
   );
 }
 
 
-/* ============================
-   BUY SKILLS
-============================ */
+/* =========================================================
+   CAN BUY SKILL
+========================================================= */
 
-function canBuySkill(
-  node
-) {
+function canBuySkill(node) {
 
   if (
-    availableSkillPoints() <=
-    0
+    availableSkillPoints() <= 0
   ) {
-
     return false;
   }
 
 
   if (
-    skillRank(
-      node.id
-    ) >=
-    node.max
+    skillRank(node.id) >= node.max
   ) {
-
     return false;
   }
 
 
   if (
     node.requires &&
-    skillRank(
-      node.requires
-    ) <=
-    0
+    skillRank(node.requires) <= 0
   ) {
-
     return false;
   }
 
@@ -9052,55 +8214,43 @@ function canBuySkill(
 }
 
 
-function buySkill(
-  id
-) {
+/* =========================================================
+   BUY SKILL
+========================================================= */
 
-  let node =
-    null;
+function buySkill(id) {
+
+  let node = null;
 
 
   for (
     const branch of
-    Object.values(
-      skillTreeDefs
-    )
+    Object.values(skillTreeDefs)
   ) {
 
     node =
       branch.nodes.find(
-        n =>
-          n.id ===
-          id
+        n => n.id === id
       );
 
 
-    if (
-      node
-    ) {
-
+    if (node) {
       break;
     }
   }
 
 
-  if (
-    !node
-  ) {
-
+  if (!node) {
     return;
   }
 
 
   if (
-    !canBuySkill(
-      node
-    )
+    !canBuySkill(node)
   ) {
 
     if (
-      availableSkillPoints() <=
-      0
+      availableSkillPoints() <= 0
     ) {
 
       toast(
@@ -9110,10 +8260,7 @@ function buySkill(
 
     else if (
       node.requires &&
-      skillRank(
-        node.requires
-      ) <=
-      0
+      skillRank(node.requires) <= 0
     ) {
 
       toast(
@@ -9126,13 +8273,8 @@ function buySkill(
   }
 
 
-  profile.skillTree[
-    id
-  ] =
-    skillRank(
-      id
-    ) +
-    1;
+  profile.skillTree[id] =
+    skillRank(id) + 1;
 
 
   applySkillTreeVitals();
@@ -9152,98 +8294,76 @@ function buySkill(
   renderRpgMap();
 
 
-  if (
-    rpgEnemy
-  ) {
+  if (rpgEnemy) {
 
     renderRpgBattle();
   }
 }
 
 
-/* ============================
+/* =========================================================
    SKILL BONUSES
-============================ */
+========================================================= */
 
 function getSkillBonuses() {
 
   return {
 
     attackPct:
-      skillRank(
-        'power1'
-      ) *
-      .03,
+      skillRank('power1') *
+      0.03,
 
     critChance:
-      skillRank(
-        'power2'
-      ) *
-      .02,
+      skillRank('power2') *
+      0.02,
 
     specialPct:
-      skillRank(
-        'power3'
-      ) *
-      .05,
+      skillRank('power3') *
+      0.05,
 
     defensePct:
-      skillRank(
-        'rhythm1'
-      ) *
-      .03,
+      skillRank('rhythm1') *
+      0.03,
 
     dodgeChance:
-      skillRank(
-        'rhythm2'
-      ) *
-      .02,
+      skillRank('rhythm2') *
+      0.02,
 
     normalPct:
-      skillRank(
-        'rhythm3'
-      ) *
-      .04,
+      skillRank('rhythm3') *
+      0.04,
 
     maxHp:
-      skillRank(
-        'harmony1'
-      ) *
+      skillRank('harmony1') *
       5,
 
     healPct:
-      skillRank(
-        'harmony2'
-      ) *
-      .08,
+      skillRank('harmony2') *
+      0.08,
 
     petXpPct:
-      skillRank(
-        'harmony3'
-      ) *
-      .10
+      skillRank('harmony3') *
+      0.10
   };
 }
 
 
-/* ============================
-   RPG MAX HP FROM SKILL TREE
-============================ */
+/* =========================================================
+   APPLY SKILL TREE HP BONUS
+========================================================= */
 
 function applySkillTreeVitals() {
 
-  const b =
+  const bonuses =
     getSkillBonuses();
 
 
   const oldMax =
-    profile.rpg.maxHp ||
-    100;
+    profile.rpg.maxHp || 100;
 
 
   const newMax =
-    100 +
-    b.maxHp;
+    100 + bonuses.maxHp;
 
 
   profile.rpg.maxHp =
@@ -9267,6 +8387,7 @@ function applySkillTreeVitals() {
 
     profile.rpg.hp =
       Math.min(
+
         newMax,
 
         profile.rpg.hp +
@@ -9279,20 +8400,17 @@ function applySkillTreeVitals() {
 }
 
 
-/* ============================
+/* =========================================================
    RENDER SKILL TREE
-============================ */
+========================================================= */
 
 function renderSkillTree() {
 
-  const el =
+  const element =
     $('#skillTree');
 
 
-  if (
-    !el
-  ) {
-
+  if (!element) {
     return;
   }
 
@@ -9305,7 +8423,7 @@ function renderSkillTree() {
     availableSkillPoints();
 
 
-  el.innerHTML =
+  element.innerHTML =
 
     Object.values(
       skillTreeDefs
@@ -9332,34 +8450,29 @@ function renderSkillTree() {
           ${
             branch.nodes
             .map(
-              (
-                n,
-                i
-              ) => {
+              (node, index) => {
 
                 const rank =
                   skillRank(
-                    n.id
+                    node.id
                   );
 
 
                 const locked =
-                  n.requires &&
+                  node.requires &&
                   skillRank(
-                    n.requires
-                  ) <=
-                  0;
+                    node.requires
+                  ) <= 0;
 
 
                 const maxed =
-                  rank >=
-                  n.max;
+                  rank >= node.max;
 
 
                 return `
 
                   ${
-                    i
+                    index
                       ? '<div class="skill-connector"></div>'
                       : ''
                   }
@@ -9382,18 +8495,18 @@ function renderSkillTree() {
                   >
 
                     <div class="skill-icon">
-                      ${n.icon}
+                      ${node.icon}
                     </div>
 
 
                     <div>
 
                       <strong>
-                        ${n.name}
+                        ${node.name}
                       </strong>
 
                       <small>
-                        ${n.desc}
+                        ${node.desc}
                       </small>
 
                     </div>
@@ -9402,29 +8515,31 @@ function renderSkillTree() {
                     <div>
 
                       <div class="skill-rank">
-                        Rank ${rank}/${n.max}
+                        Rank ${rank}/${node.max}
                       </div>
 
 
                       <button
-                        data-skill="${n.id}"
+                        data-skill="${node.id}"
 
                         ${
                           maxed ||
                           locked ||
-                          availableSkillPoints() <=
-                          0
+                          availableSkillPoints() <= 0
 
                             ? 'disabled'
+
                             : ''
                         }
                       >
 
                         ${
                           maxed
+
                             ? 'MAX'
 
                             : locked
+
                               ? 'LOCKED'
 
                               : 'UPGRADE'
@@ -9444,163 +8559,185 @@ function renderSkillTree() {
         </div>
       `
     )
-    .join('') +
+    .join('')
+
+    +
 
     `
 
       <div class="skill-summary">
 
         <div>
-
           <b>
             +${Math.round(
-              getSkillBonuses()
-              .attackPct *
+              getSkillBonuses().attackPct *
               100
             )}%
           </b>
-
-          <span>
-            Attack
-          </span>
-
+          <span>Attack</span>
         </div>
 
-
         <div>
-
           <b>
             +${getSkillBonuses().maxHp}
           </b>
-
-          <span>
-            RPG Max HP
-          </span>
-
+          <span>RPG Max HP</span>
         </div>
 
-
         <div>
-
           <b>
             +${Math.round(
-              getSkillBonuses()
-              .petXpPct *
+              getSkillBonuses().petXpPct *
               100
             )}%
           </b>
-
-          <span>
-            Pet EXP
-          </span>
-
+          <span>Pet EXP</span>
         </div>
 
       </div>
     `;
 
 
-  $$(
-    '[data-skill]'
-  )
+  $$('[data-skill]')
   .forEach(
-    b =>
-      b.onclick =
+    button => {
+
+      button.onclick =
         () =>
           buySkill(
-            b.dataset.skill
-          )
+            button.dataset.skill
+          );
+    }
   );
 }
 
 
-/* ============================
+/* =========================================================
    RPG ZONES
-============================ */
+========================================================= */
 
 const rpgZones = [
 
   {
-    name: 'Melody Village',
-    emoji: '🏡',
-    enemy: 'Slime Note',
-    boss: 'Village Maestro'
+    name:
+      'Melody Village',
+    emoji:
+      '🏡',
+    enemy:
+      'Slime Note',
+    boss:
+      'Village Maestro'
   },
 
   {
-    name: 'Rhythm Forest',
-    emoji: '🌲',
-    enemy: 'Beat Bug',
-    boss: 'Tempo Wolf'
+    name:
+      'Rhythm Forest',
+    emoji:
+      '🌲',
+    enemy:
+      'Beat Bug',
+    boss:
+      'Tempo Wolf'
   },
 
   {
-    name: 'Echo Caves',
-    emoji: '🕳️',
-    enemy: 'Echo Bat',
-    boss: 'Crystal Golem'
+    name:
+      'Echo Caves',
+    emoji:
+      '🕳️',
+    enemy:
+      'Echo Bat',
+    boss:
+      'Crystal Golem'
   },
 
   {
-    name: 'Brass Kingdom',
-    emoji: '🏰',
-    enemy: 'Horn Guard',
-    boss: 'Royal Conductor'
+    name:
+      'Brass Kingdom',
+    emoji:
+      '🏰',
+    enemy:
+      'Horn Guard',
+    boss:
+      'Royal Conductor'
   },
 
   {
-    name: 'Crystal Highlands',
-    emoji: '💎',
-    enemy: 'Shard Sprite',
-    boss: 'Crystal Maestro'
+    name:
+      'Crystal Highlands',
+    emoji:
+      '💎',
+    enemy:
+      'Shard Sprite',
+    boss:
+      'Crystal Maestro'
   },
 
   {
-    name: 'Shadow Ruins',
-    emoji: '🗿',
-    enemy: 'Shadow Note',
-    boss: 'Silent Knight'
+    name:
+      'Shadow Ruins',
+    emoji:
+      '🗿',
+    enemy:
+      'Shadow Note',
+    boss:
+      'Silent Knight'
   },
 
   {
-    name: 'Magma Canyon',
-    emoji: '🔥',
-    enemy: 'Fire Beat',
-    boss: 'Inferno Dragon'
+    name:
+      'Magma Canyon',
+    emoji:
+      '🔥',
+    enemy:
+      'Fire Beat',
+    boss:
+      'Inferno Dragon'
   },
 
   {
-    name: 'Celestial Valley',
-    emoji: '✨',
-    enemy: 'Star Wisp',
-    boss: 'Celestial Titan'
+    name:
+      'Celestial Valley',
+    emoji:
+      '✨',
+    enemy:
+      'Star Wisp',
+    boss:
+      'Celestial Titan'
   },
 
   {
-    name: 'Void Realm',
-    emoji: '🌌',
-    enemy: 'Void Spirit',
-    boss: 'Abyss Titan'
+    name:
+      'Void Realm',
+    emoji:
+      '🌌',
+    enemy:
+      'Void Spirit',
+    boss:
+      'Abyss Titan'
   },
 
   {
-    name: 'MusicVerse Citadel',
-    emoji: '🎼',
-    enemy: 'Dark Virtuoso',
-    boss: 'The Silent King'
+    name:
+      'MusicVerse Citadel',
+    emoji:
+      '🎼',
+    enemy:
+      'Dark Virtuoso',
+    boss:
+      'The Silent King'
   }
 ];
 
 
 let rpgMapData = [];
 
-let rpgEnemy =
-  null;
+let rpgEnemy = null;
 
 
-/* ============================
+/* =========================================================
    CREATE RPG MAP
-============================ */
+========================================================= */
 
 function makeRpgMap() {
 
@@ -9610,19 +8747,13 @@ function makeRpgMap() {
         length: 8
       },
 
-      (
-        _,
-        y
-      ) =>
+      (_, y) =>
         Array.from(
           {
             length: 12
           },
 
-          (
-            _,
-            x
-          ) =>
+          (_, x) =>
             x === 0 ||
             x === 11 ||
             y === 0 ||
@@ -9634,6 +8765,10 @@ function makeRpgMap() {
         )
     );
 
+
+/* =========================================================
+   RANDOM WALLS
+========================================================= */
 
   for (
     let i = 0;
@@ -9656,21 +8791,19 @@ function makeRpgMap() {
 
 
     if (
-      x !==
-      profile.rpg.x ||
-      y !==
-      profile.rpg.y
+      x !== profile.rpg.x ||
+      y !== profile.rpg.y
     ) {
 
-      rpgMapData[
-        y
-      ][
-        x
-      ] =
+      rpgMapData[y][x] =
         'wall';
     }
   }
 
+
+/* =========================================================
+   RANDOM ENEMIES
+========================================================= */
 
   for (
     let i = 0;
@@ -9693,23 +8826,19 @@ function makeRpgMap() {
 
 
     if (
-      rpgMapData[
-        y
-      ][
-        x
-      ] ===
+      rpgMapData[y][x] ===
       'floor'
     ) {
 
-      rpgMapData[
-        y
-      ][
-        x
-      ] =
+      rpgMapData[y][x] =
         'enemy';
     }
   }
 
+
+/* =========================================================
+   RANDOM CHESTS
+========================================================= */
 
   for (
     let i = 0;
@@ -9732,29 +8861,21 @@ function makeRpgMap() {
 
 
     if (
-      rpgMapData[
-        y
-      ][
-        x
-      ] ===
+      rpgMapData[y][x] ===
       'floor'
     ) {
 
-      rpgMapData[
-        y
-      ][
-        x
-      ] =
+      rpgMapData[y][x] =
         'chest';
     }
   }
 
 
-  rpgMapData[
-    6
-  ][
-    10
-  ] =
+/* =========================================================
+   EXIT
+========================================================= */
+
+  rpgMapData[6][10] =
     'exit';
 
 
@@ -9772,81 +8893,59 @@ function makeRpgMap() {
 }
 
 
-/* ============================
+/* =========================================================
    RENDER RPG MAP
-============================ */
+========================================================= */
 
 function renderRpgMap() {
 
-  const el =
+  const element =
     $('#rpgMap');
 
 
-  if (
-    !el
-  ) {
-
+  if (!element) {
     return;
   }
 
 
-  $('#rpgZoneName')
-  .textContent =
+  $('#rpgZoneName').textContent =
     rpgZones[
       profile.rpg.zone
     ].name;
 
 
-  $('#rpgHpText')
-  .textContent =
+  $('#rpgHpText').textContent =
     `${profile.rpg.hp} / ${profile.rpg.maxHp}`;
 
 
-  $('#rpgStoryText')
-  .textContent =
+  $('#rpgStoryText').textContent =
     `${profile.rpg.storyStep + 1} / ${rpgZones.length}`;
 
 
-  el.innerHTML =
+  element.innerHTML =
+
     rpgMapData
     .flatMap(
-      (
-        row,
-        y
-      ) =>
+      (row, y) =>
         row.map(
-          (
-            t,
-            x
-          ) => {
+          (tile, x) => {
 
-            const p =
-              x ===
-              profile.rpg.x &&
-              y ===
-              profile.rpg.y;
+            const player =
+              x === profile.rpg.x &&
+              y === profile.rpg.y;
 
 
             const icon =
-              p
+              player
                 ? '🎸'
-
-                : t ===
-                  'wall'
+                : tile === 'wall'
                   ? ''
-
-                  : t ===
-                    'enemy'
+                  : tile === 'enemy'
                     ? '👾'
-
-                    : t ===
-                      'chest'
+                    : tile === 'chest'
                       ? '🎁'
-
-                      : t ===
-                        'exit'
+                      : tile === 'exit'
                         ? '🚪'
-
                         : '';
 
 
@@ -9856,9 +8955,9 @@ function renderRpgMap() {
                 class="
                   rpg-tile
                   ${
-                    p
+                    player
                       ? 'player'
-                      : t
+                      : tile
                   }
                 "
               >
@@ -9872,19 +8971,16 @@ function renderRpgMap() {
 }
 
 
-/* ============================
+/* =========================================================
    RPG MOVEMENT
-============================ */
+========================================================= */
 
 function moveRpg(
   dx,
   dy
 ) {
 
-  if (
-    rpgEnemy
-  ) {
-
+  if (rpgEnemy) {
     return;
   }
 
@@ -9899,27 +8995,24 @@ function moveRpg(
     dy;
 
 
-  const t =
-    rpgMapData[
-      ny
-    ]?.[
-      nx
-    ];
+  const tile =
+    rpgMapData[ny]?.[nx];
 
 
   if (
-    !t ||
-    t ===
-    'wall'
+    !tile ||
+    tile === 'wall'
   ) {
-
     return;
   }
 
 
+/* =========================================================
+   ENEMY TILE
+========================================================= */
+
   if (
-    t ===
-    'enemy'
+    tile === 'enemy'
   ) {
 
     profile.rpg.x =
@@ -9939,16 +9032,15 @@ function moveRpg(
   }
 
 
+/* =========================================================
+   CHEST TILE
+========================================================= */
+
   if (
-    t ===
-    'chest'
+    tile === 'chest'
   ) {
 
-    rpgMapData[
-      ny
-    ][
-      nx
-    ] =
+    rpgMapData[ny][nx] =
       'floor';
 
 
@@ -9965,28 +9057,24 @@ function moveRpg(
 
     if (
       Math.random() <
-      .35
+      0.35
     ) {
 
       profile.equipmentInventory.push({
 
         name:
-          pick(
-            [
-              'Echo Ring',
-              'Rhythm Boots',
-              'Crystal Charm'
-            ]
-          ),
+          pick([
+            'Echo Ring',
+            'Rhythm Boots',
+            'Crystal Charm'
+          ]),
 
         slot:
-          pick(
-            [
-              'Ring',
-              'Feet',
-              'Charm'
-            ]
-          ),
+          pick([
+            'Ring',
+            'Feet',
+            'Charm'
+          ]),
 
         attack:
           rand(
@@ -10018,9 +9106,12 @@ function moveRpg(
   }
 
 
+/* =========================================================
+   EXIT / BOSS TILE
+========================================================= */
+
   if (
-    t ===
-    'exit'
+    tile === 'exit'
   ) {
 
     startRpgBattle(
@@ -10046,21 +9137,21 @@ function moveRpg(
 }
 
 
-/* ============================
+/* =========================================================
    START RPG BATTLE
-============================ */
+========================================================= */
 
 function startRpgBattle(
   boss
 ) {
 
-  const z =
+  const zone =
     rpgZones[
       profile.rpg.zone
     ];
 
 
-  const inst =
+  const instrument =
     getUpgradedInstrument(
       profile.equipped
     );
@@ -10070,15 +9161,14 @@ function startRpgBattle(
 
     name:
       boss
-        ? z.boss
-        : z.enemy,
+        ? zone.boss
+        : zone.enemy,
 
     hp:
       boss
         ? 220 +
           profile.rpg.zone *
           70
-
         : 75 +
           profile.rpg.zone *
           25,
@@ -10088,7 +9178,6 @@ function startRpgBattle(
         ? 220 +
           profile.rpg.zone *
           70
-
         : 75 +
           profile.rpg.zone *
           25,
@@ -10100,7 +9189,6 @@ function startRpgBattle(
         ? 12 +
           profile.rpg.zone *
           2
-
         : 6 +
           profile.rpg.zone
   };
@@ -10110,37 +9198,36 @@ function startRpgBattle(
 }
 
 
-/* ============================
+/* =========================================================
    RENDER RPG BATTLE
-============================ */
+========================================================= */
 
 function renderRpgBattle() {
 
-  const p =
+  const panel =
     $('#rpgBattlePanel');
 
 
   if (
-    !p ||
+    !panel ||
     !rpgEnemy
   ) {
-
     return;
   }
 
 
-  p.classList.remove(
+  panel.classList.remove(
     'hidden'
   );
 
 
-  const inst =
+  const instrument =
     getUpgradedInstrument(
       profile.equipped
     );
 
 
-  p.innerHTML = `
+  panel.innerHTML = `
 
     <div class="story-banner">
 
@@ -10168,7 +9255,7 @@ function renderRpgBattle() {
         </p>
 
         <small>
-          ${inst.icon}
+          ${instrument.icon}
           ${profile.equipped}
         </small>
 
@@ -10229,32 +9316,28 @@ function renderRpgBattle() {
   `;
 
 
-  $('#rpgAttack')
-  .onclick =
+  $('#rpgAttack').onclick =
     () =>
       rpgPlayerAction(
         'attack'
       );
 
 
-  $('#rpgSkill')
-  .onclick =
+  $('#rpgSkill').onclick =
     () =>
       rpgPlayerAction(
         'skill'
       );
 
 
-  $('#rpgHeal')
-  .onclick =
+  $('#rpgHeal').onclick =
     () =>
       rpgPlayerAction(
         'heal'
       );
 
 
-  $('#rpgRun')
-  .onclick =
+  $('#rpgRun').onclick =
     () => {
 
       if (
@@ -10271,7 +9354,7 @@ function renderRpgBattle() {
         null;
 
 
-      p.classList.add(
+      panel.classList.add(
         'hidden'
       );
 
@@ -10289,15 +9372,15 @@ function renderRpgBattle() {
 }
 
 
-/* ============================
+/* =========================================================
    RPG PLAYER ACTION
-============================ */
+========================================================= */
 
 function rpgPlayerAction(
   type
 ) {
 
-  const inst =
+  const instrument =
     getUpgradedInstrument(
       profile.equipped
     );
@@ -10307,21 +9390,24 @@ function rpgPlayerAction(
     getSkillBonuses();
 
 
+/* =========================================================
+   RPG HEAL
+========================================================= */
+
   if (
-    type ===
-    'heal'
+    type === 'heal'
   ) {
 
     const base =
       Math.round(
-        inst.melody *
-        .12
-      ) +
-      6;
+        instrument.melody *
+        0.12
+      ) + 6;
 
 
     const heal =
       Math.round(
+
         base *
         (
           1 +
@@ -10332,6 +9418,7 @@ function rpgPlayerAction(
 
     profile.rpg.hp =
       Math.min(
+
         profile.rpg.maxHp,
 
         profile.rpg.hp +
@@ -10347,23 +9434,27 @@ function rpgPlayerAction(
     );
   }
 
+
+/* =========================================================
+   RPG ATTACK / SPECIAL
+========================================================= */
+
   else {
 
-    let mult =
-      type ===
-      'skill'
+    let multiplier =
+      type === 'skill'
         ? 1.45
         : 1;
 
 
-    mult *=
+    multiplier *=
       1 +
       skills.attackPct;
 
 
-    mult *=
-      type ===
-      'skill'
+    multiplier *=
+
+      type === 'skill'
 
         ? 1 +
           skills.specialPct
@@ -10374,36 +9465,42 @@ function rpgPlayerAction(
 
     let damage =
       Math.max(
+
         5,
 
         Math.round(
-          (
-            inst.attack *
-            .22 +
 
-            inst.rhythm *
-            .08 +
+          (
+            instrument.attack *
+            0.22 +
+
+            instrument.rhythm *
+            0.08 +
 
             rand(
               0,
               6
             )
           ) *
-          mult
+
+          multiplier
         )
       );
 
 
-    const crit =
+    const critical =
       Math.random() <
-      .06 +
-      inst.melody /
+
+      0.06 +
+
+      instrument.melody /
       1600 +
+
       skills.critChance;
 
 
     if (
-      crit
+      critical
     ) {
 
       damage =
@@ -10424,6 +9521,7 @@ function rpgPlayerAction(
 
     rpgEnemy.hp =
       Math.max(
+
         0,
 
         rpgEnemy.hp -
@@ -10432,23 +9530,24 @@ function rpgPlayerAction(
 
 
     playInstrument(
+
       profile.equipped,
 
-      type ===
-      'skill'
+      type === 'skill'
         ? 660
         : 440
     );
 
 
-    type ===
-    'skill'
-
+    type === 'skill'
       ? S.ultimate()
-
       : S.attack();
   }
 
+
+/* =========================================================
+   ENEMY DEFEATED
+========================================================= */
 
   if (
     rpgEnemy.hp <=
@@ -10460,6 +9559,10 @@ function rpgPlayerAction(
     return;
   }
 
+
+/* =========================================================
+   DODGE
+========================================================= */
 
   if (
     Math.random() <
@@ -10485,8 +9588,14 @@ function rpgPlayerAction(
   }
 
 
+/* =========================================================
+   ENEMY ATTACK
+========================================================= */
+
   const effectiveDefense =
-    inst.defense *
+
+    instrument.defense *
+
     (
       1 +
       skills.defensePct
@@ -10495,24 +9604,31 @@ function rpgPlayerAction(
 
   const hurt =
     Math.max(
+
       1,
 
       rpgEnemy.attack -
+
       Math.round(
         effectiveDefense *
-        .035
+        0.035
       )
     );
 
 
   profile.rpg.hp =
     Math.max(
+
       0,
 
       profile.rpg.hp -
       hurt
     );
 
+
+/* =========================================================
+   PLAYER DEFEATED
+========================================================= */
 
   if (
     profile.rpg.hp <=
@@ -10544,6 +9660,7 @@ function rpgPlayerAction(
 
     persist();
 
+
     S.defeat();
 
 
@@ -10567,9 +9684,9 @@ function rpgPlayerAction(
 }
 
 
-/* ============================
+/* =========================================================
    FINISH RPG BATTLE
-============================ */
+========================================================= */
 
 function finishRpgBattle() {
 
@@ -10588,6 +9705,7 @@ function finishRpgBattle() {
 
 
   addInstrumentXP(
+
     profile.equipped,
 
     boss
@@ -10601,6 +9719,7 @@ function finishRpgBattle() {
   ) {
 
     addPetXP(
+
       profile.equippedPet,
 
       boss
@@ -10611,6 +9730,7 @@ function finishRpgBattle() {
 
 
   reward(
+
     boss
       ? 28
       : 6,
@@ -10623,12 +9743,17 @@ function finishRpgBattle() {
   );
 
 
+/* =========================================================
+   BOSS VICTORY
+========================================================= */
+
   if (
     boss
   ) {
 
     profile.rpg.storyStep =
       Math.max(
+
         profile.rpg.storyStep,
 
         profile.rpg.zone +
@@ -10654,6 +9779,7 @@ function finishRpgBattle() {
       );
     }
 
+
     else {
 
       toast(
@@ -10664,6 +9790,11 @@ function finishRpgBattle() {
 
     makeRpgMap();
   }
+
+
+/* =========================================================
+   NORMAL ENEMY VICTORY
+========================================================= */
 
   else {
 
@@ -10693,9 +9824,11 @@ function finishRpgBattle() {
 
   renderQuests();
 }
-      /* ============================
-   RPG SETUP / CONTROLS
-============================ */
+
+
+/* =========================================================
+   SETUP RPG CONTROLS
+========================================================= */
 
 function setupRpg() {
 
@@ -10716,68 +9849,52 @@ function setupRpg() {
   ) {
 
     map.onkeydown =
-      e => {
+      event => {
 
-        const k =
-          e.key.toLowerCase();
+        const key =
+          event.key.toLowerCase();
 
 
-        const m = {
+        const movement = {
 
-          arrowup: [
-            0,
-            -1
-          ],
+          arrowup:
+            [0, -1],
 
-          w: [
-            0,
-            -1
-          ],
+          w:
+            [0, -1],
 
-          arrowdown: [
-            0,
-            1
-          ],
+          arrowdown:
+            [0, 1],
 
-          s: [
-            0,
-            1
-          ],
+          s:
+            [0, 1],
 
-          arrowleft: [
-            -1,
-            0
-          ],
+          arrowleft:
+            [-1, 0],
 
-          a: [
-            -1,
-            0
-          ],
+          a:
+            [-1, 0],
 
-          arrowright: [
-            1,
-            0
-          ],
+          arrowright:
+            [1, 0],
 
-          d: [
-            1,
-            0
-          ]
+          d:
+            [1, 0]
 
         }[
-          k
+          key
         ];
 
 
         if (
-          m
+          movement
         ) {
 
-          e.preventDefault();
+          event.preventDefault();
 
 
           moveRpg(
-            ...m
+            ...movement
           );
         }
       };
@@ -10808,7 +9925,6 @@ function setupRpg() {
       1,
       0
     ]
-
   ]
   .forEach(
     (
@@ -10819,8 +9935,7 @@ function setupRpg() {
       ]
     ) => {
 
-      $('#' + id)
-      .onclick =
+      $('#' + id).onclick =
         () =>
           moveRpg(
             x,
@@ -10829,11 +9944,7 @@ function setupRpg() {
     }
   );
 }
-
-
-/* ============================
-   GAME HUB
-============================ */
+/* ============================ GAME HUB ============================ */
 
 const games = [
 
@@ -10902,33 +10013,33 @@ const games = [
 ];
 
 
-/* ============================
+/* =========================================================
    RENDER GAME CARDS
-============================ */
+========================================================= */
 
 function renderGameCards() {
 
-  $('#gameCards')
-  .innerHTML =
+  $('#gameCards').innerHTML =
+
     games
     .map(
-      g => `
+      game => `
 
         <article
           class="game-card"
-          data-game="${g[0]}"
+          data-game="${game[0]}"
         >
 
           <div class="game-icon">
-            ${g[1]}
+            ${game[1]}
           </div>
 
           <h3>
-            ${g[2]}
+            ${game[2]}
           </h3>
 
           <p>
-            ${g[3]}
+            ${game[3]}
           </p>
 
           <b>
@@ -10941,36 +10052,33 @@ function renderGameCards() {
     .join('');
 
 
-  $$(
-    '[data-game]'
-  )
+  $$('[data-game]')
   .forEach(
-    c =>
-      c.onclick =
+    card => {
+
+      card.onclick =
         () =>
           openGame(
-            c.dataset.game
-          )
+            card.dataset.game
+          );
+    }
   );
 }
 
 
-/* ============================
+/* =========================================================
    OPEN GAME
-============================ */
+========================================================= */
 
-function openGame(
-  id
-) {
+function openGame(id) {
 
   stopActiveGame();
 
 
-  const g =
+  const game =
     games.find(
-      x =>
-        x[0] ===
-        id
+      item =>
+        item[0] === id
     );
 
 
@@ -10981,24 +10089,20 @@ function openGame(
   );
 
 
-  $('#gameEyebrow')
-  .textContent =
+  $('#gameEyebrow').textContent =
     'MUSICVERSE ARCADE';
 
 
-  $('#gameTitle')
-  .textContent =
-    g[2];
+  $('#gameTitle').textContent =
+    game[2];
 
 
-  $('#gameBody')
-  .innerHTML =
+  $('#gameBody').innerHTML =
     '';
 
 
   $('#gameStage')
   .scrollIntoView({
-
     behavior:
       'smooth',
 
@@ -11008,7 +10112,6 @@ function openGame(
 
 
   ({
-
     rhythm:
       startRhythm,
 
@@ -11036,18 +10139,15 @@ function openGame(
     dungeon:
       startDungeon
 
-  }[
-    id
-  ])();
+  }[id])();
 }
 
 
-/* ============================
+/* =========================================================
    CLOSE GAME
-============================ */
+========================================================= */
 
-$('#closeGameBtn')
-.onclick =
+$('#closeGameBtn').onclick =
   () => {
 
     stopActiveGame();
@@ -11061,17 +10161,15 @@ $('#closeGameBtn')
   };
 
 
-let activeIntervals =
-  [];
+/* =========================================================
+   GAME INTERVAL / KEYBOARD CLEANUP
+========================================================= */
 
+let activeIntervals = [];
 
 let activeKeyHandler =
   null;
 
-
-/* ============================
-   GAME TIMER HELPER
-============================ */
 
 function every(
   fn,
@@ -11093,10 +10191,6 @@ function every(
   return id;
 }
 
-
-/* ============================
-   STOP ACTIVE GAME
-============================ */
 
 function stopActiveGame() {
 
@@ -11126,14 +10220,13 @@ function stopActiveGame() {
 }
 
 
-/* ============================
+/* =========================================================
    RHYTHM RUSH
-============================ */
+========================================================= */
 
 function startRhythm() {
 
-  $('#gameBody')
-  .innerHTML = `
+  $('#gameBody').innerHTML = `
 
     <div class="game-panel">
 
@@ -11177,17 +10270,17 @@ function startRhythm() {
           ]
           .map(
             (
-              k,
-              i
+              key,
+              index
             ) => `
 
               <div
                 class="lane"
-                data-lane="${i}"
+                data-lane="${index}"
               >
 
                 <div class="lane-key">
-                  ${k}
+                  ${key}
                 </div>
 
               </div>
@@ -11210,22 +10303,19 @@ function startRhythm() {
   let score =
     0;
 
-
   let combo =
     0;
 
-
   let time =
     20;
-
 
   let notes =
     [];
 
 
-/* ============================
-   SPAWN RHYTHM NOTES
-============================ */
+/* =========================================================
+   RHYTHM NOTE SPAWN
+========================================================= */
 
   function spawn() {
 
@@ -11236,25 +10326,25 @@ function startRhythm() {
       );
 
 
-    const el =
+    const element =
       document.createElement(
         'div'
       );
 
 
-    el.className =
+    element.className =
       'fall-note';
 
 
-    el.style.top =
+    element.style.top =
       '-30px';
 
 
-    el.dataset.y =
+    element.dataset.y =
       '-30';
 
 
-    el.dataset.lane =
+    element.dataset.lane =
       lane;
 
 
@@ -11263,12 +10353,12 @@ function startRhythm() {
       lane
     ]
     .appendChild(
-      el
+      element
     );
 
 
     notes.push(
-      el
+      element
     );
   }
 
@@ -11279,9 +10369,9 @@ function startRhythm() {
   );
 
 
-/* ============================
-   MOVE FALLING NOTES
-============================ */
+/* =========================================================
+   RHYTHM NOTE MOVEMENT
+========================================================= */
 
   every(
     () => {
@@ -11291,20 +10381,19 @@ function startRhythm() {
           ...notes
         ]
         .filter(
-          n => {
+          note => {
 
             let y =
-              +n.dataset.y +
+              +note.dataset.y +
               8;
 
 
-            n.dataset.y =
+            note.dataset.y =
               y;
 
 
-            n.style.top =
-              y +
-              'px';
+            note.style.top =
+              y + 'px';
 
 
             if (
@@ -11312,15 +10401,14 @@ function startRhythm() {
               330
             ) {
 
-              n.remove();
+              note.remove();
 
 
               combo =
                 0;
 
 
-              $('#rrCombo')
-              .textContent =
+              $('#rrCombo').textContent =
                 combo;
 
 
@@ -11340,9 +10428,9 @@ function startRhythm() {
   );
 
 
-/* ============================
+/* =========================================================
    RHYTHM TIMER
-============================ */
+========================================================= */
 
   every(
     () => {
@@ -11350,8 +10438,7 @@ function startRhythm() {
       time--;
 
 
-      $('#rrTime')
-      .textContent =
+      $('#rrTime').textContent =
         time;
 
 
@@ -11363,13 +10450,14 @@ function startRhythm() {
         stopActiveGame();
 
 
-        $('#rrResult')
-        .textContent =
+        $('#rrResult').textContent =
           `Finished! Score ${score}.`;
 
 
         const xp =
+
           20 +
+
           Math.round(
             score /
             300
@@ -11377,11 +10465,12 @@ function startRhythm() {
 
 
         reward(
+
           xp,
 
           Math.round(
             xp *
-            .6
+            0.6
           ),
 
           'Rhythm Rush complete!'
@@ -11389,6 +10478,7 @@ function startRhythm() {
 
 
         addMastery(
+
           profile.equipped,
 
           Math.round(
@@ -11403,28 +10493,33 @@ function startRhythm() {
   );
 
 
-/* ============================
-   RHYTHM KEY INPUT
-============================ */
+/* =========================================================
+   RHYTHM KEY HANDLER
+========================================================= */
 
   activeKeyHandler =
-    e => {
+    event => {
 
       const map = {
 
-        d: 0,
+        d:
+          0,
 
-        f: 1,
+        f:
+          1,
 
-        j: 2,
+        j:
+          2,
 
-        k: 3
+        k:
+          3
       };
 
 
       const lane =
         map[
-          e.key.toLowerCase()
+          event.key
+          .toLowerCase()
         ];
 
 
@@ -11438,10 +10533,11 @@ function startRhythm() {
 
 
       const candidates =
+
         notes
         .filter(
-          n =>
-            +n.dataset.lane ===
+          note =>
+            +note.dataset.lane ===
             lane
         )
         .sort(
@@ -11454,14 +10550,12 @@ function startRhythm() {
         );
 
 
-      const n =
-        candidates[
-          0
-        ];
+      const note =
+        candidates[0];
 
 
       if (
-        !n
+        !note
       ) {
 
         combo =
@@ -11476,10 +10570,10 @@ function startRhythm() {
 
 
       const y =
-        +n.dataset.y;
+        +note.dataset.y;
 
 
-      const dist =
+      const distance =
         Math.abs(
           306 -
           y
@@ -11487,12 +10581,12 @@ function startRhythm() {
 
 
       if (
-        dist <
+        distance <
         32
       ) {
 
         score +=
-          dist <
+          distance <
           12
             ? 150
             : 100;
@@ -11501,7 +10595,7 @@ function startRhythm() {
         combo++;
 
 
-        dist <
+        distance <
         12
 
           ? S.perfect()
@@ -11509,15 +10603,16 @@ function startRhythm() {
           : S.great();
 
 
-        n.remove();
+        note.remove();
 
 
         notes =
           notes.filter(
-            x =>
-              x !== n
+            item =>
+              item !== note
           );
       }
+
 
       else {
 
@@ -11529,13 +10624,11 @@ function startRhythm() {
       }
 
 
-      $('#rrScore')
-      .textContent =
+      $('#rrScore').textContent =
         score;
 
 
-      $('#rrCombo')
-      .textContent =
+      $('#rrCombo').textContent =
         combo;
     };
 
@@ -11547,19 +10640,17 @@ function startRhythm() {
 }
 
 
-/* ============================
+/* =========================================================
    GUESS THE SONG
-============================ */
+========================================================= */
 
 const melodies = [
 
   {
-
     name:
       'Twinkle Twinkle Little Star',
 
     notes: [
-
       261.6,
       261.6,
       392,
@@ -11570,14 +10661,11 @@ const melodies = [
     ]
   },
 
-
   {
-
     name:
       'Ode to Joy',
 
     notes: [
-
       329.6,
       329.6,
       349.2,
@@ -11589,14 +10677,11 @@ const melodies = [
     ]
   },
 
-
   {
-
     name:
       'Mary Had a Little Lamb',
 
     notes: [
-
       329.6,
       293.7,
       261.6,
@@ -11609,52 +10694,56 @@ const melodies = [
 ];
 
 
-/* ============================
+/* =========================================================
    PLAY MELODY
-============================ */
+========================================================= */
 
 function playMelody(
-  m
+  melody
 ) {
 
-  m.notes
+  melody.notes
   .forEach(
     (
-      n,
-      i
+      note,
+      index
     ) =>
+
       SoundEngine.tone(
-        n,
-        .26,
+
+        note,
+
+        0.26,
+
         'sine',
-        .09,
-        i *
-        .24
+
+        0.09,
+
+        index *
+        0.24
       )
   );
 }
 
 
-/* ============================
+/* =========================================================
    START GUESS THE SONG
-============================ */
+========================================================= */
 
 function startGuessSong() {
 
   let score =
     0;
 
-
   let round =
     0;
-
 
   let current;
 
 
-/* ============================
-   RENDER GUESS ROUND
-============================ */
+/* =========================================================
+   RENDER GUESS SONG ROUND
+========================================================= */
 
   const render =
     () => {
@@ -11665,31 +10754,28 @@ function startGuessSong() {
         );
 
 
-      const opts = [
+      const options = [
 
         current.name,
 
         ...melodies
         .filter(
-          x =>
-            x !==
-            current
+          item =>
+            item !== current
         )
         .map(
-          x =>
-            x.name
+          item =>
+            item.name
         )
-
       ]
       .sort(
         () =>
           Math.random() -
-          .5
+          0.5
       );
 
 
-      $('#gameBody')
-      .innerHTML = `
+      $('#gameBody').innerHTML = `
 
         <div class="game-panel">
 
@@ -11720,14 +10806,14 @@ function startGuessSong() {
           >
 
             ${
-              opts
+              options
               .map(
-                o => `
+                option => `
 
                   <button
-                    data-song="${o}"
+                    data-song="${option}"
                   >
-                    ${o}
+                    ${option}
                   </button>
                 `
               )
@@ -11745,28 +10831,34 @@ function startGuessSong() {
       `;
 
 
-      $('#playSongBtn')
-      .onclick =
+/* =========================================================
+   PLAY SONG BUTTON
+========================================================= */
+
+      $('#playSongBtn').onclick =
         () =>
           playMelody(
             current
           );
 
 
-      $$(
-        '[data-song]'
-      )
+/* =========================================================
+   SONG ANSWERS
+========================================================= */
+
+      $$('[data-song]')
       .forEach(
-        b =>
-          b.onclick =
+        button => {
+
+          button.onclick =
             () => {
 
-              const ok =
-                b.dataset.song ===
+              const correct =
+                button.dataset.song ===
                 current.name;
 
 
-              ok
+              correct
 
                 ? (
                     score++,
@@ -11778,6 +10870,10 @@ function startGuessSong() {
 
               round++;
 
+
+/* =========================================================
+   GUESS SONG FINISH
+========================================================= */
 
               if (
                 round >=
@@ -11791,6 +10887,7 @@ function startGuessSong() {
 
 
                 reward(
+
                   xp,
 
                   score *
@@ -11800,8 +10897,7 @@ function startGuessSong() {
                 );
 
 
-                $('#gameBody')
-                .innerHTML = `
+                $('#gameBody').innerHTML = `
 
                   <div class="game-panel">
 
@@ -11820,30 +10916,30 @@ function startGuessSong() {
                 `;
 
 
-                $('#againGuess')
-                .onclick =
+                $('#againGuess').onclick =
                   startGuessSong;
               }
+
 
               else {
 
                 render();
               }
-            }
+            };
+        }
       );
     };
 
 
   render();
 }
-      /* ============================
+/* =========================================================
    PIANO TILES
-============================ */
+========================================================= */
 
 function startPianoTiles() {
 
-  $('#gameBody')
-  .innerHTML = `
+  $('#gameBody').innerHTML = `
 
     <div class="game-panel">
 
@@ -11872,28 +10968,13 @@ function startPianoTiles() {
       >
 
         ${
-          [
-            'A',
-            'S',
-            'D',
-            'F'
-          ]
+          [0, 1, 2, 3]
           .map(
-            (
-              k,
-              i
-            ) => `
-
+            lane => `
               <div
                 class="piano-lane"
-                data-piano-lane="${i}"
-              >
-
-                <div class="lane-key">
-                  ${k}
-                </div>
-
-              </div>
+                data-pt-lane="${lane}"
+              ></div>
             `
           )
           .join('')
@@ -11903,7 +10984,7 @@ function startPianoTiles() {
 
 
       <p id="ptResult">
-        Press A S D F as the tiles reach the bottom.
+        Click the black tiles before they reach the bottom.
       </p>
 
     </div>
@@ -11913,18 +10994,16 @@ function startPianoTiles() {
   let score =
     0;
 
-
   let time =
     20;
-
 
   let tiles =
     [];
 
 
-/* ============================
-   SPAWN PIANO TILE
-============================ */
+/* =========================================================
+   SPAWN TILE
+========================================================= */
 
   function spawnTile() {
 
@@ -11937,24 +11016,61 @@ function startPianoTiles() {
 
     const tile =
       document.createElement(
-        'div'
+        'button'
       );
 
 
     tile.className =
-      'piano-falling-tile';
+      'piano-tile';
 
 
     tile.dataset.y =
       '-70';
 
 
-    tile.dataset.lane =
-      lane;
-
-
     tile.style.top =
       '-70px';
+
+
+    tile.onclick =
+      () => {
+
+        const y =
+          +tile.dataset.y;
+
+
+        if (
+          y >
+          250
+        ) {
+
+          score +=
+            100;
+
+
+          $('#ptScore').textContent =
+            score;
+
+
+          S.perfect();
+
+
+          tile.remove();
+
+
+          tiles =
+            tiles.filter(
+              item =>
+                item !== tile
+            );
+        }
+
+
+        else {
+
+          S.miss();
+        }
+      };
 
 
     $('#ptBoard')
@@ -11974,26 +11090,27 @@ function startPianoTiles() {
 
   every(
     spawnTile,
-    600
+    480
   );
 
 
-/* ============================
-   MOVE PIANO TILES
-============================ */
+/* =========================================================
+   MOVE TILES
+========================================================= */
 
   every(
     () => {
 
       tiles =
-        tiles.filter(
+        [
+          ...tiles
+        ]
+        .filter(
           tile => {
 
-            let y =
-              Number(
-                tile.dataset.y
-              ) +
-              9;
+            const y =
+              +tile.dataset.y +
+              7;
 
 
             tile.dataset.y =
@@ -12001,13 +11118,12 @@ function startPianoTiles() {
 
 
             tile.style.top =
-              y +
-              'px';
+              y + 'px';
 
 
             if (
               y >
-              340
+              360
             ) {
 
               tile.remove();
@@ -12029,9 +11145,9 @@ function startPianoTiles() {
   );
 
 
-/* ============================
-   PIANO TILE TIMER
-============================ */
+/* =========================================================
+   PIANO TILES TIMER
+========================================================= */
 
   every(
     () => {
@@ -12039,8 +11155,7 @@ function startPianoTiles() {
       time--;
 
 
-      $('#ptTime')
-      .textContent =
+      $('#ptTime').textContent =
         time;
 
 
@@ -12053,231 +11168,124 @@ function startPianoTiles() {
 
 
         const xp =
-          12 +
-          Math.floor(
+          15 +
+          Math.round(
             score /
-            200
-          ) *
-          3;
+            250
+          );
+
+
+        const coins =
+          Math.round(
+            xp *
+            0.5
+          );
+
+
+        $('#ptResult').textContent =
+          `Finished! Score ${score}.`;
 
 
         reward(
+
           xp,
 
-          Math.floor(
-            xp *
-            .5
-          ),
+          coins,
 
           'Piano Tiles complete!'
         );
-
-
-        $('#ptResult')
-        .textContent =
-          `Finished! Final score: ${score}`;
       }
     },
 
     1000
   );
-
-
-/* ============================
-   PIANO TILE INPUT
-============================ */
-
-  activeKeyHandler =
-    e => {
-
-      const map = {
-
-        a: 0,
-
-        s: 1,
-
-        d: 2,
-
-        f: 3
-      };
-
-
-      const lane =
-        map[
-          e.key.toLowerCase()
-        ];
-
-
-      if (
-        lane ===
-        undefined
-      ) {
-
-        return;
-      }
-
-
-      const candidates =
-        tiles
-        .filter(
-          t =>
-            Number(
-              t.dataset.lane
-            ) ===
-            lane
-        )
-        .sort(
-          (
-            a,
-            b
-          ) =>
-            Number(
-              b.dataset.y
-            ) -
-            Number(
-              a.dataset.y
-            )
-        );
-
-
-      const tile =
-        candidates[
-          0
-        ];
-
-
-      if (
-        !tile
-      ) {
-
-        S.miss();
-
-        return;
-      }
-
-
-      const y =
-        Number(
-          tile.dataset.y
-        );
-
-
-      const dist =
-        Math.abs(
-          300 -
-          y
-        );
-
-
-      if (
-        dist <=
-        35
-      ) {
-
-        const perfect =
-          dist <=
-          12;
-
-
-        score +=
-          perfect
-            ? 150
-            : 100;
-
-
-        perfect
-          ? S.perfect()
-          : S.great();
-
-
-        tile.remove();
-
-
-        tiles =
-          tiles.filter(
-            t =>
-              t !==
-              tile
-          );
-
-
-        $('#ptScore')
-        .textContent =
-          score;
-      }
-
-      else {
-
-        S.miss();
-      }
-    };
-
-
-  document.addEventListener(
-    'keydown',
-    activeKeyHandler
-  );
 }
 
 
-/* ============================
+/* =========================================================
    PERFECT PITCH
-============================ */
+========================================================= */
 
 const pitchNotes = [
 
   {
-    name: 'C',
-    frequency: 261.63
+    name:
+      'C',
+
+    frequency:
+      261.6
   },
 
   {
-    name: 'D',
-    frequency: 293.66
+    name:
+      'D',
+
+    frequency:
+      293.7
   },
 
   {
-    name: 'E',
-    frequency: 329.63
+    name:
+      'E',
+
+    frequency:
+      329.6
   },
 
   {
-    name: 'F',
-    frequency: 349.23
+    name:
+      'F',
+
+    frequency:
+      349.2
   },
 
   {
-    name: 'G',
-    frequency: 392
+    name:
+      'G',
+
+    frequency:
+      392
   },
 
   {
-    name: 'A',
-    frequency: 440
+    name:
+      'A',
+
+    frequency:
+      440
   },
 
   {
-    name: 'B',
-    frequency: 493.88
+    name:
+      'B',
+
+    frequency:
+      493.9
   }
 ];
 
+
+/* =========================================================
+   START PERFECT PITCH
+========================================================= */
 
 function startPitch() {
 
   let round =
     0;
 
-
   let score =
     0;
 
-
-  let current =
-    null;
+  let current;
 
 
-  function newRound() {
+/* =========================================================
+   RENDER PERFECT PITCH ROUND
+========================================================= */
+
+  function render() {
 
     current =
       pick(
@@ -12285,25 +11293,18 @@ function startPitch() {
       );
 
 
-    $('#gameBody')
-    .innerHTML = `
+    $('#gameBody').innerHTML = `
 
       <div class="game-panel">
 
         <div class="game-toolbar">
 
           <span class="game-stat">
-            Round
-            <b>
-              ${round + 1}/7
-            </b>
+            Round ${round + 1}/10
           </span>
 
           <span class="game-stat">
-            Score
-            <b>
-              ${score}
-            </b>
+            Score ${score}
           </span>
 
         </div>
@@ -12317,17 +11318,20 @@ function startPitch() {
         </button>
 
 
-        <div class="choice-grid">
+        <div
+          class="choice-grid"
+          style="margin-top:16px"
+        >
 
           ${
             pitchNotes
             .map(
-              n => `
+              note => `
 
                 <button
-                  data-pitch="${n.name}"
+                  data-pitch-note="${note.name}"
                 >
-                  ${n.name}
+                  ${note.name}
                 </button>
               `
             )
@@ -12345,40 +11349,53 @@ function startPitch() {
     `;
 
 
-    $('#pitchPlayBtn')
-    .onclick =
+/* =========================================================
+   PLAY PERFECT PITCH NOTE
+========================================================= */
+
+    $('#pitchPlayBtn').onclick =
       () => {
 
         SoundEngine.tone(
+
           current.frequency,
-          .5,
+
+          0.6,
+
           'sine',
-          .12
+
+          0.12
         );
       };
 
 
-    $$(
-      '[data-pitch]'
-    )
+/* =========================================================
+   PERFECT PITCH ANSWERS
+========================================================= */
+
+    $$('[data-pitch-note]')
     .forEach(
-      b =>
-        b.onclick =
+      button => {
+
+        button.onclick =
           () => {
 
-            const ok =
-              b.dataset.pitch ===
+            const correct =
+              button.dataset
+              .pitchNote ===
               current.name;
 
 
             if (
-              ok
+              correct
             ) {
 
               score++;
 
+
               S.correct();
             }
+
 
             else {
 
@@ -12389,34 +11406,42 @@ function startPitch() {
             round++;
 
 
+/* =========================================================
+   PERFECT PITCH COMPLETE
+========================================================= */
+
             if (
               round >=
-              7
+              10
             ) {
 
               const xp =
-                10 +
                 score *
-                6;
+                6 +
+                10;
+
+
+              const coins =
+                score *
+                4;
 
 
               reward(
+
                 xp,
 
-                score *
-                4,
+                coins,
 
                 'Perfect Pitch complete!'
               );
 
 
-              $('#gameBody')
-              .innerHTML = `
+              $('#gameBody').innerHTML = `
 
                 <div class="game-panel">
 
                   <h3>
-                    ${score}/7 correct
+                    ${score}/10 correct
                   </h3>
 
                   <button
@@ -12430,85 +11455,97 @@ function startPitch() {
               `;
 
 
-              $('#pitchAgain')
-              .onclick =
+              $('#pitchAgain').onclick =
                 startPitch;
             }
 
+
             else {
 
-              newRound();
+              render();
             }
-          }
-    );
-
-
-    setTimeout(
-      () =>
-        SoundEngine.tone(
-          current.frequency,
-          .5,
-          'sine',
-          .12
-        ),
-
-      300
+          };
+      }
     );
   }
 
 
-  newRound();
+  render();
 }
 
 
-/* ============================
+/* =========================================================
    MELODY MEMORY
-============================ */
+========================================================= */
+
+const memoryNotes = [
+
+  {
+    name:
+      'C',
+
+    frequency:
+      261.6
+  },
+
+  {
+    name:
+      'D',
+
+    frequency:
+      293.7
+  },
+
+  {
+    name:
+      'E',
+
+    frequency:
+      329.6
+  },
+
+  {
+    name:
+      'G',
+
+    frequency:
+      392
+  },
+
+  {
+    name:
+      'A',
+
+    frequency:
+      440
+  }
+];
+
+
+/* =========================================================
+   START MELODY MEMORY
+========================================================= */
 
 function startMemory() {
-
-  const buttons = [
-
-    {
-      icon: '🔴',
-      note: 261.63
-    },
-
-    {
-      icon: '🔵',
-      note: 329.63
-    },
-
-    {
-      icon: '🟢',
-      note: 392
-    },
-
-    {
-      icon: '🟡',
-      note: 523.25
-    }
-  ];
-
 
   let sequence =
     [];
 
-
-  let input =
-    [];
-
+  let playerIndex =
+    0;
 
   let round =
-    1;
+    0;
 
-
-  let locked =
+  let accepting =
     false;
 
 
-  $('#gameBody')
-  .innerHTML = `
+/* =========================================================
+   RENDER MEMORY GAME
+========================================================= */
+
+  $('#gameBody').innerHTML = `
 
     <div class="game-panel">
 
@@ -12517,7 +11554,7 @@ function startMemory() {
         <span class="game-stat">
           Round
           <b id="memoryRound">
-            1
+            0
           </b>
         </span>
 
@@ -12526,21 +11563,21 @@ function startMemory() {
 
       <div
         id="memoryButtons"
-        class="memory-buttons"
+        class="memory-note-grid"
       >
 
         ${
-          buttons
+          memoryNotes
           .map(
             (
-              b,
-              i
+              note,
+              index
             ) => `
 
               <button
-                data-memory="${i}"
+                data-memory-note="${index}"
               >
-                ${b.icon}
+                ${note.name}
               </button>
             `
           )
@@ -12550,52 +11587,53 @@ function startMemory() {
       </div>
 
 
-      <p id="memoryStatus">
-        Watch the sequence.
+      <p id="memoryText">
+        Watch and listen carefully.
       </p>
 
     </div>
   `;
 
 
-/* ============================
-   FLASH MEMORY BUTTON
-============================ */
+/* =========================================================
+   FLASH MEMORY NOTE
+========================================================= */
 
   async function flash(
     index
   ) {
 
-    const el =
+    const button =
       $(
-        `[data-memory="${index}"]`
+        `[data-memory-note="${index}"]`
       );
 
 
-    el.classList.add(
+    button.classList.add(
       'active'
     );
 
 
     SoundEngine.tone(
-      buttons[
-        index
-      ].note,
 
-      .2,
+      memoryNotes[
+        index
+      ].frequency,
+
+      0.28,
 
       'sine',
 
-      .1
+      0.1
     );
 
 
     await wait(
-      280
+      320
     );
 
 
-    el.classList.remove(
+    button.classList.remove(
       'active'
     );
 
@@ -12606,19 +11644,65 @@ function startMemory() {
   }
 
 
-/* ============================
+/* =========================================================
    PLAY MEMORY SEQUENCE
-============================ */
+========================================================= */
 
   async function playSequence() {
 
-    locked =
+    accepting =
+      false;
+
+
+    $('#memoryText').textContent =
+      'Listen...';
+
+
+    for (
+      const note of
+      sequence
+    ) {
+
+      await flash(
+        note
+      );
+    }
+
+
+    playerIndex =
+      0;
+
+
+    accepting =
       true;
 
 
-    $('#memoryStatus')
-    .textContent =
-      'Watch carefully...';
+    $('#memoryText').textContent =
+      'Your turn!';
+  }
+
+
+/* =========================================================
+   NEXT MEMORY ROUND
+========================================================= */
+
+  async function nextRound() {
+
+    round++;
+
+
+    $('#memoryRound').textContent =
+      round;
+
+
+    sequence.push(
+
+      rand(
+        0,
+        memoryNotes.length -
+        1
+      )
+    );
 
 
     await wait(
@@ -12626,178 +11710,140 @@ function startMemory() {
     );
 
 
-    for (
-      const n of
-      sequence
-    ) {
-
-      await flash(
-        n
-      );
-    }
-
-
-    input =
-      [];
-
-
-    locked =
-      false;
-
-
-    $('#memoryStatus')
-    .textContent =
-      'Your turn!';
+    playSequence();
   }
 
 
-/* ============================
-   START MEMORY ROUND
-============================ */
+/* =========================================================
+   MEMORY NOTE BUTTONS
+========================================================= */
 
-  async function beginRound() {
-
-    $('#memoryRound')
-    .textContent =
-      round;
-
-
-    sequence.push(
-      rand(
-        0,
-        3
-      )
-    );
-
-
-    await playSequence();
-  }
-
-
-/* ============================
-   MEMORY INPUT
-============================ */
-
-  $$(
-    '[data-memory]'
-  )
+  $$('[data-memory-note]')
   .forEach(
-    b =>
-      b.onclick =
+    button => {
+
+      button.onclick =
         async () => {
 
           if (
-            locked
+            !accepting
           ) {
 
             return;
           }
 
 
-          const n =
-            Number(
-              b.dataset.memory
-            );
-
-
-          await flash(
-            n
-          );
-
-
-          input.push(
-            n
-          );
-
-
           const index =
-            input.length -
-            1;
+            +button.dataset
+            .memoryNote;
 
+
+          SoundEngine.tone(
+
+            memoryNotes[
+              index
+            ].frequency,
+
+            0.2,
+
+            'sine',
+
+            0.1
+          );
+
+
+/* =========================================================
+   WRONG MEMORY NOTE
+========================================================= */
 
           if (
-            input[
-              index
-            ] !==
+            index !==
             sequence[
-              index
+              playerIndex
             ]
           ) {
+
+            accepting =
+              false;
+
 
             S.wrong();
 
 
             const xp =
               8 +
-              (
-                round -
-                1
-              ) *
+              round *
               5;
 
 
+            const coins =
+              round *
+              4;
+
+
             reward(
+
               xp,
 
-              Math.max(
-                2,
-
-                round -
-                1
-              ) *
-              3,
+              coins,
 
               'Melody Memory complete!'
             );
 
 
-            $('#memoryStatus')
-            .textContent =
-              `Wrong note! You reached round ${round}.`;
+            $('#memoryText').textContent =
+              `Wrong note! You reached Round ${round}.`;
 
 
-            locked =
-              true;
+            const again =
+              document.createElement(
+                'button'
+              );
+
+
+            again.className =
+              'btn gold';
+
+
+            again.textContent =
+              'Play Again';
+
+
+            again.onclick =
+              startMemory;
+
+
+            $('#memoryText')
+            .after(
+              again
+            );
 
 
             return;
           }
 
 
+/* =========================================================
+   CORRECT MEMORY NOTE
+========================================================= */
+
           S.correct();
 
 
+          playerIndex++;
+
+
           if (
-            input.length ===
+            playerIndex >=
             sequence.length
           ) {
 
-            round++;
+            accepting =
+              false;
 
 
-            if (
-              round >
-              8
-            ) {
-
-              reward(
-                50,
-                30,
-                'Melody Memory mastered!'
-              );
-
-
-              $('#memoryStatus')
-              .textContent =
-                '🏆 Perfect memory!';
-
-
-              locked =
-                true;
-
-
-              return;
-            }
+            $('#memoryText').textContent =
+              'Perfect! Next round...';
 
 
             await wait(
@@ -12805,24 +11851,24 @@ function startMemory() {
             );
 
 
-            beginRound();
+            nextRound();
           }
-        }
+        };
+    }
   );
 
 
-  beginRound();
+  nextRound();
 }
 
 
-/* ============================
+/* =========================================================
    MUSIC DASH
-============================ */
+========================================================= */
 
 function startDash() {
 
-  $('#gameBody')
-  .innerHTML = `
+  $('#gameBody').innerHTML = `
 
     <div class="game-panel">
 
@@ -12846,8 +11892,8 @@ function startDash() {
 
 
       <div
-        id="dashBoard"
-        class="dash-board"
+        id="dashWorld"
+        class="dash-world"
       >
 
         <div
@@ -12860,282 +11906,338 @@ function startDash() {
       </div>
 
 
-      <p>
-        Press
-        <strong>Shift</strong>
-        to jump over obstacles and collect music coins.
+      <p id="dashText">
+        Press SHIFT to jump over obstacles.
       </p>
 
     </div>
   `;
 
 
-  const board =
-    $('#dashBoard');
-
-
-  const player =
-    $('#dashPlayer');
-
-
-  let jumping =
-    false;
-
-
-  let velocity =
-    0;
-
-
-  let y =
-    0;
-
-
   let score =
     0;
-
 
   let time =
     25;
 
+  let jumping =
+    false;
 
-  let objects =
-    [];
-
-
-/* ============================
-   DASH OBJECT SPAWN
-============================ */
-
-  function spawnDashObject() {
-
-    const coin =
-      Math.random() <
-      .42;
+  let ended =
+    false;
 
 
-    const el =
+/* =========================================================
+   MUSIC DASH JUMP
+========================================================= */
+
+  function jump() {
+
+    if (
+      jumping ||
+      ended
+    ) {
+
+      return;
+    }
+
+
+    jumping =
+      true;
+
+
+    $('#dashPlayer')
+    .classList
+    .add(
+      'jump'
+    );
+
+
+    S.jump();
+
+
+    setTimeout(
+      () => {
+
+        $('#dashPlayer')
+        .classList
+        .remove(
+          'jump'
+        );
+
+
+        jumping =
+          false;
+      },
+
+      520
+    );
+  }
+
+
+/* =========================================================
+   DASH KEY HANDLER
+========================================================= */
+
+  activeKeyHandler =
+    event => {
+
+      if (
+        event.key ===
+        'Shift'
+      ) {
+
+        event.preventDefault();
+
+
+        jump();
+      }
+    };
+
+
+  document.addEventListener(
+    'keydown',
+    activeKeyHandler
+  );
+
+
+/* =========================================================
+   CREATE DASH OBJECT
+========================================================= */
+
+  function createDashObject(
+    type
+  ) {
+
+    if (
+      ended
+    ) {
+
+      return;
+    }
+
+
+    const object =
       document.createElement(
         'div'
       );
 
 
-    el.className =
-      coin
-        ? 'dash-coin'
-        : 'dash-obstacle';
+    object.className =
+      type ===
+      'obstacle'
+
+        ? 'dash-obstacle'
+
+        : 'dash-note';
 
 
-    el.textContent =
-      coin
+    object.textContent =
+      type ===
+      'obstacle'
+
         ? '🎵'
-        : '🪨';
+
+        : '🪙';
 
 
-    el.dataset.coin =
-      coin
-        ? '1'
-        : '0';
+    object.style.left =
+      '100%';
 
 
-    el.dataset.x =
-      '700';
-
-
-    el.style.left =
-      '700px';
-
-
-    board.appendChild(
-      el
+    $('#dashWorld')
+    .appendChild(
+      object
     );
 
 
-    objects.push(
-      el
+    let x =
+      100;
+
+
+/* =========================================================
+   MOVE DASH OBJECT
+========================================================= */
+
+    const id =
+      setInterval(
+        () => {
+
+          if (
+            ended ||
+            !object.isConnected
+          ) {
+
+            clearInterval(
+              id
+            );
+
+
+            return;
+          }
+
+
+          x -=
+            2.5;
+
+
+          object.style.left =
+            x + '%';
+
+
+/* =========================================================
+   COLLISION AREA
+========================================================= */
+
+          if (
+            x <
+              17 &&
+            x >
+              5
+          ) {
+
+
+/* =========================================================
+   HIT OBSTACLE
+========================================================= */
+
+            if (
+              type ===
+                'obstacle' &&
+              !jumping
+            ) {
+
+              score =
+                Math.max(
+
+                  0,
+
+                  score -
+                  100
+                );
+
+
+              $('#dashScore').textContent =
+                score;
+
+
+              S.miss();
+
+
+              object.remove();
+
+
+              clearInterval(
+                id
+              );
+
+
+              return;
+            }
+
+
+/* =========================================================
+   COLLECT MUSIC COIN
+========================================================= */
+
+            if (
+              type ===
+              'note'
+            ) {
+
+              score +=
+                50;
+
+
+              $('#dashScore').textContent =
+                score;
+
+
+              S.coin();
+
+
+              object.remove();
+
+
+              clearInterval(
+                id
+              );
+
+
+              return;
+            }
+          }
+
+
+/* =========================================================
+   REMOVE OBJECT OFFSCREEN
+========================================================= */
+
+          if (
+            x <
+            -10
+          ) {
+
+            object.remove();
+
+
+            clearInterval(
+              id
+            );
+          }
+        },
+
+        35
+      );
+
+
+    activeIntervals.push(
+      id
     );
   }
 
 
-  every(
-    spawnDashObject,
-    1050
-  );
-
-
-/* ============================
-   DASH PHYSICS
-============================ */
+/* =========================================================
+   DASH OBJECT SPAWNER
+========================================================= */
 
   every(
     () => {
 
       if (
-        jumping ||
-        y >
-        0
+        Math.random() <
+        0.45
       ) {
 
-        velocity -=
-          .8;
-
-
-        y +=
-          velocity;
-
-
-        if (
-          y <=
-          0
-        ) {
-
-          y =
-            0;
-
-
-          velocity =
-            0;
-
-
-          jumping =
-            false;
-        }
-
-
-        player.style.transform =
-          `translateY(${-y}px)`;
+        createDashObject(
+          'obstacle'
+        );
       }
 
 
-      objects =
-        objects.filter(
-          obj => {
+      if (
+        Math.random() <
+        0.65
+      ) {
 
-            let x =
-              Number(
-                obj.dataset.x
-              ) -
-              8;
+        setTimeout(
+          () =>
+            createDashObject(
+              'note'
+            ),
 
-
-            obj.dataset.x =
-              x;
-
-
-            obj.style.left =
-              x +
-              'px';
-
-
-            const isCoin =
-              obj.dataset.coin ===
-              '1';
-
-
-            if (
-              x <
-                105 &&
-              x >
-                45
-            ) {
-
-              if (
-                isCoin
-              ) {
-
-                score +=
-                  25;
-
-
-                $('#dashScore')
-                .textContent =
-                  score;
-
-
-                profile.coins++;
-
-
-                persist();
-
-                updateProfileUI();
-
-                S.coin();
-
-
-                obj.remove();
-
-
-                return false;
-              }
-
-
-              else if (
-                y <
-                35
-              ) {
-
-                score =
-                  Math.max(
-                    0,
-
-                    score -
-                    40
-                  );
-
-
-                $('#dashScore')
-                .textContent =
-                  score;
-
-
-                S.miss();
-
-
-                obj.remove();
-
-
-                return false;
-              }
-            }
-
-
-            if (
-              x <
-              -60
-            ) {
-
-              if (
-                !isCoin
-              ) {
-
-                score +=
-                  10;
-
-
-                $('#dashScore')
-                .textContent =
-                  score;
-              }
-
-
-              obj.remove();
-
-
-              return false;
-            }
-
-
-            return true;
-          }
+          250
         );
+      }
     },
 
-    30
+    700
   );
 
 
-/* ============================
+/* =========================================================
    DASH TIMER
-============================ */
+========================================================= */
 
   every(
     () => {
@@ -13143,8 +12245,7 @@ function startDash() {
       time--;
 
 
-      $('#dashTime')
-      .textContent =
+      $('#dashTime').textContent =
         time;
 
 
@@ -13153,25 +12254,37 @@ function startDash() {
         0
       ) {
 
+        ended =
+          true;
+
+
         stopActiveGame();
 
 
         const xp =
-          15 +
-          Math.floor(
+          20 +
+          Math.round(
             score /
             100
-          ) *
-          4;
+          );
+
+
+        const coins =
+          Math.round(
+            score /
+            25
+          );
+
+
+        $('#dashText').textContent =
+          `Finished! Score ${score}.`;
 
 
         reward(
+
           xp,
 
-          Math.floor(
-            score /
-            80
-          ),
+          coins,
 
           'Music Dash complete!'
         );
@@ -13180,39 +12293,154 @@ function startDash() {
 
     1000
   );
+}
+/* =========================================================
+   INSTRUMENT HERO
+========================================================= */
+
+function startInstrumentHero() {
+
+  const inst =
+    getInstrument(
+      profile.equipped
+    );
 
 
-/* ============================
-   DASH JUMP INPUT
-============================ */
+  $('#gameBody').innerHTML = `
+
+    <div class="game-panel">
+
+      <h3>
+        ${inst.icon} ${inst.name} Hero
+      </h3>
+
+      <p>
+        Hit A S D F in sequence. Faster streaks give more points.
+      </p>
+
+
+      <div class="game-toolbar">
+
+        <span class="game-stat">
+          Target
+          <b id="ihTarget">
+            A
+          </b>
+        </span>
+
+        <span class="game-stat">
+          Score
+          <b id="ihScore">
+            0
+          </b>
+        </span>
+
+        <span class="game-stat">
+          Time
+          <b id="ihTime">
+            20
+          </b>s
+        </span>
+
+      </div>
+
+    </div>
+  `;
+
+
+  const keys = [
+    'a',
+    's',
+    'd',
+    'f'
+  ];
+
+
+  let target =
+    pick(
+      keys
+    );
+
+
+  let score =
+    0;
+
+
+  let time =
+    20;
+
+
+  $('#ihTarget').textContent =
+    target.toUpperCase();
+
+
+/* =========================================================
+   INSTRUMENT HERO KEY HANDLER
+========================================================= */
 
   activeKeyHandler =
-    e => {
+    event => {
 
       if (
-        (
-          e.key ===
-          'Shift' ||
-          e.key ===
-          'ShiftLeft' ||
-          e.key ===
-          'ShiftRight'
-        ) &&
-        !jumping
+        !keys.includes(
+          event.key.toLowerCase()
+        )
       ) {
 
-        e.preventDefault();
+        return;
+      }
 
 
-        jumping =
-          true;
+      if (
+        event.key.toLowerCase() ===
+        target
+      ) {
+
+        score +=
+          100;
 
 
-        velocity =
-          11;
+        S.perfect();
 
 
-        S.jump();
+        playInstrument(
+
+          inst.name,
+
+          440 +
+          score %
+          300
+        );
+
+
+        target =
+          pick(
+            keys
+          );
+
+
+        $('#ihTarget').textContent =
+          target.toUpperCase();
+
+
+        $('#ihScore').textContent =
+          score;
+      }
+
+
+      else {
+
+        score =
+          Math.max(
+
+            0,
+
+            score -
+            25
+          );
+
+
+        S.miss();
       }
     };
 
@@ -13221,223 +12449,11 @@ function startDash() {
     'keydown',
     activeKeyHandler
   );
-}
-      /* ============================
-   INSTRUMENT HERO
-============================ */
 
-function startInstrumentHero() {
 
-  $('#gameBody')
-  .innerHTML = `
-
-    <div class="game-panel">
-
-      <div class="game-toolbar">
-
-        <span class="game-stat">
-          Score
-          <b id="heroGameScore">
-            0
-          </b>
-        </span>
-
-        <span class="game-stat">
-          Combo
-          <b id="heroGameCombo">
-            0
-          </b>
-        </span>
-
-        <span class="game-stat">
-          Time
-          <b id="heroGameTime">
-            20
-          </b>s
-        </span>
-
-      </div>
-
-
-      <div
-        id="heroBoard"
-        class="hero-board"
-      >
-
-        ${
-          [
-            'A',
-            'S',
-            'D',
-            'F'
-          ]
-          .map(
-            (
-              k,
-              i
-            ) => `
-
-              <div
-                class="hero-lane"
-                data-hero-lane="${i}"
-              >
-
-                <div class="lane-key">
-                  ${k}
-                </div>
-
-              </div>
-            `
-          )
-          .join('')
-        }
-
-      </div>
-
-
-      <p id="heroGameResult">
-        Perform with ${profile.equipped}.
-      </p>
-
-    </div>
-  `;
-
-
-  let score =
-    0;
-
-
-  let combo =
-    0;
-
-
-  let time =
-    20;
-
-
-  let notes =
-    [];
-
-
-/* ============================
-   HERO NOTE SPAWN
-============================ */
-
-  function spawnHeroNote() {
-
-    const lane =
-      rand(
-        0,
-        3
-      );
-
-
-    const note =
-      document.createElement(
-        'div'
-      );
-
-
-    note.className =
-      'hero-note';
-
-
-    note.dataset.lane =
-      lane;
-
-
-    note.dataset.y =
-      '-30';
-
-
-    note.style.top =
-      '-30px';
-
-
-    $('#heroBoard')
-    .children[
-      lane
-    ]
-    .appendChild(
-      note
-    );
-
-
-    notes.push(
-      note
-    );
-  }
-
-
-  every(
-    spawnHeroNote,
-    520
-  );
-
-
-/* ============================
-   HERO NOTE MOVEMENT
-============================ */
-
-  every(
-    () => {
-
-      notes =
-        notes.filter(
-          n => {
-
-            const y =
-              Number(
-                n.dataset.y
-              ) +
-              9;
-
-
-            n.dataset.y =
-              y;
-
-
-            n.style.top =
-              y +
-              'px';
-
-
-            if (
-              y >
-              335
-            ) {
-
-              n.remove();
-
-
-              combo =
-                0;
-
-
-              $('#heroGameCombo')
-              .textContent =
-                combo;
-
-
-              S.miss();
-
-
-              return false;
-            }
-
-
-            return true;
-          }
-        );
-    },
-
-    32
-  );
-
-
-/* ============================
-   HERO TIMER
-============================ */
+/* =========================================================
+   INSTRUMENT HERO TIMER
+========================================================= */
 
   every(
     () => {
@@ -13445,8 +12461,7 @@ function startInstrumentHero() {
       time--;
 
 
-      $('#heroGameTime')
-      .textContent =
+      $('#ihTime').textContent =
         time;
 
 
@@ -13459,561 +12474,294 @@ function startInstrumentHero() {
 
 
         const xp =
-          18 +
-          Math.floor(
+          25 +
+          Math.round(
             score /
             250
-          ) *
-          4;
+          );
 
 
         reward(
+
           xp,
 
-          Math.floor(
+          Math.round(
             xp *
-            .55
+            0.7
           ),
 
           'Instrument Hero complete!'
         );
 
 
-        addInstrumentXP(
-          profile.equipped,
-
-          Math.max(
-            2,
-
-            Math.floor(
-              score /
-              300
-            )
-          )
-        );
-
-
         addMastery(
-          profile.equipped,
 
-          Math.max(
-            1,
+          inst.name,
 
-            Math.floor(
-              score /
-              400
-            )
+          Math.round(
+            score /
+            400
           )
         );
-
-
-        $('#heroGameResult')
-        .textContent =
-          `Performance complete! Score: ${score}`;
       }
     },
 
     1000
   );
-
-
-/* ============================
-   HERO INPUT
-============================ */
-
-  activeKeyHandler =
-    e => {
-
-      const map = {
-
-        a: 0,
-
-        s: 1,
-
-        d: 2,
-
-        f: 3
-      };
-
-
-      const lane =
-        map[
-          e.key.toLowerCase()
-        ];
-
-
-      if (
-        lane ===
-        undefined
-      ) {
-
-        return;
-      }
-
-
-      const candidates =
-        notes
-        .filter(
-          n =>
-            Number(
-              n.dataset.lane
-            ) ===
-            lane
-        )
-        .sort(
-          (
-            a,
-            b
-          ) =>
-            Number(
-              b.dataset.y
-            ) -
-            Number(
-              a.dataset.y
-            )
-        );
-
-
-      const n =
-        candidates[
-          0
-        ];
-
-
-      if (
-        !n
-      ) {
-
-        combo =
-          0;
-
-
-        S.miss();
-
-
-        return;
-      }
-
-
-      const y =
-        Number(
-          n.dataset.y
-        );
-
-
-      const dist =
-        Math.abs(
-          300 -
-          y
-        );
-
-
-      if (
-        dist <
-        34
-      ) {
-
-        const perfect =
-          dist <
-          12;
-
-
-        const base =
-          perfect
-            ? 150
-            : 100;
-
-
-        combo++;
-
-
-        const bonus =
-          Math.min(
-            100,
-
-            combo *
-            3
-          );
-
-
-        score +=
-          base +
-          bonus;
-
-
-        playInstrument(
-          profile.equipped,
-
-          [
-            261.63,
-            329.63,
-            392,
-            523.25
-          ][
-            lane
-          ]
-        );
-
-
-        perfect
-          ? S.perfect()
-          : S.great();
-
-
-        n.remove();
-
-
-        notes =
-          notes.filter(
-            x =>
-              x !== n
-          );
-      }
-
-      else {
-
-        combo =
-          0;
-
-
-        S.miss();
-      }
-
-
-      $('#heroGameScore')
-      .textContent =
-        score;
-
-
-      $('#heroGameCombo')
-      .textContent =
-        combo;
-    };
-
-
-  document.addEventListener(
-    'keydown',
-    activeKeyHandler
-  );
 }
 
 
-/* ============================
+/* =========================================================
    BEAT BATTLE
-============================ */
+========================================================= */
 
 function startBeatBattle() {
 
-  $('#gameBody')
-  .innerHTML = `
+  $('#gameBody').innerHTML = `
 
     <div class="game-panel">
 
-      <div class="game-toolbar">
+      <h3>
+        🎧 Bass Golem
+      </h3>
 
-        <span class="game-stat">
-          Boss HP
-          <b id="beatBossHP">
-            1000
-          </b>
-        </span>
 
-        <span class="game-stat">
-          Time
-          <b id="beatBattleTime">
-            25
-          </b>s
-        </span>
+      <div
+        class="hpbar red"
+        style="
+          max-width:520px;
+          margin:10px auto
+        "
+      >
+
+        <i
+          id="bbBossHp"
+          style="width:100%"
+        ></i>
 
       </div>
 
 
-      <div class="beat-battle-area">
+      <b id="bbBossText">
+        3000 / 3000
+      </b>
 
-        <div class="beat-boss">
-          👹
-        </div>
 
+      <p>
+        Press SHIFT when the marker is inside the gold zone.
+      </p>
+
+
+      <div
+        style="
+          height:28px;
+          max-width:520px;
+          margin:18px auto;
+          background:#13263a;
+          border-radius:999px;
+          position:relative
+        "
+      >
 
         <div
-          id="beatPulse"
-          class="beat-pulse"
+          style="
+            position:absolute;
+            left:44%;
+            width:12%;
+            top:0;
+            bottom:0;
+            background:#b79143
+          "
         ></div>
 
 
-        <div class="beat-target">
-          HIT
-        </div>
+        <i
+          id="bbMarker"
+          style="
+            position:absolute;
+            width:8px;
+            top:-4px;
+            bottom:-4px;
+            background:#fff;
+            border-radius:6px
+          "
+        ></i>
 
       </div>
 
 
-      <p id="beatBattleStatus">
-        Press
-        <strong>Shift</strong>
-        when the pulse reaches the target.
+      <p id="bbText">
+        Ready...
       </p>
 
     </div>
   `;
 
 
-  let bossHp =
-    1000;
+  let hp =
+    3000;
 
 
-  let time =
-    25;
-
-
-  let progress =
+  let pos =
     0;
 
 
-  let direction =
+  let dir =
     1;
 
 
-/* ============================
-   BEAT PULSE
-============================ */
+  let ended =
+    false;
+
+
+/* =========================================================
+   BEAT BATTLE MARKER
+========================================================= */
 
   every(
     () => {
 
-      progress +=
-        direction *
-        2.3;
+      pos +=
+        dir *
+        2.5;
 
 
       if (
-        progress >=
-        100
+        pos >= 100 ||
+        pos <= 0
       ) {
 
-        progress =
-          100;
-
-
-        direction =
+        dir *=
           -1;
       }
 
 
-      if (
-        progress <=
-        0
-      ) {
-
-        progress =
-          0;
-
-
-        direction =
-          1;
-      }
-
-
-      $('#beatPulse')
-      .style.left =
-        progress +
-        '%';
+      $('#bbMarker').style.left =
+        `calc(${pos}% - 4px)`;
     },
 
-    25
+    20
   );
 
 
-/* ============================
-   BEAT BATTLE TIMER
-============================ */
-
-  every(
-    () => {
-
-      time--;
-
-
-      $('#beatBattleTime')
-      .textContent =
-        time;
-
-
-      if (
-        time <=
-        0
-      ) {
-
-        stopActiveGame();
-
-
-        if (
-          bossHp <=
-          0
-        ) {
-
-          reward(
-            35,
-            22,
-            'Beat Boss defeated!'
-          );
-
-
-          addInstrumentXP(
-            profile.equipped,
-            6
-          );
-        }
-
-        else {
-
-          reward(
-            10,
-            4,
-            'Beat Battle complete!'
-          );
-
-
-          $('#beatBattleStatus')
-          .textContent =
-            `Time up! Boss had ${bossHp} HP remaining.`;
-        }
-      }
-    },
-
-    1000
-  );
-
-
-/* ============================
-   BEAT HIT INPUT
-============================ */
+/* =========================================================
+   BEAT BATTLE KEY HANDLER
+========================================================= */
 
   activeKeyHandler =
-    e => {
+    event => {
 
       if (
-        e.key !==
-        'Shift'
+        !(
+          event.key ===
+            'Shift' ||
+
+          event.code ===
+            'ShiftLeft' ||
+
+          event.code ===
+            'ShiftRight'
+        ) ||
+
+        ended
       ) {
 
         return;
       }
 
 
-      e.preventDefault();
-
-
       const dist =
         Math.abs(
-          82 -
-          progress
+          pos -
+          50
         );
 
 
-      let damage =
-        0;
+      let dmg;
 
+
+/* =========================================================
+   PERFECT / GREAT / MISS
+========================================================= */
 
       if (
         dist <=
-        5
+        6
       ) {
 
-        damage =
-          100;
+        dmg =
+          420;
 
 
         S.perfect();
-
-
-        $('#beatBattleStatus')
-        .textContent =
-          'PERFECT HIT!';
       }
 
 
       else if (
         dist <=
-        12
+        14
       ) {
 
-        damage =
-          70;
+        dmg =
+          260;
 
 
         S.great();
-
-
-        $('#beatBattleStatus')
-        .textContent =
-          'Great hit!';
-      }
-
-
-      else if (
-        dist <=
-        22
-      ) {
-
-        damage =
-          40;
-
-
-        S.good();
-
-
-        $('#beatBattleStatus')
-        .textContent =
-          'Good hit.';
       }
 
 
       else {
 
-        damage =
-          10;
+        dmg =
+          90;
 
 
         S.miss();
-
-
-        $('#beatBattleStatus')
-        .textContent =
-          'Missed the beat.';
       }
 
 
-      bossHp =
+      hp =
         Math.max(
+
           0,
 
-          bossHp -
-          damage
+          hp -
+          dmg
         );
 
 
-      $('#beatBossHP')
-      .textContent =
-        bossHp;
+      $('#bbBossHp').style.width =
+        `${hp / 30}%`;
+
+
+      $('#bbBossText').textContent =
+        `${hp} / 3000`;
+
+
+      $('#bbText').textContent =
+        `${dmg} damage!`;
 
 
       playInstrument(
+
         profile.equipped,
 
-        damage >=
-        100
-
-          ? 659
-
-          : 440
+        520
       );
 
 
+/* =========================================================
+   BEAT BATTLE VICTORY
+========================================================= */
+
       if (
-        bossHp <=
+        hp <=
         0
       ) {
+
+        ended =
+          true;
+
 
         stopActiveGame();
 
@@ -14022,21 +12770,29 @@ function startBeatBattle() {
 
 
         reward(
+
+          45,
+
           35,
-          22,
-          'Beat Boss defeated!'
+
+          'Bass Golem defeated!'
         );
 
 
         addInstrumentXP(
+
           profile.equipped,
-          6
+
+          10
         );
 
 
-        $('#beatBattleStatus')
-        .textContent =
-          '🏆 Boss defeated!';
+        addMastery(
+
+          profile.equipped,
+
+          20
+        );
       }
     };
 
@@ -14048,9 +12804,9 @@ function startBeatBattle() {
 }
 
 
-/* ============================
+/* =========================================================
    MUSIC DUNGEON
-============================ */
+========================================================= */
 
 function startDungeon() {
 
@@ -14062,861 +12818,734 @@ function startDungeon() {
     100;
 
 
-  let score =
+  let boss =
+    room %
+    4 ===
     0;
 
 
-/* ============================
-   DUNGEON ROOM
-============================ */
-
-  function renderRoom() {
-
-    if (
-      room >
-      5
-    ) {
-
-      reward(
-        45,
-        28,
-        'Music Dungeon cleared!'
-      );
+  let enemyHp =
+    boss
+      ? 1200
+      : 420;
 
 
-      addInstrumentXP(
-        profile.equipped,
-        8
-      );
+/* =========================================================
+   RENDER DUNGEON ROOM
+========================================================= */
 
+  const render =
+    () => {
 
-      $('#gameBody')
-      .innerHTML = `
+      $('#gameBody').innerHTML = `
 
         <div class="game-panel">
 
           <h3>
-            🏆 Dungeon Cleared
+
+            Room ${room}
+
+            ${
+              boss
+                ? '👹 BOSS CHAMBER'
+                : '🎵 Echo Chamber'
+            }
+
           </h3>
 
+
           <p>
-            Score: ${score}
+
+            Your HP:
+            <b>${hp}</b>
+
+            •
+
+            Enemy HP:
+            <b>${enemyHp}</b>
+
           </p>
 
-          <button
-            id="dungeonAgain"
-            class="btn gold"
-          >
-            Play Again
-          </button>
+
+          <div class="dungeon-actions">
+
+            <button
+              id="dAtk"
+              class="btn gold"
+            >
+              ⚔️ Perform Attack
+            </button>
+
+
+            <button
+              id="dHeal"
+              class="btn ghost"
+            >
+              💚 Heal
+            </button>
+
+
+            <button
+              id="dChest"
+              class="btn ghost"
+            >
+              🎁 Search Room
+            </button>
+
+          </div>
+
+
+          <p id="dMsg">
+            Choose an action.
+          </p>
 
         </div>
       `;
 
 
-      $('#dungeonAgain')
-      .onclick =
-        startDungeon;
+/* =========================================================
+   DUNGEON ATTACK
+========================================================= */
 
+      $('#dAtk').onclick =
+        () => {
 
-      return;
-    }
+          const inst =
+            getUpgradedInstrument(
+              profile.equipped
+            );
 
 
-    const enemyNames = [
+          const dmg =
+            Math.round(
 
-      'Chord Slime',
-
-      'Tempo Bat',
-
-      'Bass Goblin',
-
-      'Rhythm Knight',
-
-      'Echo Beast'
-    ];
-
-
-    const enemy =
-      enemyNames[
-        room -
-        1
-      ];
-
-
-    let enemyHp =
-      45 +
-      room *
-      18;
-
-
-    $('#gameBody')
-    .innerHTML = `
-
-      <div class="game-panel">
-
-        <div class="game-toolbar">
-
-          <span class="game-stat">
-            Room
-            <b>
-              ${room}/5
-            </b>
-          </span>
-
-          <span class="game-stat">
-            HP
-            <b id="dungeonHP">
-              ${hp}
-            </b>
-          </span>
-
-          <span class="game-stat">
-            Score
-            <b id="dungeonScore">
-              ${score}
-            </b>
-          </span>
-
-        </div>
-
-
-        <div class="dungeon-room">
-
-          <div class="dungeon-enemy">
-            👾
-          </div>
-
-          <h3>
-            ${enemy}
-          </h3>
-
-          <p>
-            Enemy HP:
-            <b id="dungeonEnemyHP">
-              ${enemyHp}
-            </b>
-          </p>
-
-        </div>
-
-
-        <div class="choice-grid">
-
-          <button id="dungeonAttack">
-            Attack
-          </button>
-
-          <button id="dungeonSpecial">
-            Special
-          </button>
-
-          <button id="dungeonHeal">
-            Heal
-          </button>
-
-        </div>
-
-
-        <p id="dungeonStatus">
-          Choose an action.
-        </p>
-
-      </div>
-    `;
-
-
-    const inst =
-      getUpgradedInstrument(
-        profile.equipped
-      );
-
-
-/* ============================
-   DUNGEON ENEMY TURN
-============================ */
-
-    const enemyTurn =
-      () => {
-
-        if (
-          enemyHp <=
-          0
-        ) {
-
-          return;
-        }
-
-
-        const damage =
-          Math.max(
-            3,
-
-            8 +
-            room *
-            2 -
-            Math.floor(
-              inst.defense *
-              .035
-            )
-          );
-
-
-        hp =
-          Math.max(
-            0,
-
-            hp -
-            damage
-          );
-
-
-        $('#dungeonHP')
-        .textContent =
-          hp;
-
-
-        if (
-          hp <=
-          0
-        ) {
-
-          S.defeat();
-
-
-          reward(
-            6,
-            2,
-            'Dungeon run ended.'
-          );
-
-
-          $('#gameBody')
-          .innerHTML = `
-
-            <div class="game-panel">
-
-              <h3>
-                Defeated in Room ${room}
-              </h3>
-
-              <p>
-                Score: ${score}
-              </p>
-
-              <button
-                id="dungeonAgain"
-                class="btn gold"
-              >
-                Try Again
-              </button>
-
-            </div>
-          `;
-
-
-          $('#dungeonAgain')
-          .onclick =
-            startDungeon;
-        }
-      };
-
-
-/* ============================
-   DUNGEON DAMAGE
-============================ */
-
-    const hit =
-      special => {
-
-        const damage =
-          Math.round(
-            (
               inst.attack *
-              .20 +
+              2.8 +
+
               rand(
-                5,
-                12
+                30,
+                80
               )
-            ) *
-            (
-              special
-                ? 1.55
-                : 1
-            )
+            );
+
+
+          enemyHp =
+            Math.max(
+
+              0,
+
+              enemyHp -
+              dmg
+            );
+
+
+          playInstrument(
+
+            inst.name,
+
+            440
           );
 
 
-        enemyHp =
-          Math.max(
-            0,
-
-            enemyHp -
-            damage
-          );
+          S.attack();
 
 
-        $('#dungeonEnemyHP')
-        .textContent =
-          enemyHp;
+/* =========================================================
+   DUNGEON ENEMY DEFEATED
+========================================================= */
+
+          if (
+            enemyHp <=
+            0
+          ) {
+
+            const xp =
+              boss
+                ? 50
+                : 8;
 
 
-        score +=
-          damage;
+            const coins =
+              boss
+                ? 35
+                : 5;
 
 
-        $('#dungeonScore')
-        .textContent =
-          score;
+            reward(
+
+              xp,
+
+              coins,
+
+              boss
+                ? 'Dungeon boss defeated!'
+                : 'Room cleared!'
+            );
 
 
-        playInstrument(
-          profile.equipped,
+            addMastery(
 
-          special
-            ? 659
-            : 440
-        );
+              inst.name,
 
-
-        special
-          ? S.ultimate()
-          : S.attack();
+              boss
+                ? 15
+                : 4
+            );
 
 
-        if (
-          enemyHp <=
-          0
-        ) {
-
-          S.victory();
+            room++;
 
 
-          score +=
-            50;
+            boss =
+              room %
+              4 ===
+              0;
 
 
-          room++;
+            enemyHp =
+              boss
+                ? 1200
+                : 420;
 
 
-          setTimeout(
-            renderRoom,
-            500
-          );
+            hp =
+              Math.min(
+
+                100,
+
+                hp +
+                15
+              );
 
 
-          return;
-        }
+            render();
 
 
-        enemyTurn();
-      };
+            return;
+          }
 
 
-/* ============================
-   DUNGEON BUTTONS
-============================ */
+/* =========================================================
+   DUNGEON ENEMY ATTACK
+========================================================= */
 
-    $('#dungeonAttack')
-    .onclick =
-      () =>
-        hit(
-          false
-        );
+          const hurt =
+            rand(
 
+              8,
 
-    $('#dungeonSpecial')
-    .onclick =
-      () =>
-        hit(
-          true
-        );
+              boss
+                ? 24
+                : 16
+            );
 
 
-    $('#dungeonHeal')
-    .onclick =
-      () => {
+          hp =
+            Math.max(
 
-        const heal =
-          Math.round(
-            10 +
-            inst.melody *
-            .12
-          );
+              0,
+
+              hp -
+              hurt
+            );
 
 
-        hp =
-          Math.min(
-            100,
+/* =========================================================
+   DUNGEON DEFEAT
+========================================================= */
 
-            hp +
-            heal
-          );
+          if (
+            hp <=
+            0
+          ) {
 
-
-        $('#dungeonHP')
-        .textContent =
-          hp;
+            S.defeat();
 
 
-        S.heal();
+            addXP(
+              10
+            );
 
 
-        $('#dungeonStatus')
-        .textContent =
-          `Recovered ${heal} HP.`;
+            $('#gameBody').innerHTML = `
+
+              <div class="game-panel">
+
+                <h3>
+                  Dungeon Run Ended
+                </h3>
+
+                <p>
+                  You reached room ${room}.
+                  +10 EXP
+                </p>
+
+                <button
+                  id="dAgain"
+                  class="btn gold"
+                >
+                  Try Again
+                </button>
+
+              </div>
+            `;
 
 
-        enemyTurn();
-      };
-  }
+            $('#dAgain').onclick =
+              startDungeon;
+          }
 
 
-  renderRoom();
+          else {
+
+            render();
+          }
+        };
+
+
+/* =========================================================
+   DUNGEON HEAL
+========================================================= */
+
+      $('#dHeal').onclick =
+        () => {
+
+          hp =
+            Math.min(
+
+              100,
+
+              hp +
+              rand(
+                15,
+                25
+              )
+            );
+
+
+          S.heal();
+
+
+          render();
+        };
+
+
+/* =========================================================
+   DUNGEON CHEST
+========================================================= */
+
+      $('#dChest').onclick =
+        () => {
+
+          if (
+            Math.random() <
+            0.55
+          ) {
+
+            profile.coins +=
+              rand(
+                2,
+                8
+              );
+
+
+            persist();
+
+
+            updateProfileUI();
+
+
+            S.treasure();
+
+
+            toast(
+              'Treasure found!'
+            );
+          }
+
+
+          else {
+
+            hp =
+              Math.max(
+
+                1,
+
+                hp -
+                rand(
+                  4,
+                  10
+                )
+              );
+
+
+            S.wrong();
+
+
+            toast(
+              'A trap!'
+            );
+          }
+
+
+          render();
+        };
+    };
+
+
+  render();
 }
 
 
-/* ============================
-   GACHA SYSTEM
-============================ */
+/* =========================================================
+   GACHA
+========================================================= */
 
-const gachaPools = {
+const gachaData = {
 
-  accessory: {
+  accessory: [
 
-    cost: 100,
+    [
+      'Black Cap',
+      'Common'
+    ],
 
-    items: {
+    [
+      'Studio Headphones',
+      'Uncommon'
+    ],
 
-      Common: [
-        'Silver Pin',
-        'Music Wristband',
-        'Simple Chain'
-      ],
+    [
+      'Star Glasses',
+      'Rare'
+    ],
 
-      Uncommon: [
-        'Rhythm Ring',
-        'Treble Bracelet',
-        'Beat Necklace'
-      ],
+    [
+      'Cyber Visor',
+      'Epic'
+    ],
 
-      Rare: [
-        'Crystal Headphones',
-        'Echo Pendant',
-        'Tempo Crown'
-      ],
+    [
+      'Royal Crown',
+      'Legendary'
+    ],
 
-      Epic: [
-        'Celestial Headphones',
-        'Golden Microphone',
-        'Symphony Halo'
-      ],
-
-      Legendary: [
-        'Dragon Headset',
-        'Royal Conductor Crown'
-      ],
-
-      Mythic: [
-        'Infinity Music Crown'
-      ]
-    }
-  },
+    [
+      'MusicVerse Crown',
+      'Mythic'
+    ]
+  ],
 
 
-  pet: {
+  pet: [
 
-    cost: 200,
+    [
+      'Music Cat',
+      'Common'
+    ],
 
-    items: {
+    [
+      'Beat Puppy',
+      'Common'
+    ],
 
-      Common: [
-        'Music Bunny',
-        'Mole Beat',
-        'Rock Pup'
-      ],
+    [
+      'Neon Fox',
+      'Rare'
+    ],
 
-      Uncommon: [
-        'Shadow Bat',
-        'Gear Fox',
-        'Echo Spider'
-      ],
+    [
+      'Music Ghost',
+      'Epic'
+    ],
 
-      Rare: [
-        'Gold Chick',
-        'Crystal Fox'
-      ],
+    [
+      'Phoenix',
+      'Legendary'
+    ],
 
-      Epic: [
-        'Diamond Dragon',
-        'Obsidian Wolf'
-      ],
-
-      Legendary: [
-        'Relic Guardian',
-        'Lava Dragon'
-      ],
-
-      Mythic: [
-        'Star Phoenix',
-        'Harmony Dragon'
-      ]
-    }
-  },
+    [
+      'Celestial Dragon',
+      'Mythic'
+    ]
+  ],
 
 
-  aura: {
+  aura: [
 
-    cost: 175,
+    [
+      'Musical Notes',
+      'Common'
+    ],
 
-    items: {
+    [
+      'Rhythm Pulse',
+      'Uncommon'
+    ],
 
-      Common: [
-        'Blue Notes',
-        'Warm Glow'
-      ],
+    [
+      'Flame Aura',
+      'Rare'
+    ],
 
-      Uncommon: [
-        'Rhythm Sparks',
-        'Echo Mist'
-      ],
+    [
+      'Lightning Aura',
+      'Epic'
+    ],
 
-      Rare: [
-        'Crystal Aura',
-        'Electric Notes'
-      ],
+    [
+      'Celestial Aura',
+      'Legendary'
+    ],
 
-      Epic: [
-        'Dragon Flame',
-        'Celestial Glow'
-      ],
-
-      Legendary: [
-        'Galaxy Aura'
-      ],
-
-      Mythic: [
-        'Infinity Symphony'
-      ]
-    }
-  },
+    [
+      'Galaxy Aura',
+      'Mythic'
+    ]
+  ],
 
 
-  skin: {
+  skin: [
 
-    cost: 150,
+    [
+      'Sakura Skin',
+      'Rare'
+    ],
 
-    items: {
+    [
+      'Thunder Skin',
+      'Epic'
+    ],
 
-      Common: [
-        'Street Performer',
-        'Music Student'
-      ],
+    [
+      'Phoenix Skin',
+      'Legendary'
+    ],
 
-      Uncommon: [
-        'Jazz Artist',
-        'Rock Performer'
-      ],
-
-      Rare: [
-        'Concert Star',
-        'Royal Musician'
-      ],
-
-      Epic: [
-        'Cyber Maestro',
-        'Crystal Virtuoso'
-      ],
-
-      Legendary: [
-        'Celestial Composer'
-      ],
-
-      Mythic: [
-        'MusicVerse Legend'
-      ]
-    }
-  }
+    [
+      'Cosmic Void Skin',
+      'Mythic'
+    ]
+  ]
 };
 
 
-/* ============================
-   GACHA RARITY
-============================ */
+let activeGacha =
+  'accessory';
 
-function rollRarity() {
+
+const costs = {
+
+  accessory:
+    100,
+
+  pet:
+    200,
+
+  aura:
+    175,
+
+  skin:
+    150
+};
+
+
+/* =========================================================
+   GACHA RARITY ROLL
+========================================================= */
+
+function rarityRoll() {
 
   const r =
-    Math.random();
+    Math.random() *
+    100;
 
 
-  if (
-    r <
-    .005
-  ) {
+  return r < 0.5
+    ? 'Mythic'
 
-    return 'Mythic';
-  }
+    : r < 3
+      ? 'Legendary'
 
+      : r < 11
+        ? 'Epic'
 
-  if (
-    r <
-    .03
-  ) {
+        : r < 27
+          ? 'Rare'
 
-    return 'Legendary';
-  }
+          : r < 55
+            ? 'Uncommon'
 
-
-  if (
-    r <
-    .11
-  ) {
-
-    return 'Epic';
-  }
-
-
-  if (
-    r <
-    .27
-  ) {
-
-    return 'Rare';
-  }
-
-
-  if (
-    r <
-    .55
-  ) {
-
-    return 'Uncommon';
-  }
-
-
-  return 'Common';
+            : 'Common';
 }
 
 
-/* ============================
-   GACHA DUST VALUES
-============================ */
+/* =========================================================
+   UPDATE GACHA UI
+========================================================= */
 
-function duplicateDust(
-  rarity
-) {
+function updateGachaUI() {
 
-  if (
-    rarity ===
-    'Mythic'
-  ) {
+  const titles = {
 
-    return 80;
-  }
+    accessory:
+      'Accessory Capsule',
 
+    pet:
+      'Pet Capsule',
 
-  if (
-    rarity ===
-    'Legendary'
-  ) {
+    aura:
+      'Aura Capsule',
 
-    return 40;
-  }
+    skin:
+      'Skin Capsule'
+  };
 
 
-  return 10;
-}
-
-
-/* ============================
-   SINGLE GACHA ROLL
-============================ */
-
-function doGachaRoll(
-  type
-) {
-
-  const pool =
-    gachaPools[
-      type
+  $('#gachaTitle').textContent =
+    titles[
+      activeGacha
     ];
 
 
-  const rarity =
-    rollRarity();
+  $('#rollOneBtn').textContent =
+    `Roll x1 • ${costs[activeGacha]} Coins`;
 
 
-  const item =
-    pick(
-      pool.items[
-        rarity
-      ]
+  $('#rollTenBtn').textContent =
+    `Roll x10 • ${costs[activeGacha] * 9} Coins`;
+}
+
+
+/* =========================================================
+   SAFE GACHA RARITY FALLBACK
+========================================================= */
+
+const rarityOrder = [
+
+  'Common',
+
+  'Uncommon',
+
+  'Rare',
+
+  'Epic',
+
+  'Legendary',
+
+  'Mythic'
+];
+
+
+function pickGachaItem(
+  pool,
+  desired
+) {
+
+  let idx =
+    rarityOrder.indexOf(
+      desired
     );
 
 
-  const existing =
-    profile.inventory.find(
-      x =>
-        x.name ===
-        item &&
-        x.type ===
-        type
-    );
-
-
-  if (
-    existing
+  for (
+    let d = 0;
+    d < rarityOrder.length;
+    d++
   ) {
 
-    const d =
-      duplicateDust(
-        rarity
-      );
-
-
-    profile.dust +=
+    const low =
+      idx -
       d;
 
 
-    return {
-
-      item,
-
-      rarity,
-
-      duplicate: true,
-
-      dust: d
-    };
-  }
-
-
-  profile.inventory.push({
-
-    name:
-      item,
-
-    type,
-
-    rarity
-  });
-
-
-  if (
-    type ===
-    'pet'
-  ) {
-
-    const alreadyPet =
-      profile.pets.find(
-        p =>
-          p.name ===
-          item
-      );
+    const high =
+      idx +
+      d;
 
 
     if (
-      alreadyPet
+      low >=
+      0
     ) {
 
-      const d =
-        duplicateDust(
-          rarity
+      const matches =
+        pool.filter(
+          item =>
+            item[1] ===
+            rarityOrder[
+              low
+            ]
         );
 
 
-      profile.dust +=
-        d;
+      if (
+        matches.length
+      ) {
 
-
-      return {
-
-        item,
-
-        rarity,
-
-        duplicate: true,
-
-        dust: d
-      };
+        return pick(
+          matches
+        );
+      }
     }
 
 
-    profile.pets.push({
+    if (
+      d &&
+      high <
+      rarityOrder.length
+    ) {
 
-      id:
-        `gacha-pet-${Date.now()}-${Math.random()}`,
+      const matches =
+        pool.filter(
+          item =>
+            item[1] ===
+            rarityOrder[
+              high
+            ]
+        );
 
-      name:
-        item,
 
-      level:
-        1,
+      if (
+        matches.length
+      ) {
 
-      xp:
-        0,
-
-      type:
-        petTypes[
-          item
-        ] ||
-        'all',
-
-      source:
-        'Gacha'
-    });
+        return pick(
+          matches
+        );
+      }
+    }
   }
 
 
-  return {
-
-    item,
-
-    rarity,
-
-    duplicate: false,
-
-    dust: 0
-  };
+  return pick(
+    pool
+  );
 }
 
 
-/* ============================
-   GACHA ROLL
-============================ */
+/* =========================================================
+   ROLL GACHA
+========================================================= */
 
 function rollGacha(
-  type,
-  ten = false
+  count = 1
 ) {
 
-  const pool =
-    gachaPools[
-      type
-    ];
-
-
-  if (
-    !pool
-  ) {
-
-    return;
-  }
-
-
-  const count =
-    ten
-      ? 10
-      : 1;
-
-
   const cost =
-    ten
-      ? pool.cost *
-        9
 
-      : pool.cost;
+    costs[
+      activeGacha
+    ] *
+
+    (
+      count ===
+      10
+
+        ? 9
+
+        : 1
+    );
 
 
   if (
@@ -14938,831 +13567,1260 @@ function rollGacha(
     [];
 
 
+/* =========================================================
+   GACHA ROLL LOOP
+========================================================= */
+
   for (
     let i = 0;
-    i <
-    count;
+    i < count;
     i++
   ) {
 
-    results.push(
-      doGachaRoll(
-        type
+    const desired =
+      rarityRoll();
+
+
+    const pool =
+      gachaData[
+        activeGacha
+      ];
+
+
+    const item =
+      pickGachaItem(
+
+        pool,
+
+        desired
+      );
+
+
+    const key =
+      `${activeGacha}:${item[0]}`;
+
+
+/* =========================================================
+   DUPLICATE ITEM
+========================================================= */
+
+    if (
+      profile.inventory
+      .some(
+        inventoryItem =>
+          inventoryItem.key ===
+          key
       )
-    );
+    ) {
+
+      profile.dust +=
+
+        item[1] ===
+        'Mythic'
+
+          ? 80
+
+          : item[1] ===
+            'Legendary'
+
+            ? 40
+
+            : 10;
+
+
+      results.push(
+        `${item[0]} → Dust`
+      );
+    }
+
+
+/* =========================================================
+   NEW ITEM
+========================================================= */
+
+    else {
+
+      profile.inventory.push({
+
+        key,
+
+        type:
+          activeGacha,
+
+        name:
+          item[0],
+
+        rarity:
+          item[1]
+      });
+
+
+      results.push(
+        `${item[1]} ${item[0]}`
+      );
+    }
   }
 
 
   persist();
 
+
   updateProfileUI();
 
-  updateGachaUI();
 
   renderInventory();
 
-  renderPets();
+
+  $('#gachaReveal').textContent =
+    results.join(
+      ' • '
+    );
+
 
   S.gacha();
-
-
-  $('#gachaResult')
-  .innerHTML =
-    results
-    .map(
-      r => `
-
-        <div
-          class="
-            gacha-result-item
-            rarity-${r.rarity.toLowerCase()}
-          "
-        >
-
-          <strong>
-            ${r.rarity}
-          </strong>
-
-          <span>
-            ${r.item}
-          </span>
-
-          ${
-            r.duplicate
-
-              ? `<small>Duplicate • +${r.dust} Dust</small>`
-
-              : '<small>NEW!</small>'
-          }
-
-        </div>
-      `
-    )
-    .join('');
 }
 
 
-/* ============================
-   GACHA UI
-============================ */
-
-function updateGachaUI() {
-
-  const el =
-    $('#gachaPools');
-
-
-  if (
-    !el
-  ) {
-
-    return;
-  }
-
-
-  el.innerHTML =
-    Object.entries(
-      gachaPools
-    )
-    .map(
-      (
-        [
-          type,
-          pool
-        ]
-      ) => `
-
-        <div class="gacha-pool">
-
-          <h3>
-            ${
-              type
-              .charAt(
-                0
-              )
-              .toUpperCase() +
-              type.slice(
-                1
-              )
-            }
-            Gacha
-          </h3>
-
-          <p>
-            Single: ${pool.cost} Coins
-          </p>
-
-          <p>
-            x10: ${pool.cost * 9} Coins
-          </p>
-
-          <div class="gacha-buttons">
-
-            <button
-              class="btn gold"
-              data-gacha="${type}"
-              data-ten="0"
-            >
-              Pull x1
-            </button>
-
-            <button
-              class="btn ghost"
-              data-gacha="${type}"
-              data-ten="1"
-            >
-              Pull x10
-            </button>
-
-          </div>
-
-        </div>
-      `
-    )
-    .join('');
-
-
-  $$(
-    '[data-gacha]'
-  )
-  .forEach(
-    b =>
-      b.onclick =
-        () =>
-          rollGacha(
-            b.dataset.gacha,
-
-            b.dataset.ten ===
-            '1'
-          )
-  );
-
-
-  $('#gachaCoins')
-  .textContent =
-    profile.coins;
-
-
-  $('#gachaDust')
-  .textContent =
-    profile.dust;
-}
-
-
-/* ============================
-   INVENTORY
-============================ */
+/* =========================================================
+   RENDER GACHA INVENTORY
+========================================================= */
 
 function renderInventory() {
 
-  const el =
-    $('#inventoryGrid');
+  $('#inventoryGrid').innerHTML =
 
+    profile.inventory.length
 
-  if (
-    !el
-  ) {
+      ? profile.inventory
+        .map(
+          item => `
 
-    return;
-  }
+            <div class="inventory-item">
 
+              <b>
+                ${item.rarity}
+              </b>
 
-  if (
-    !profile.inventory.length
-  ) {
+              ${item.name}
 
-    el.innerHTML =
-      '<p class="muted">No gacha items yet.</p>';
+              <small>
+                ${item.type}
+              </small>
 
+            </div>
+          `
+        )
+        .join('')
 
-    return;
-  }
-
-
-  el.innerHTML =
-    profile.inventory
-    .map(
-      item => `
-
-        <div
-          class="
-            inventory-item
-            rarity-${item.rarity.toLowerCase()}
-          "
-        >
-
-          <strong>
-            ${item.name}
-          </strong>
-
-          <span>
-            ${item.type}
-          </span>
-
-          <small>
-            ${item.rarity}
-          </small>
-
-        </div>
-      `
-    )
-    .join('');
+      : '<p class="muted">No cosmetics yet.</p>';
 }
 
 
-/* ============================
-   MUSICCRAFT
-============================ */
+/* =========================================================
+   GACHA TABS
+========================================================= */
 
-const craftLayers = [
+$$('.gacha-tab')
+.forEach(
+  button => {
 
-  {
-    name: 'Grasslands',
-    block: 'Grass',
-    icon: '🌱',
-    value: 2
-  },
+    button.onclick =
+      () => {
 
-  {
-    name: 'Dirt Depths',
-    block: 'Dirt',
-    icon: '🟫',
-    value: 3
-  },
+        $$('.gacha-tab')
+        .forEach(
+          tab =>
+            tab.classList.remove(
+              'active'
+            )
+        );
 
-  {
-    name: 'Stone Caverns',
-    block: 'Stone',
-    icon: '🪨',
-    value: 5
-  },
 
-  {
-    name: 'Copper Tunnels',
-    block: 'Copper',
-    icon: '🟠',
-    value: 7
-  },
+        button.classList.add(
+          'active'
+        );
 
-  {
-    name: 'Iron Depths',
-    block: 'Iron',
-    icon: '⚙️',
-    value: 9
-  },
 
-  {
-    name: 'Crystal Caves',
-    block: 'Crystal',
-    icon: '💎',
-    value: 12
-  },
+        activeGacha =
+          button.dataset.gacha;
 
-  {
-    name: 'Gold Depths',
-    block: 'Gold',
-    icon: '🪙',
-    value: 16
-  },
 
-  {
-    name: 'Diamond Depths',
-    block: 'Diamond',
-    icon: '🔷',
-    value: 22
-  },
-
-  {
-    name: 'Obsidian Realm',
-    block: 'Obsidian',
-    icon: '⬛',
-    value: 28
-  },
-
-  {
-    name: 'Ancient Ruins',
-    block: 'Relic',
-    icon: '🏺',
-    value: 34
-  },
-
-  {
-    name: 'Magma Depths',
-    block: 'Magma',
-    icon: '🌋',
-    value: 40
-  },
-
-  {
-    name: 'Echo Depths',
-    block: 'Echo',
-    icon: '🎶',
-    value: 48
-  },
-
-  {
-    name: 'Celestial Depths',
-    block: 'Celestial',
-    icon: '✨',
-    value: 60
-  },
-
-  {
-    name: 'Void Depths',
-    block: 'Void',
-    icon: '🌌',
-    value: 75
-  },
-
-  {
-    name: 'Core of MusicVerse',
-    block: 'CoreShard',
-    icon: '🎼',
-    value: 100
+        updateGachaUI();
+      };
   }
-];
+);
 
-/* ============================
-   MUSICCRAFT SETTINGS
-============================ */
+
+/* =========================================================
+   GACHA ROLL BUTTONS
+========================================================= */
+
+$('#rollOneBtn').onclick =
+  () =>
+    rollGacha(
+      1
+    );
+
+
+$('#rollTenBtn').onclick =
+  () =>
+    rollGacha(
+      10
+    );
+/* ============================ MUSICCRAFT ============================ */
 
 const craftCanvas =
   $('#craftCanvas');
 
-
-const craftCtx =
+const ctx =
   craftCanvas
-    ? craftCanvas.getContext(
-        '2d'
-      )
-    : null;
+    ?.getContext
+    ?.('2d') ||
+  null;
 
 
-const craftCols =
-  10;
+let craftWorld =
+  [];
+
+let craftMined =
+  0;
+
+let craftDepth =
+  0;
+
+let craftLayer =
+  0;
 
 
-const craftRows =
-  7;
+/* =========================================================
+   MUSICCRAFT DEPTHS
+========================================================= */
+
+const craftTypesByDepth = [
+
+  {
+    name:
+      'Surface',
+
+    blocks: [
+
+      [
+        'Dirt',
+        '#70513c',
+        1,
+        1
+      ],
+
+      [
+        'Stone',
+        '#6d7885',
+        1,
+        2
+      ],
+
+      [
+        'Coal',
+        '#28313a',
+        2,
+        2
+      ]
+    ]
+  },
 
 
-const craftBlockSize =
-  52;
+  {
+    name:
+      'Shallow Underground',
+
+    blocks: [
+
+      [
+        'Dirt',
+        '#5f4435',
+        1,
+        1
+      ],
+
+      [
+        'Stone',
+        '#68727d',
+        1,
+        2
+      ],
+
+      [
+        'Coal',
+        '#28313a',
+        2,
+        2
+      ],
+
+      [
+        'Copper',
+        '#b87333',
+        3,
+        2
+      ]
+    ]
+  },
 
 
-/* ============================
-   CRAFT BLOCK WEIGHTS
-============================ */
+  {
+    name:
+      'Stone Tunnels',
 
-function getCraftBlockPool(
-  layer
-) {
+    blocks: [
 
-  const main =
-    craftLayers[
-      layer
-    ];
+      [
+        'Stone',
+        '#626d79',
+        1,
+        2
+      ],
+
+      [
+        'Coal',
+        '#252d34',
+        2,
+        2
+      ],
+
+      [
+        'Copper',
+        '#b87333',
+        3,
+        2
+      ],
+
+      [
+        'Iron',
+        '#9b8c7a',
+        3,
+        3
+      ]
+    ]
+  },
 
 
-  const previous =
-    craftLayers[
-      Math.max(
-        0,
-        layer - 1
-      )
-    ];
+  {
+    name:
+      'Coal Depths',
+
+    blocks: [
+
+      [
+        'Stone',
+        '#5c6570',
+        1,
+        2
+      ],
+
+      [
+        'Coal',
+        '#1f252b',
+        3,
+        2
+      ],
+
+      [
+        'Iron',
+        '#9b8c7a',
+        3,
+        3
+      ],
+
+      [
+        'Silver',
+        '#b7bec8',
+        4,
+        3
+      ]
+    ]
+  },
 
 
-  const deeper =
-    craftLayers[
-      Math.min(
-        craftLayers.length - 1,
-        layer + 1
-      )
-    ];
+  {
+    name:
+      'Iron Caverns',
+
+    blocks: [
+
+      [
+        'Stone',
+        '#59636e',
+        1,
+        2
+      ],
+
+      [
+        'Iron',
+        '#9b8c7a',
+        4,
+        3
+      ],
+
+      [
+        'Silver',
+        '#b7bec8',
+        5,
+        3
+      ],
+
+      [
+        'Gold',
+        '#d8ad42',
+        6,
+        4
+      ]
+    ]
+  },
 
 
-  const pool =
-    [];
+  {
+    name:
+      'Deep Caves',
+
+    blocks: [
+
+      [
+        'Stone',
+        '#525b66',
+        1,
+        2
+      ],
+
+      [
+        'Iron',
+        '#8f8274',
+        4,
+        3
+      ],
+
+      [
+        'Gold',
+        '#d8ad42',
+        6,
+        4
+      ],
+
+      [
+        'Ruby',
+        '#d94a62',
+        8,
+        4
+      ]
+    ]
+  },
 
 
-  for (
-    let i = 0;
-    i < 7;
-    i++
-  ) {
+  {
+    name:
+      'Gold Veins',
 
-    pool.push(
-      main
-    );
+    blocks: [
+
+      [
+        'Stone',
+        '#4d5661',
+        1,
+        2
+      ],
+
+      [
+        'Gold',
+        '#d8ad42',
+        7,
+        4
+      ],
+
+      [
+        'Ruby',
+        '#d94a62',
+        9,
+        4
+      ],
+
+      [
+        'Emerald',
+        '#4fca83',
+        10,
+        4
+      ]
+    ]
+  },
+
+
+  {
+    name:
+      'Crystal Caverns',
+
+    blocks: [
+
+      [
+        'Stone',
+        '#48525e',
+        1,
+        2
+      ],
+
+      [
+        'Gold',
+        '#d8ad42',
+        7,
+        4
+      ],
+
+      [
+        'Crystal',
+        '#8e73ff',
+        12,
+        5
+      ],
+
+      [
+        'Amethyst',
+        '#a66cff',
+        14,
+        5
+      ]
+    ]
+  },
+
+
+  {
+    name:
+      'Diamond Depths',
+
+    blocks: [
+
+      [
+        'Dark Stone',
+        '#3b4652',
+        2,
+        3
+      ],
+
+      [
+        'Crystal',
+        '#8e73ff',
+        12,
+        5
+      ],
+
+      [
+        'Diamond',
+        '#55d7e8',
+        16,
+        6
+      ],
+
+      [
+        'Sapphire',
+        '#4a78ef',
+        15,
+        5
+      ]
+    ]
+  },
+
+
+  {
+    name:
+      'Obsidian Ruins',
+
+    blocks: [
+
+      [
+        'Obsidian',
+        '#27243a',
+        4,
+        5
+      ],
+
+      [
+        'Diamond',
+        '#55d7e8',
+        16,
+        6
+      ],
+
+      [
+        'Sapphire',
+        '#4a78ef',
+        15,
+        5
+      ],
+
+      [
+        'Ancient Ore',
+        '#9f865a',
+        20,
+        6
+      ]
+    ]
+  },
+
+
+  {
+    name:
+      'Ancient Depths',
+
+    blocks: [
+
+      [
+        'Obsidian',
+        '#211d31',
+        4,
+        5
+      ],
+
+      [
+        'Ancient Ore',
+        '#9f865a',
+        20,
+        6
+      ],
+
+      [
+        'Ancient Crystal',
+        '#d6b3ff',
+        24,
+        7
+      ],
+
+      [
+        'Relic Stone',
+        '#786246',
+        18,
+        6
+      ]
+    ]
+  },
+
+
+  {
+    name:
+      'Magma Zone',
+
+    blocks: [
+
+      [
+        'Basalt',
+        '#2c292e',
+        4,
+        5
+      ],
+
+      [
+        'Obsidian',
+        '#1c1925',
+        5,
+        6
+      ],
+
+      [
+        'Magma Crystal',
+        '#ff6a3d',
+        28,
+        7
+      ],
+
+      [
+        'Fire Gem',
+        '#ffb347',
+        32,
+        7
+      ]
+    ]
+  },
+
+
+  {
+    name:
+      'Echo Abyss',
+
+    blocks: [
+
+      [
+        'Void Stone',
+        '#171624',
+        5,
+        6
+      ],
+
+      [
+        'Echo Crystal',
+        '#5ed4ff',
+        32,
+        7
+      ],
+
+      [
+        'Void Gem',
+        '#8857ff',
+        38,
+        8
+      ],
+
+      [
+        'Resonance Ore',
+        '#d04fff',
+        42,
+        8
+      ]
+    ]
+  },
+
+
+  {
+    name:
+      'Celestial Core',
+
+    blocks: [
+
+      [
+        'Celestial Stone',
+        '#27395d',
+        6,
+        7
+      ],
+
+      [
+        'Star Crystal',
+        '#ffe178',
+        45,
+        8
+      ],
+
+      [
+        'Moonstone',
+        '#b9d7ff',
+        48,
+        8
+      ],
+
+      [
+        'Celestial Gem',
+        '#e5d3ff',
+        55,
+        9
+      ]
+    ]
+  },
+
+
+  {
+    name:
+      'MusicVerse Core',
+
+    blocks: [
+
+      [
+        'Core Stone',
+        '#13101d',
+        7,
+        8
+      ],
+
+      [
+        'Music Crystal',
+        '#f3d77c',
+        65,
+        9
+      ],
+
+      [
+        'Harmony Gem',
+        '#71e7d3',
+        75,
+        9
+      ],
+
+      [
+        'CoreShard',
+        '#fff1a8',
+        100,
+        10
+      ]
+    ]
   }
+];
 
 
-  for (
-    let i = 0;
-    i < 2;
-    i++
-  ) {
+/* =========================================================
+   MUSICCRAFT PET EGGS
+========================================================= */
 
-    pool.push(
-      previous
-    );
-  }
+const craftPetEggs = [
 
+  [
+    'Surface',
+    'Meadow Egg',
+    '🌱',
+    'Music Bunny',
+    '#8bd46e',
+    0.035
+  ],
 
-  if (
-    deeper !==
-    main
-  ) {
+  [
+    'Shallow Underground',
+    'Cave Egg',
+    '🪨',
+    'Mole Beat',
+    '#92745c',
+    0.032
+  ],
 
-    pool.push(
-      deeper
-    );
-  }
+  [
+    'Stone Tunnels',
+    'Stone Egg',
+    '🐾',
+    'Rock Pup',
+    '#858f9a',
+    0.03
+  ],
 
+  [
+    'Coal Depths',
+    'Coal Egg',
+    '⚫',
+    'Shadow Bat',
+    '#353942',
+    0.028
+  ],
 
-  return pool;
-}
+  [
+    'Iron Caverns',
+    'Iron Egg',
+    '⚙️',
+    'Gear Fox',
+    '#a9a097',
+    0.026
+  ],
 
+  [
+    'Deep Caves',
+    'Echo Egg',
+    '🕷️',
+    'Echo Spider',
+    '#645a75',
+    0.024
+  ],
 
-/* ============================
-   CREATE MUSICCRAFT BLOCK
-============================ */
+  [
+    'Gold Veins',
+    'Golden Egg',
+    '🪙',
+    'Gold Chick',
+    '#f2c74e',
+    0.022
+  ],
 
-function makeCraftBlock(
-  x,
-  y
-) {
+  [
+    'Crystal Caverns',
+    'Crystal Egg',
+    '💎',
+    'Crystal Fox',
+    '#9a78ff',
+    0.02
+  ],
 
-  const layer =
-    craftWorld.layer;
+  [
+    'Diamond Depths',
+    'Diamond Egg',
+    '🔷',
+    'Diamond Dragon',
+    '#60e7f7',
+    0.018
+  ],
 
+  [
+    'Obsidian Ruins',
+    'Obsidian Egg',
+    '🖤',
+    'Obsidian Wolf',
+    '#302b45',
+    0.016
+  ],
 
-  const pool =
-    getCraftBlockPool(
-      layer
-    );
+  [
+    'Ancient Depths',
+    'Ancient Egg',
+    '🏺',
+    'Relic Guardian',
+    '#b79a68',
+    0.014
+  ],
 
+  [
+    'Magma Zone',
+    'Magma Egg',
+    '🔥',
+    'Lava Dragon',
+    '#ff6535',
+    0.012
+  ],
 
-  const data =
-    pick(
-      pool
-    );
+  [
+    'Echo Abyss',
+    'Void Egg',
+    '🌌',
+    'Echo Spirit',
+    '#7454e8',
+    0.01
+  ],
 
+  [
+    'Celestial Core',
+    'Celestial Egg',
+    '✨',
+    'Star Phoenix',
+    '#f6e69a',
+    0.008
+  ],
 
-  return {
+  [
+    'MusicVerse Core',
+    'MusicVerse Egg',
+    '🎵',
+    'Harmony Dragon',
+    '#ffe783',
+    0.005
+  ]
 
-    x,
+].map(
+  egg => ({
 
-    y,
+    layer:
+      egg[0],
 
-    block:
-      data.block,
+    egg:
+      egg[1],
 
     icon:
-      data.icon,
+      egg[2],
 
-    value:
-      data.value,
+    pet:
+      egg[3],
 
-    mined:
-      false,
+    color:
+      egg[4],
 
-    special:
-      false
-  };
+    chance:
+      egg[5]
+  })
+);
+
+
+/* =========================================================
+   CURRENT MUSICCRAFT DEPTH
+========================================================= */
+
+function getCraftDepthName() {
+
+  return craftTypesByDepth[
+    Math.min(
+      craftDepth,
+      craftTypesByDepth.length - 1
+    )
+  ].name;
 }
 
 
-/* ============================
-   GENERATE NEW WORLD
-============================ */
+/* =========================================================
+   CURRENT PET EGG
+========================================================= */
+
+function getCurrentCraftEgg() {
+
+  return craftPetEggs[
+    Math.min(
+      craftDepth,
+      craftPetEggs.length - 1
+    )
+  ];
+}
+
+
+/* =========================================================
+   INITIALIZE MATERIAL INVENTORY
+========================================================= */
+
+function resetCraftInventory() {
+
+  craftTypesByDepth
+  .flatMap(
+    zone =>
+      zone.blocks.map(
+        block =>
+          block[0]
+      )
+  )
+  .forEach(
+    name => {
+
+      if (
+        profile.materials[
+          name
+        ] ===
+        undefined
+      ) {
+
+        profile.materials[
+          name
+        ] =
+          0;
+      }
+    }
+  );
+}
+
+
+/* =========================================================
+   GENERATE MUSICCRAFT LAYER
+========================================================= */
+
+function generateCraftLayer() {
+
+  const depth =
+    craftTypesByDepth[
+      craftDepth
+    ];
+
+
+  const egg =
+    getCurrentCraftEgg();
+
+
+  craftWorld =
+    Array.from(
+      {
+        length: 12
+      },
+
+      (_, y) =>
+
+        Array.from(
+          {
+            length: 20
+          },
+
+          (_, x) => {
+
+            if (
+              y === 0 &&
+              x >= 8 &&
+              x <= 11
+            ) {
+
+              return null;
+            }
+
+
+            if (
+              Math.random() <
+              egg.chance
+            ) {
+
+              return [
+
+                'PET_EGG',
+
+                egg.color,
+
+                0,
+
+                1,
+
+                egg
+              ];
+            }
+
+
+            const r =
+              Math.random();
+
+
+            return r < 0.5
+
+              ? depth.blocks[0]
+
+              : r < 0.75
+
+                ? depth.blocks[
+                    Math.min(
+                      1,
+                      depth.blocks.length - 1
+                    )
+                  ]
+
+                : r < 0.9
+
+                  ? depth.blocks[
+                      Math.min(
+                        2,
+                        depth.blocks.length - 1
+                      )
+                    ]
+
+                  : depth.blocks[
+                      depth.blocks.length - 1
+                    ];
+          }
+        )
+    );
+
+
+  renderCraft();
+}
+
+
+/* =========================================================
+   NEW MUSICCRAFT WORLD
+========================================================= */
 
 function newCraftWorld() {
 
-  craftWorld.blocks =
-    [];
-
-
-  craftWorld.mined =
+  craftMined =
     0;
 
 
-  for (
-    let y = 0;
-    y <
-    craftRows;
-    y++
-  ) {
-
-    for (
-      let x = 0;
-      x <
-      craftCols;
-      x++
-    ) {
-
-      craftWorld.blocks.push(
-        makeCraftBlock(
-          x,
-          y
-        )
-      );
-    }
-  }
+  craftDepth =
+    0;
 
 
-  /* RARE SPECIAL BLOCK */
-
-  if (
-    craftWorld.layer >=
-      3 &&
-    Math.random() <
-      .45
-  ) {
-
-    const b =
-      pick(
-        craftWorld.blocks
-      );
+  craftLayer =
+    0;
 
 
-    b.special =
-      true;
+  resetCraftInventory();
 
+  generateCraftLayer();
 
-    b.block =
-      'Treasure';
-
-
-    b.icon =
-      '🎁';
-
-
-    b.value +=
-      20;
-  }
-
-
-  /* CORE SHARD AT FINAL LAYER */
-
-  if (
-    craftWorld.layer ===
-    craftLayers.length -
-    1
-  ) {
-
-    const b =
-      pick(
-        craftWorld.blocks
-      );
-
-
-    b.block =
-      'CoreShard';
-
-
-    b.icon =
-      '🎼';
-
-
-    b.value =
-      100;
-
-
-    b.special =
-      true;
-  }
-
-
-  renderCraftWorld();
-
-  renderCraftMission();
-
-  updateCraftUI();
+  renderCraftEggs();
 }
 
 
-/* ============================
-   MUSICCRAFT COLORS
-============================ */
+/* =========================================================
+   DRAW PET EGG
+========================================================= */
 
-function craftBlockColor(
-  block
+function drawEgg(
+  x,
+  y,
+  w,
+  h,
+  egg
 ) {
 
-  const colors = {
-
-    Grass:
-      '#58a55c',
-
-    Dirt:
-      '#8d5f3c',
-
-    Stone:
-      '#6f737b',
-
-    Copper:
-      '#b56d43',
-
-    Iron:
-      '#8c939c',
-
-    Crystal:
-      '#6fc6e8',
-
-    Gold:
-      '#d5b348',
-
-    Diamond:
-      '#72dbe5',
-
-    Obsidian:
-      '#3d3558',
-
-    Relic:
-      '#a47b55',
-
-    Magma:
-      '#c45337',
-
-    Echo:
-      '#7268bb',
-
-    Celestial:
-      '#87a9d9',
-
-    Void:
-      '#2e2447',
-
-    CoreShard:
-      '#e2c45b',
-
-    Treasure:
-      '#d88f45'
-  };
+  const cx =
+    x * w +
+    w / 2;
 
 
-  return (
-    colors[
-      block
-    ] ||
-    '#777'
-  );
-}
+  const cy =
+    y * h +
+    h / 2;
 
 
-/* ============================
-   DRAW MUSICCRAFT BLOCK
-============================ */
-
-function drawCraftBlock(
-  b
-) {
-
-  if (
-    !craftCtx ||
-    b.mined
-  ) {
-
-    return;
-  }
+  ctx.save();
 
 
-  const px =
-    b.x *
-    craftBlockSize;
+  ctx.shadowBlur =
+    18;
 
 
-  const py =
-    b.y *
-    craftBlockSize;
+  ctx.shadowColor =
+    egg.color;
 
 
-  craftCtx.fillStyle =
-    craftBlockColor(
-      b.block
-    );
+  ctx.fillStyle =
+    egg.color;
 
 
-  craftCtx.fillRect(
+  ctx.beginPath();
 
-    px + 2,
 
-    py + 2,
+  ctx.ellipse(
 
-    craftBlockSize - 4,
+    cx,
 
-    craftBlockSize - 4
+    cy,
+
+    w * 0.27,
+
+    h * 0.36,
+
+    0,
+
+    0,
+
+    Math.PI * 2
   );
 
 
-  craftCtx.fillStyle =
-    'rgba(255,255,255,.12)';
+  ctx.fill();
 
 
-  craftCtx.fillRect(
-
-    px + 5,
-
-    py + 5,
-
-    craftBlockSize - 10,
-
-    7
-  );
+  ctx.shadowBlur =
+    0;
 
 
-  craftCtx.fillStyle =
-    'rgba(0,0,0,.16)';
+  ctx.font =
+    `${Math.max(
+      14,
+      w * 0.36
+    )}px sans-serif`;
 
 
-  craftCtx.fillRect(
-
-    px + 4,
-
-    py +
-    craftBlockSize -
-    10,
-
-    craftBlockSize - 8,
-
-    5
-  );
-
-
-  craftCtx.font =
-    '26px sans-serif';
-
-
-  craftCtx.textAlign =
+  ctx.textAlign =
     'center';
 
 
-  craftCtx.textBaseline =
+  ctx.textBaseline =
     'middle';
 
 
-  craftCtx.fillStyle =
-    '#fff';
+  ctx.fillText(
 
+    egg.icon,
 
-  craftCtx.fillText(
+    cx,
 
-    b.icon,
-
-    px +
-    craftBlockSize /
-    2,
-
-    py +
-    craftBlockSize /
-    2
+    cy
   );
+
+
+  ctx.restore();
 }
 
 
-/* ============================
-   RENDER MUSICCRAFT WORLD
-============================ */
+/* =========================================================
+   RENDER MUSICCRAFT
+========================================================= */
 
-function renderCraftWorld() {
+function renderCraft() {
 
   if (
-    !craftCtx
+    !craftCanvas ||
+    !ctx
   ) {
 
     return;
   }
 
 
-  craftCanvas.width =
-    craftCols *
-    craftBlockSize;
+  const w =
+    craftCanvas.width /
+    20;
 
 
-  craftCanvas.height =
-    craftRows *
-    craftBlockSize;
+  const h =
+    craftCanvas.height /
+    12;
 
 
-  craftCtx.clearRect(
-
-    0,
-
-    0,
-
-    craftCanvas.width,
-
-    craftCanvas.height
-  );
-
-
-  craftCtx.fillStyle =
-    '#10141d';
-
-
-  craftCtx.fillRect(
+  ctx.clearRect(
 
     0,
 
@@ -15774,335 +14832,192 @@ function renderCraftWorld() {
   );
 
 
-  craftWorld.blocks
-  .forEach(
-    drawCraftBlock
-  );
-
-
-  if (
-    craftWorld.blocks.every(
-      b =>
-        b.mined
-    )
-  ) {
-
-    craftCtx.fillStyle =
-      'rgba(0,0,0,.68)';
-
-
-    craftCtx.fillRect(
-
-      0,
-
-      0,
-
-      craftCanvas.width,
-
-      craftCanvas.height
-    );
-
-
-    craftCtx.fillStyle =
-      '#fff';
-
-
-    craftCtx.font =
-      'bold 24px sans-serif';
-
-
-    craftCtx.textAlign =
-      'center';
-
-
-    craftCtx.fillText(
-
-      'LAYER CLEARED',
-
-      craftCanvas.width /
-      2,
-
-      craftCanvas.height /
-      2 -
-      16
-    );
-
-
-    craftCtx.font =
-      '15px sans-serif';
-
-
-    craftCtx.fillText(
-
-      'Descend to continue mining',
-
-      craftCanvas.width /
-      2,
-
-      craftCanvas.height /
-      2 +
-      18
-    );
-  }
-}
-
-
-/* ============================
-   MATERIAL STORAGE
-============================ */
-
-function addCraftMaterial(
-  name,
-  amount = 1
-) {
-
-  profile.materials[
-    name
-  ] =
+  craftWorld.forEach(
     (
-      profile.materials[
-        name
-      ] ||
-      0
-    ) +
-    amount;
+      row,
+      y
+    ) =>
+
+      row.forEach(
+        (
+          block,
+          x
+        ) => {
+
+          if (
+            !block
+          ) {
+
+            return;
+          }
+
+
+/* =========================================================
+   DRAW PET EGG BLOCK
+========================================================= */
+
+          if (
+            block[0] ===
+            'PET_EGG'
+          ) {
+
+            drawEgg(
+
+              x,
+
+              y,
+
+              w,
+
+              h,
+
+              block[4]
+            );
+
+
+            return;
+          }
+
+
+/* =========================================================
+   DRAW NORMAL BLOCK
+========================================================= */
+
+          ctx.fillStyle =
+            block[1];
+
+
+          ctx.fillRect(
+
+            x * w + 1,
+
+            y * h + 1,
+
+            w - 2,
+
+            h - 2
+          );
+
+
+          ctx.fillStyle =
+            'rgba(255,255,255,.12)';
+
+
+          ctx.fillRect(
+
+            x * w + 3,
+
+            y * h + 3,
+
+            w - 7,
+
+            4
+          );
+        }
+      )
+  );
+
+
+/* =========================================================
+   CURRENT MATERIAL INVENTORY
+========================================================= */
+
+  const current =
+    craftTypesByDepth[
+      craftDepth
+    ]
+    .blocks
+    .map(
+      block =>
+        block[0]
+    );
+
+
+  $('#craftInventory').innerHTML =
+
+    current
+    .map(
+      material => `
+
+        <div>
+
+          <span>
+            ${material}
+          </span>
+
+          <b>
+            ${
+              profile.materials[
+                material
+              ] ||
+              0
+            }
+          </b>
+
+        </div>
+      `
+    )
+    .join('');
+
+
+/* =========================================================
+   MUSICCRAFT UI
+========================================================= */
+
+  $('#missionText').textContent =
+    `Mine 12 blocks • ${craftMined % 12}/12`;
+
+
+  $('#craftDepthName').textContent =
+    getCraftDepthName();
+
+
+  $('#craftLayerLabel').textContent =
+    `${craftDepth + 1} / ${craftTypesByDepth.length}`;
+
+
+  $('#craftDepthFill').style.width =
+    `${
+      (
+        (
+          craftDepth + 1
+        ) /
+        craftTypesByDepth.length
+      ) *
+      100
+    }%`;
+
+
+  renderCraftEggs();
+
+  renderEvolutionPanel();
 }
 
 
-/* ============================
-   FIND PET EGG
-============================ */
-
-function maybeFindCraftEgg() {
-
-  const layer =
-    craftWorld.layer;
-
-
-  let chance =
-    .015;
-
-
-  if (
-    layer >=
-    5
-  ) {
-
-    chance +=
-      .015;
-  }
-
-
-  if (
-    layer >=
-    10
-  ) {
-
-    chance +=
-      .02;
-  }
-
-
-  if (
-    Math.random() >
-    chance
-  ) {
-
-    return;
-  }
-
-
-  const pools = [
-
-    {
-      egg:
-        'Meadow Egg',
-
-      icon:
-        '🌱',
-
-      pet:
-        'Music Bunny'
-    },
-
-    {
-      egg:
-        'Cave Egg',
-
-      icon:
-        '🪨',
-
-      pet:
-        'Mole Beat'
-    },
-
-    {
-      egg:
-        'Stone Egg',
-
-      icon:
-        '🐾',
-
-      pet:
-        'Rock Pup'
-    },
-
-    {
-      egg:
-        'Shadow Egg',
-
-      icon:
-        '🌑',
-
-      pet:
-        'Shadow Bat'
-    },
-
-    {
-      egg:
-        'Gear Egg',
-
-      icon:
-        '⚙️',
-
-      pet:
-        'Gear Fox'
-    },
-
-    {
-      egg:
-        'Echo Egg',
-
-      icon:
-        '🎶',
-
-      pet:
-        'Echo Spider'
-    },
-
-    {
-      egg:
-        'Golden Egg',
-
-      icon:
-        '🪙',
-
-      pet:
-        'Gold Chick'
-    },
-
-    {
-      egg:
-        'Crystal Egg',
-
-      icon:
-        '💎',
-
-      pet:
-        'Crystal Fox'
-    },
-
-    {
-      egg:
-        'Diamond Egg',
-
-      icon:
-        '🔷',
-
-      pet:
-        'Diamond Dragon'
-    },
-
-    {
-      egg:
-        'Obsidian Egg',
-
-      icon:
-        '⬛',
-
-      pet:
-        'Obsidian Wolf'
-    },
-
-    {
-      egg:
-        'Relic Egg',
-
-      icon:
-        '🏺',
-
-      pet:
-        'Relic Guardian'
-    },
-
-    {
-      egg:
-        'Lava Egg',
-
-      icon:
-        '🌋',
-
-      pet:
-        'Lava Dragon'
-    },
-
-    {
-      egg:
-        'Echo Spirit Egg',
-
-      icon:
-        '✨',
-
-      pet:
-        'Echo Spirit'
-    },
-
-    {
-      egg:
-        'Celestial Egg',
-
-      icon:
-        '🌟',
-
-      pet:
-        'Star Phoenix'
-    },
-
-    {
-      egg:
-        'Harmony Egg',
-
-      icon:
-        '🎼',
-
-      pet:
-        'Harmony Dragon'
-    }
-  ];
-
-
-  const data =
-    pools[
-      Math.min(
-        pools.length -
-        1,
-
-        layer
-      )
-    ];
-
+/* =========================================================
+   COLLECT MUSICCRAFT PET EGG
+========================================================= */
+
+function collectCraftPetEgg(
+  egg
+) {
 
   profile.petEggs.push({
 
     id:
-      `craft-egg-${Date.now()}-${Math.random()}`,
+      `egg-${Date.now()}-${Math.random()}`,
 
-    ...data,
+    egg:
+      egg.egg,
+
+    icon:
+      egg.icon,
+
+    pet:
+      egg.pet,
 
     layer:
-      craftLayers[
-        layer
-      ].name,
+      egg.layer,
 
     hatched:
       false
@@ -16111,540 +15026,40 @@ function maybeFindCraftEgg() {
 
   persist();
 
-  renderCraftEggs();
-
 
   S.treasure();
 
 
   toast(
-    `${data.icon} You found a ${data.egg}!`
-  );
-}
-
-
-/* ============================
-   MINE MUSICCRAFT BLOCK
-============================ */
-
-function mineCraftBlock(
-  b
-) {
-
-  if (
-    !b ||
-    b.mined
-  ) {
-
-    return;
-  }
-
-
-  b.mined =
-    true;
-
-
-  craftWorld.mined++;
-
-
-  const coin =
-    Math.max(
-
-      0,
-
-      Math.floor(
-        b.value *
-        .15
-      )
-    );
-
-
-  const xp =
-    b.value >=
-    12
-
-      ? Math.max(
-
-          1,
-
-          Math.floor(
-            b.value *
-            .08
-          )
-        )
-
-      : 0;
-
-
-  if (
-    coin
-  ) {
-
-    profile.coins +=
-      coin;
-  }
-
-
-  if (
-    xp
-  ) {
-
-    addXP(
-      xp
-    );
-  }
-
-
-  addCraftMaterial(
-
-    b.block,
-
-    1
+    `${egg.icon} ${egg.egg} discovered!`
   );
 
 
-  /* CORE SHARD BONUS */
-
-  if (
-    b.block ===
-    'CoreShard'
-  ) {
-
-    profile.coins +=
-      25;
-
-
-    addXP(
-      15
-    );
-
-
-    S.ultimate();
-
-
-    toast(
-      '🎼 Core Shard! +25 Coins +15 EXP'
-    );
-  }
-
-
-  /* TREASURE BONUS */
-
-  else if (
-    b.block ===
-    'Treasure'
-  ) {
-
-    const bonus =
-      rand(
-        8,
-        20
-      );
-
-
-    profile.coins +=
-      bonus;
-
-
-    S.treasure();
-
-
-    toast(
-      `🎁 Mining treasure! +${bonus} Coins`
-    );
-  }
-
-
-  else {
-
-    S.mine();
-  }
-
-
-  maybeFindCraftEgg();
-
-
-  progressQuest(
-    'mine',
-    1
+  addXP(
+    4 +
+    Math.floor(
+      craftDepth /
+      3
+    )
   );
 
 
-  profile.craftBlocksMined =
-    (
-      profile.craftBlocksMined ||
-      0
-    ) +
-    1;
-
-
-  persist();
-
-  updateProfileUI();
-
-  renderCraftWorld();
-
-  renderCraftMission();
-
-  updateCraftUI();
+  renderCraftEggs();
 }
 
 
-/* ============================
-   CRAFT CANVAS CLICK
-============================ */
-
-if (
-  craftCanvas
-) {
-
-  craftCanvas.onclick =
-    e => {
-
-      const rect =
-        craftCanvas
-        .getBoundingClientRect();
-
-
-      const scaleX =
-        craftCanvas.width /
-        rect.width;
-
-
-      const scaleY =
-        craftCanvas.height /
-        rect.height;
-
-
-      const mx =
-        (
-          e.clientX -
-          rect.left
-        ) *
-        scaleX;
-
-
-      const my =
-        (
-          e.clientY -
-          rect.top
-        ) *
-        scaleY;
-
-
-      const x =
-        Math.floor(
-          mx /
-          craftBlockSize
-        );
-
-
-      const y =
-        Math.floor(
-          my /
-          craftBlockSize
-        );
-
-
-      const b =
-        craftWorld.blocks
-        .find(
-          q =>
-            q.x ===
-            x &&
-            q.y ===
-            y
-        );
-
-
-      mineCraftBlock(
-        b
-      );
-    };
-}
-
-
-/* ============================
-   CRAFT LAYER PROGRESS
-============================ */
-
-function updateCraftUI() {
-
-  const layer =
-    craftLayers[
-      craftWorld.layer
-    ];
-
-
-  const mined =
-    craftWorld.mined;
-
-
-  const total =
-    craftCols *
-    craftRows;
-
-
-  if (
-    $('#craftLayerName')
-  ) {
-
-    $('#craftLayerName')
-    .textContent =
-      layer.name;
-  }
-
-
-  if (
-    $('#craftDepthText')
-  ) {
-
-    $('#craftDepthText')
-    .textContent =
-      `Depth ${craftWorld.layer + 1} / ${craftLayers.length}`;
-  }
-
-
-  if (
-    $('#craftBlocksText')
-  ) {
-
-    $('#craftBlocksText')
-    .textContent =
-      `${mined} / ${total}`;
-  }
-
-
-  if (
-    $('#craftProgressFill')
-  ) {
-
-    $('#craftProgressFill')
-    .style.width =
-      `${
-        mined /
-        total *
-        100
-      }%`;
-  }
-
-
-  const descend =
-    $('#craftDescendBtn');
-
-
-  if (
-    descend
-  ) {
-
-    const clear =
-      craftWorld.blocks.length &&
-      craftWorld.blocks.every(
-        b =>
-          b.mined
-      );
-
-
-    descend.disabled =
-      !clear;
-
-
-    descend.textContent =
-      craftWorld.layer >=
-      craftLayers.length -
-      1
-
-        ? 'REBUILD CORE'
-
-        : 'DESCEND';
-  }
-
-
-  renderCraftMaterials();
-}
-
-
-/* ============================
-   DESCEND TO NEXT LAYER
-============================ */
-
-function descendCraftLayer() {
-
-  if (
-    !craftWorld.blocks.length ||
-    !craftWorld.blocks.every(
-      b =>
-        b.mined
-    )
-  ) {
-
-    return toast(
-      'Mine every block first.'
-    );
-  }
-
-
-  if (
-    craftWorld.layer <
-    craftLayers.length -
-    1
-  ) {
-
-    craftWorld.layer++;
-
-
-    S.level();
-
-
-    toast(
-      `⛏️ Descended to ${craftLayers[craftWorld.layer].name}!`
-    );
-  }
-
-  else {
-
-    craftWorld.layer =
-      0;
-
-
-    S.ultimate();
-
-
-    reward(
-      25,
-      20,
-      'MusicVerse Core completed!'
-    );
-
-
-    toast(
-      '🎼 You reached the Core of MusicVerse!'
-    );
-  }
-
-
-  newCraftWorld();
-}
-
-
-if (
-  $('#craftDescendBtn')
-) {
-
-  $('#craftDescendBtn')
-  .onclick =
-    descendCraftLayer;
-}
-
-
-/* ============================
-   MUSICCRAFT MATERIALS
-============================ */
-
-function renderCraftMaterials() {
-
-  const el =
-    $('#craftMaterials');
-
-
-  if (
-    !el
-  ) {
-
-    return;
-  }
-
-
-  const mats =
-    Object.entries(
-      profile.materials ||
-      {}
-    )
-    .filter(
-      (
-        [
-          _,
-          amount
-        ]
-      ) =>
-        amount >
-        0
-    );
-
-
-  if (
-    !mats.length
-  ) {
-
-    el.innerHTML =
-      '<p class="muted">Mine blocks to collect materials.</p>';
-
-
-    return;
-  }
-
-
-  el.innerHTML =
-    mats
-    .map(
-      (
-        [
-          name,
-          amount
-        ]
-      ) => {
-
-        const layer =
-          craftLayers.find(
-            l =>
-              l.block ===
-              name
-          );
-
-
-        return `
-
-          <div class="craft-material">
-
-            <span>
-              ${
-                layer
-                  ? layer.icon
-                  : name ===
-                    'Treasure'
-                    ? '🎁'
-                    : '📦'
-              }
-            </span>
-
-            <strong>
-              ${name}
-            </strong>
-
-            <b>
-              ${amount}
-            </b>
-
-          </div>
-        `;
-      }
-    )
-    .join('');
-}
-
-
-/* ============================
-   CRAFT PET EGGS
-============================ */
+/* =========================================================
+   RENDER MUSICCRAFT EGGS
+========================================================= */
 
 function renderCraftEggs() {
 
-  const el =
-    $('#craftEggs');
+  const element =
+    $('#craftEggInventory');
 
 
   if (
-    !el
+    !element
   ) {
 
     return;
@@ -16653,285 +15068,462 @@ function renderCraftEggs() {
 
   const eggs =
     profile.petEggs.filter(
-      e =>
-        !e.hatched
+      egg =>
+        !egg.hatched
     );
 
 
-  if (
-    !eggs.length
-  ) {
+  element.innerHTML =
 
-    el.innerHTML =
-      '<p class="muted">No unhatched eggs yet.</p>';
+    eggs.length
 
+      ? eggs
+        .slice(
+          -8
+        )
+        .map(
+          egg => `
 
-    return;
-  }
+            <div class="craft-egg-card">
 
-
-  el.innerHTML =
-    eggs
-    .map(
-      egg => `
-
-        <div class="craft-egg">
-
-          <span class="egg-icon">
-            ${egg.icon}
-          </span>
-
-          <div>
-
-            <strong>
-              ${egg.egg}
-            </strong>
-
-            <small>
-              Found in ${egg.layer}
-            </small>
-
-          </div>
-
-          <button
-            class="btn small gold"
-            data-hatch="${egg.id}"
-          >
-            Hatch
-          </button>
-
-        </div>
-      `
-    )
-    .join('');
+              <div class="craft-egg-icon">
+                ${egg.icon}
+              </div>
 
 
-  $$(
-    '[data-hatch]'
-  )
+              <div>
+
+                <strong>
+                  ${egg.egg}
+                </strong>
+
+                <small>
+                  ${egg.layer}
+                </small>
+
+              </div>
+
+
+              <button
+                class="btn gold small"
+                data-hatch-egg="${egg.id}"
+              >
+                Hatch
+              </button>
+
+            </div>
+          `
+        )
+        .join('')
+
+      : '<p class="muted">No eggs discovered yet.</p>';
+
+
+  $$('[data-hatch-egg]')
   .forEach(
-    b =>
-      b.onclick =
+    button => {
+
+      button.onclick =
         () =>
           hatchCraftEgg(
-            b.dataset.hatch
-          )
+            button.dataset.hatchEgg
+          );
+    }
   );
 }
 
 
-/* ============================
-   MUSICCRAFT MISSIONS
-============================ */
+/* =========================================================
+   CHECK DEPTH DESCENT
+========================================================= */
 
-const craftMissions = [
+function checkCraftDescent() {
 
-  {
-    goal: 10,
-    label: 'Mine 10 blocks'
-  },
+  let minedBottom =
+    0;
 
-  {
-    goal: 25,
-    label: 'Mine 25 blocks'
-  },
 
-  {
-    goal: 40,
-    label: 'Mine 40 blocks'
-  },
+  for (
+    let y = 9;
+    y < 12;
+    y++
+  ) {
 
-  {
-    goal: 60,
-    label: 'Mine 60 blocks'
-  },
+    for (
+      let x = 0;
+      x < 20;
+      x++
+    ) {
 
-  {
-    goal: 70,
-    label: 'Clear the layer'
+      if (
+        craftWorld[y][x] ===
+        null
+      ) {
+
+        minedBottom++;
+      }
+    }
   }
-];
-
-
-/* ============================
-   RENDER CRAFT MISSION
-============================ */
-
-function renderCraftMission() {
-
-  const el =
-    $('#craftMission');
 
 
   if (
-    !el
+    minedBottom >=
+      12 &&
+
+    craftDepth <
+      craftTypesByDepth.length -
+      1
+  ) {
+
+    craftDepth++;
+
+
+    craftLayer++;
+
+
+    reward(
+
+      8 +
+      craftDepth *
+      2,
+
+      5 +
+      craftDepth *
+      2,
+
+      `⛏️ Descended to ${getCraftDepthName()}!`
+    );
+
+
+    generateCraftLayer();
+
+
+    return true;
+  }
+
+
+  return false;
+}
+
+
+/* =========================================================
+   MUSICCRAFT CANVAS CLICK
+========================================================= */
+
+if (
+  craftCanvas
+) {
+
+  craftCanvas.onclick =
+    event => {
+
+      const rect =
+        craftCanvas
+        .getBoundingClientRect();
+
+
+      const x =
+        Math.floor(
+
+          (
+            event.clientX -
+            rect.left
+          ) /
+
+          rect.width *
+
+          20
+        );
+
+
+      const y =
+        Math.floor(
+
+          (
+            event.clientY -
+            rect.top
+          ) /
+
+          rect.height *
+
+          12
+        );
+
+
+      const block =
+        craftWorld[y]?.[x];
+
+
+      if (
+        !block
+      ) {
+
+        return;
+      }
+
+
+/* =========================================================
+   REMOVE BLOCK
+========================================================= */
+
+      craftWorld[y][x] =
+        null;
+
+
+/* =========================================================
+   PET EGG BLOCK
+========================================================= */
+
+      if (
+        block[0] ===
+        'PET_EGG'
+      ) {
+
+        collectCraftPetEgg(
+          block[4]
+        );
+
+
+        renderCraft();
+
+
+        return;
+      }
+
+
+/* =========================================================
+   ADD MATERIAL
+========================================================= */
+
+      profile.materials[
+        block[0]
+      ] =
+        (
+          profile.materials[
+            block[0]
+          ] ||
+          0
+        ) +
+        1;
+
+
+      craftMined++;
+
+
+      progressQuest(
+        'mine',
+        1
+      );
+
+
+/* =========================================================
+   BLOCK REWARDS
+========================================================= */
+
+      const coin =
+        Math.max(
+
+          0,
+
+          Math.floor(
+            block[2] *
+            0.15
+          )
+        );
+
+
+      const xp =
+
+        block[2] >=
+        12
+
+          ? Math.max(
+
+              1,
+
+              Math.floor(
+                block[2] *
+                0.08
+              )
+            )
+
+          : 0;
+
+
+      if (
+        coin
+      ) {
+
+        profile.coins +=
+          coin;
+      }
+
+
+      if (
+        xp
+      ) {
+
+        addXP(
+          xp
+        );
+      }
+
+
+/* =========================================================
+   MYTHIC CORE SHARD
+========================================================= */
+
+      if (
+        block[0] ===
+        'CoreShard'
+      ) {
+
+        profile.coins +=
+          25;
+
+
+        addXP(
+          15
+        );
+
+
+        S.ultimate();
+
+
+        toast(
+          '🌟 MYTHIC CORE SHARD! +25 Coins • +15 EXP'
+        );
+      }
+
+
+      persist();
+
+      updateProfileUI();
+
+      S.mine();
+
+
+/* =========================================================
+   DESCEND IF BOTTOM CLEARED
+========================================================= */
+
+      const descended =
+
+        y >= 10 &&
+
+        checkCraftDescent();
+
+
+      if (
+        !descended
+      ) {
+
+        renderCraft();
+      }
+    };
+}
+
+
+/* =========================================================
+   MINING MISSION
+========================================================= */
+
+$('#missionBtn').onclick =
+  () => {
+
+    if (
+      craftMined <
+      12
+    ) {
+
+      return toast(
+        'Mine 12 blocks first.'
+      );
+    }
+
+
+    reward(
+
+      8,
+
+      5,
+
+      'Mining mission complete!'
+    );
+
+
+    craftMined =
+      0;
+
+
+    renderCraft();
+  };
+
+
+/* =========================================================
+   NEW MUSICCRAFT WORLD BUTTON
+========================================================= */
+
+$('#newWorldBtn').onclick =
+  () =>
+    newCraftWorld();
+/* =========================================================
+   LEADERBOARD
+========================================================= */
+
+const leaderboardBots = Array.from(
+
+  {
+    length:
+      99
+  },
+
+  (
+    _,
+    index
+  ) => ({
+
+    name:
+      `${pick(botNames)}${index + 1}`,
+
+    level:
+      rand(
+        1,
+        70
+      ),
+
+    xp:
+      rand(
+        100,
+        8000
+      )
+  })
+);
+
+
+/* =========================================================
+   RENDER LEADERBOARD
+========================================================= */
+
+function renderLeaderboard() {
+
+  const element =
+    $('#leaderboardList');
+
+
+  if (
+    !element
   ) {
 
     return;
   }
 
 
-  const mission =
-    craftMissions[
-      Math.min(
-        craftMissions.length -
-        1,
-
-        craftWorld.mission
-      )
-    ];
-
-
-  const progress =
-    Math.min(
-      craftWorld.mined,
-
-      mission.goal
-    );
-
-
-  const done =
-    progress >=
-    mission.goal;
-
-
-  el.innerHTML = `
-
-    <div class="craft-mission-card">
-
-      <strong>
-        ⛏️ Mining Mission
-      </strong>
-
-      <span>
-        ${mission.label}
-      </span>
-
-      <div class="quest-progress">
-        <i
-          style="
-            width:${
-              progress /
-              mission.goal *
-              100
-            }%
-          "
-        ></i>
-      </div>
-
-      <small>
-        ${progress}/${mission.goal}
-      </small>
-
-      ${
-        done
-
-          ? `
-
-            <button
-              id="claimCraftMission"
-              class="btn gold small"
-            >
-              Claim +8 EXP +5 Coins
-            </button>
-          `
-
-          : ''
-      }
-
-    </div>
-  `;
-
-
-  if (
-    done
-  ) {
-
-    $('#claimCraftMission')
-    .onclick =
-      () => {
-
-        reward(
-          8,
-          5,
-          'Mining mission complete!'
-        );
-
-
-        craftWorld.mission =
-          (
-            craftWorld.mission +
-            1
-          ) %
-          craftMissions.length;
-
-
-        renderCraftMission();
-      };
-  }
-}
-
-
-/* ============================
-   MUSICCRAFT REFRESH BUTTON
-============================ */
-
-if (
-  $('#craftRefreshBtn')
-) {
-
-  $('#craftRefreshBtn')
-  .onclick =
-    () => {
-
-      newCraftWorld();
-
-
-      toast(
-        '⛏️ Mining area regenerated.'
-      );
-    };
-}
-      /* ============================
-   LEADERBOARD
-============================ */
-
-function renderLeaderboard() {
-
-  const bots =
-    Array.from(
-      {
-        length: 99
-      },
-
-      (
-        _,
-        i
-      ) => ({
-
-        name:
-          `${pick(botNames)}${i + 1}`,
-
-        level:
-          rand(
-            1,
-            70
-          ),
-
-        xp:
-          rand(
-            100,
-            8000
-          )
-      })
-    );
-
-
-  bots.push({
+  const player = {
 
     name:
       profile.name ||
-      'You',
+      'Player',
 
     level:
       profile.level,
@@ -16939,277 +15531,257 @@ function renderLeaderboard() {
     xp:
       profile.totalXp,
 
-    you:
+    player:
       true
-  });
+  };
 
 
-  bots.sort(
+  const list = [
+
+    player,
+
+    ...leaderboardBots
+
+  ]
+  .sort(
     (
       a,
       b
     ) =>
+
       b.xp -
       a.xp
   );
 
 
-  const rank =
-    bots.findIndex(
-      x =>
-        x.you
-    ) +
-    1;
+  const playerRank =
+    list.findIndex(
+      item =>
+        item.player
+    ) + 1;
 
 
-  $('#yourRank')
-  .textContent =
-    '#' +
-    rank;
+  $('#leaderboardRank').textContent =
+    `#${playerRank}`;
 
 
-/* ============================
-   TOP 3 PODIUM
-============================ */
+  element.innerHTML =
 
-  $('#podium')
-  .innerHTML =
-    bots
+    list
     .slice(
       0,
-      3
+      20
     )
     .map(
       (
-        x,
-        i
+        item,
+        index
       ) => `
 
-        <div>
-
-          <span>
+        <div
+          class="
+            leaderboard-row
             ${
-              [
-                '🥇',
-                '🥈',
-                '🥉'
-              ][i]
-            }
-          </span>
-
-          <b>
-            ${x.name}
-          </b>
-
-          <small>
-            ${x.xp.toLocaleString()} EXP
-          </small>
-
-        </div>
-      `
-    )
-    .join('');
-
-
-/* ============================
-   FULL LEADERBOARD TABLE
-============================ */
-
-  $('#leaderboardBody')
-  .innerHTML =
-    bots
-    .map(
-      (
-        x,
-        i
-      ) => `
-
-        <tr
-          ${
-            x.you
-              ? 'style="background:#12263c"'
-              : ''
-          }
-        >
-
-          <td>
-            #${i + 1}
-          </td>
-
-
-          <td>
-
-            ${
-              x.you
-                ? '⭐ '
+              item.player
+                ? 'player-row'
                 : ''
             }
+          "
+        >
 
-            ${x.name}
-
-          </td>
-
-
-          <td>
-            ${x.level}
-          </td>
+          <span class="leaderboard-position">
+            #${index + 1}
+          </span>
 
 
-          <td>
-            ${x.xp.toLocaleString()}
-          </td>
+          <div class="leaderboard-name">
 
-        </tr>
+            <strong>
+              ${item.name}
+            </strong>
+
+            <small>
+              Level ${item.level}
+            </small>
+
+          </div>
+
+
+          <b>
+            ${item.xp.toLocaleString()} EXP
+          </b>
+
+        </div>
       `
     )
     .join('');
 }
 
 
-/* ============================
+/* =========================================================
    MUSIC QUIZ
-============================ */
+========================================================= */
 
-const quizQs = [
+const quizQuestions = [
 
-  [
-    'Which instrument usually has 88 keys?',
+  {
+    question:
+      'Which instrument belongs to the Strings family?',
 
-    [
-      'Piano',
-      'Violin',
-      'Flute',
-      'Trumpet'
-    ],
-
-    0
-  ],
-
-
-  [
-    'Which family does the trumpet belong to?',
-
-    [
-      'Strings',
-      'Brass',
-      'Keys',
-      'Woodwind'
-    ],
-
-    1
-  ],
-
-
-  [
-    'What does tempo describe?',
-
-    [
-      'Volume',
-      'Speed',
-      'Pitch',
-      'Instrument size'
-    ],
-
-    1
-  ],
-
-
-  [
-    'Which instrument is played with a bow?',
-
-    [
+    options: [
       'Violin',
       'Trumpet',
-      'Drums',
-      'Flute'
-    ],
-
-    0
-  ],
-
-
-  [
-    'Which symbol often means a musical note?',
-
-    [
-      '♪',
-      '©',
-      '%',
-      '@'
-    ],
-
-    0
-  ],
-
-
-  [
-    'Which instrument is percussion?',
-
-    [
-      'Drums',
-      'Cello',
-      'Saxophone',
-      'Harp'
-    ],
-
-    0
-  ],
-
-
-  [
-    'What is a melody?',
-
-    [
-      'A sequence of notes',
-      'A stage light',
-      'A drum stick',
-      'A microphone'
-    ],
-
-    0
-  ],
-
-
-  [
-    'Which is a woodwind instrument?',
-
-    [
-      'Clarinet',
-      'Tuba',
-      'Piano',
-      'Guitar'
-    ],
-
-    0
-  ],
-
-
-  [
-    'What does forte usually mean?',
-
-    [
-      'Loud',
-      'Soft',
-      'Slow',
-      'Silent'
-    ],
-
-    0
-  ],
-
-
-  [
-    'Which instrument has strings and pedals?',
-
-    [
-      'Harp',
       'Flute',
-      'Bongos',
-      'Cornet'
+      'Drums'
     ],
 
-    0
-  ]
+    answer:
+      'Violin'
+  },
+
+
+  {
+    question:
+      'Which instrument is mainly played using keys?',
+
+    options: [
+      'Piano',
+      'Tuba',
+      'Bongos',
+      'Recorder'
+    ],
+
+    answer:
+      'Piano'
+  },
+
+
+  {
+    question:
+      'Which instrument belongs to the Brass family?',
+
+    options: [
+      'Trumpet',
+      'Cello',
+      'Harp',
+      'Clarinet'
+    ],
+
+    answer:
+      'Trumpet'
+  },
+
+
+  {
+    question:
+      'Which instrument is a percussion instrument?',
+
+    options: [
+      'Drums',
+      'Oboe',
+      'Violin',
+      'Sitar'
+    ],
+
+    answer:
+      'Drums'
+  },
+
+
+  {
+    question:
+      'Which instrument is a woodwind instrument?',
+
+    options: [
+      'Flute',
+      'Trombone',
+      'Piano',
+      'Bass Guitar'
+    ],
+
+    answer:
+      'Flute'
+  },
+
+
+  {
+    question:
+      'What does tempo describe in music?',
+
+    options: [
+      'Speed',
+      'Volume',
+      'Instrument colour',
+      'Number of singers'
+    ],
+
+    answer:
+      'Speed'
+  },
+
+
+  {
+    question:
+      'What does rhythm mainly describe?',
+
+    options: [
+      'The pattern of beats',
+      'The colour of an instrument',
+      'The size of a stage',
+      'The name of a song'
+    ],
+
+    answer:
+      'The pattern of beats'
+  },
+
+
+  {
+    question:
+      'Which of these is a keyboard instrument?',
+
+    options: [
+      'Organ',
+      'Tuba',
+      'Piccolo',
+      'Congas'
+    ],
+
+    answer:
+      'Organ'
+  },
+
+
+  {
+    question:
+      'Which instrument is typically played with a bow?',
+
+    options: [
+      'Cello',
+      'Trumpet',
+      'Tambourine',
+      'Accordion'
+    ],
+
+    answer:
+      'Cello'
+  },
+
+
+  {
+    question:
+      'Which instrument belongs to the World family in MusicVerse?',
+
+    options: [
+      'Guzheng',
+      'French Horn',
+      'Drum Machine',
+      'Harpsichord'
+    ],
+
+    answer:
+      'Guzheng'
+  }
 ];
 
 
@@ -17221,107 +15793,169 @@ let quizScore =
   0;
 
 
-/* ============================
+/* =========================================================
    RENDER QUIZ
-============================ */
+========================================================= */
 
 function renderQuiz() {
 
-  const q =
-    quizQs[
+  const element =
+    $('#quizBody');
+
+
+  if (
+    !element
+  ) {
+
+    return;
+  }
+
+
+/* =========================================================
+   QUIZ COMPLETE
+========================================================= */
+
+  if (
+    quizIndex >=
+    quizQuestions.length
+  ) {
+
+    element.innerHTML = `
+
+      <div class="quiz-complete">
+
+        <h3>
+          Quiz Complete!
+        </h3>
+
+        <p>
+          You scored
+          <strong>
+            ${quizScore}/${quizQuestions.length}
+          </strong>
+        </p>
+
+        <button
+          id="restartQuizBtn"
+          class="btn gold"
+        >
+          Play Again
+        </button>
+
+      </div>
+    `;
+
+
+    $('#restartQuizBtn').onclick =
+      () => {
+
+        quizIndex =
+          0;
+
+
+        quizScore =
+          0;
+
+
+        renderQuiz();
+      };
+
+
+    return;
+  }
+
+
+  const question =
+    quizQuestions[
       quizIndex
     ];
 
 
-  $('#quizScore')
-  .textContent =
-    quizScore;
+  element.innerHTML = `
+
+    <div class="quiz-card">
+
+      <div class="quiz-progress">
+
+        Question
+        ${quizIndex + 1}
+        /
+        ${quizQuestions.length}
+
+      </div>
 
 
-  $('#quizCard')
-  .innerHTML = `
-
-    <span class="eyebrow">
-      QUESTION ${quizIndex + 1}/${quizQs.length}
-    </span>
+      <h3>
+        ${question.question}
+      </h3>
 
 
-    <h3>
-      ${q[0]}
-    </h3>
+      <div class="quiz-options">
+
+        ${
+          question.options
+          .map(
+            option => `
+
+              <button
+                data-quiz-answer="${option}"
+              >
+                ${option}
+              </button>
+            `
+          )
+          .join('')
+        }
+
+      </div>
 
 
-    <div class="quiz-options">
-
-      ${
-        q[1]
-        .map(
-          (
-            a,
-            i
-          ) => `
-
-            <button
-              data-quiz="${i}"
-            >
-              ${a}
-            </button>
-          `
-        )
-        .join('')
-      }
+      <p id="quizFeedback"></p>
 
     </div>
   `;
 
 
-/* ============================
+/* =========================================================
    QUIZ ANSWERS
-============================ */
+========================================================= */
 
-  $$(
-    '[data-quiz]'
-  )
+  $$('[data-quiz-answer]')
   .forEach(
-    b =>
-      b.onclick =
+    button => {
+
+      button.onclick =
         () => {
 
-          const i =
-            +b.dataset.quiz;
+          const correct =
+            button.dataset
+            .quizAnswer ===
+            question.answer;
 
 
-          const ok =
-            i ===
-            q[2];
-
-
-          $$(
-            '[data-quiz]'
-          )
+          $$('[data-quiz-answer]')
           .forEach(
-            x =>
-              x.disabled =
-                true
+            answerButton => {
+
+              answerButton.disabled =
+                true;
+            }
           );
 
 
-          b.classList.add(
-            ok
-              ? 'correct'
-              : 'wrong'
-          );
-
-
-/* ============================
-   CORRECT QUIZ ANSWER
-============================ */
+/* =========================================================
+   CORRECT ANSWER
+========================================================= */
 
           if (
-            ok
+            correct
           ) {
 
             quizScore++;
+
+
+            profile.coins +=
+              1;
 
 
             addXP(
@@ -17329,31 +15963,36 @@ function renderQuiz() {
             );
 
 
-            profile.coins +=
-              1;
-
-
             persist();
 
             updateProfileUI();
+
+
+            $('#quizFeedback').textContent =
+              '✅ Correct! +2 EXP • +1 Coin';
+
 
             S.correct();
           }
 
 
-/* ============================
-   WRONG QUIZ ANSWER
-============================ */
+/* =========================================================
+   WRONG ANSWER
+========================================================= */
 
           else {
+
+            $('#quizFeedback').textContent =
+              `❌ Correct answer: ${question.answer}`;
+
 
             S.wrong();
           }
 
 
-/* ============================
+/* =========================================================
    NEXT QUIZ QUESTION
-============================ */
+========================================================= */
 
           setTimeout(
             () => {
@@ -17361,189 +16000,80 @@ function renderQuiz() {
               quizIndex++;
 
 
-              if (
-                quizIndex >=
-                quizQs.length
-              ) {
-
-                $('#quizCard')
-                .innerHTML = `
-
-                  <h3>
-                    Quiz complete:
-                    ${quizScore}/${quizQs.length}
-                  </h3>
-
-
-                  <button
-                    id="quizRestart"
-                    class="btn gold"
-                  >
-                    Play Again
-                  </button>
-                `;
-
-
-                $('#quizRestart')
-                .onclick =
-                  () => {
-
-                    quizIndex =
-                      0;
-
-
-                    quizScore =
-                      0;
-
-
-                    renderQuiz();
-                  };
-              }
-
-              else {
-
-                renderQuiz();
-              }
+              renderQuiz();
             },
 
-            650
+            850
           );
-        }
+        };
+    }
   );
 }
 
 
-/* ============================
-   START MUSICVERSE
-============================ */
-
-
-/* PROFILE */
+/* =========================================================
+   STARTUP / INITIALIZATION
+========================================================= */
 
 setupProfile();
 
-
 updateProfileUI();
-
-
-/* DAILY REWARDS */
 
 renderDailyRewards();
 
-
-/* INSTRUMENT COLLECTION */
-
 renderFamilies();
 
-
 renderInstruments();
-
-
-/* SOLO BATTLE */
 
 refreshBattle(
   true
 );
 
-
-/* TEAM BATTLE */
-
 openLobby(
   10
 );
 
-
-/* ARCADE */
-
 renderGameCards();
-
-
-/* GACHA */
 
 updateGachaUI();
 
-
 renderInventory();
-
-
-/* MUSICCRAFT */
 
 newCraftWorld();
 
-
-/* LEADERBOARD */
-
 renderLeaderboard();
-
-
-/* QUIZ */
 
 renderQuiz();
 
-
-/* QUESTS */
-
 ensureQuests();
-
 
 renderQuests();
 
-
-/* EQUIPMENT */
-
 renderEquipment();
-
-
-/* PETS */
 
 renderPets();
 
-
-/* INSTRUMENT EVOLUTION */
-
 renderEvolutionPanel();
-
-
-/* INSTRUMENT WORKSHOP */
 
 renderInstrumentUpgradePanel();
 
-
-/* SKILL TREE */
-
 renderSkillTree();
-
-
-/* ADVENTURE RPG */
 
 setupRpg();
 
 
-/* DAILY REWARD BUTTON */
+/* =========================================================
+   DAILY REWARD BUTTON
+========================================================= */
 
-$('#claimDailyBtn')
-.onclick =
-  claimDailyReward;
-let craftWorld = {
+const claimDailyBtn =
+  $('#claimDailyBtn');
 
-  layer: 0,
 
-  blocks: [],
+if (
+  claimDailyBtn
+) {
 
-  mined: 0,
-
-  mission: 0
-};
-      
-
-      if (
-        e.key ===
-        'Enter'
-      ) {
-
-        $('#startBtn')
-        .click();
-      }
-    }
-  );
+  claimDailyBtn.onclick =
+    claimDailyReward;
 }
