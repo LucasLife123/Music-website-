@@ -1,610 +1,1514 @@
-/* =========================================================
-   LEADERBOARD
-========================================================= */
+<!doctype html>
+<html lang="en">
 
-const leaderboardBots = Array.from(
+<head>
+  <meta charset="utf-8">
 
-  {
-    length:
-      99
-  },
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
 
-  (
-    _,
-    index
-  ) => ({
+  <title>MusicVerse</title>
 
-    name:
-      `${pick(botNames)}${index + 1}`,
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    level:
-      rand(
-        1,
-        70
-      ),
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Montserrat:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
 
-    xp:
-      rand(
-        100,
-        8000
-      )
-  })
-);
+  <!-- MUSICVERSE CSS -->
+  <link rel="stylesheet" href="./style.css">
+</head>
 
+<body>
 
-/* =========================================================
-   RENDER LEADERBOARD
-========================================================= */
+  <!-- ============================
+       PLAYER SETUP
+  ============================ -->
 
-function renderLeaderboard() {
+  <div id="setupOverlay" class="overlay hidden">
 
-  const element =
-    $('#leaderboardList');
+    <div class="setup-card panel">
 
+      <span class="eyebrow">WELCOME TO</span>
 
-  if (
-    !element
-  ) {
+      <h1>MusicVerse</h1>
 
-    return;
-  }
+      <p>Create your musician and enter the world.</p>
 
+      <div class="setup-grid">
 
-  const player = {
+        <div class="setup-preview">
 
-    name:
-      profile.name ||
-      'Player',
+          <div
+            id="avatarPreviewCharacter"
+            class="avatar-preview-character"
+          >
 
-    level:
-      profile.level,
+            <div
+              id="previewHair"
+              class="preview-hair"
+            ></div>
 
-    xp:
-      profile.totalXp,
+            <div
+              id="previewHead"
+              class="preview-head"
+            >
+              <i></i>
+              <i></i>
+            </div>
 
-    player:
-      true
-  };
+            <div
+              id="previewBody"
+              class="preview-body"
+            ></div>
 
+            <div class="preview-arm left"></div>
+            <div class="preview-arm right"></div>
 
-  const list = [
+            <div class="preview-leg left"></div>
+            <div class="preview-leg right"></div>
 
-    player,
+          </div>
 
-    ...leaderboardBots
-
-  ]
-  .sort(
-    (
-      a,
-      b
-    ) =>
-
-      b.xp -
-      a.xp
-  );
+        </div>
 
 
-  const playerRank =
-    list.findIndex(
-      item =>
-        item.player
-    ) + 1;
+        <div class="setup-fields">
+
+          <label>
+            Name
+            <input
+              id="playerNameInput"
+              maxlength="18"
+              placeholder="Your stage name"
+            >
+          </label>
+
+          <label>
+            Preset
+            <select id="avatarPresetSelect"></select>
+          </label>
+
+          <label>
+            Skin
+            <select id="skinSelect"></select>
+          </label>
+
+          <label>
+            Hair
+            <select id="hairSelect"></select>
+          </label>
+
+          <label>
+            Outfit
+            <select id="outfitSelect"></select>
+          </label>
+
+          <button
+            id="startBtn"
+            class="btn gold"
+          >
+            Enter MusicVerse
+          </button>
+
+          <div
+            id="setupError"
+            class="error-text"
+          ></div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
 
 
-  $('#leaderboardRank').textContent =
-    `#${playerRank}`;
+  <!-- ============================
+       TOP NAVIGATION
+  ============================ -->
+
+  <header class="topbar">
+
+    <a
+      class="brand"
+      href="#home"
+    >
+      MUSIC<span>VERSE</span>
+    </a>
 
 
-  element.innerHTML =
+    <nav>
 
-    list
-    .slice(
-      0,
-      20
-    )
-    .map(
-      (
-        item,
-        index
-      ) => `
+      <a href="#adventure">Adventure</a>
 
-        <div
-          class="
-            leaderboard-row
-            ${
-              item.player
-                ? 'player-row'
-                : ''
-            }
-          "
+      <a href="#dailyRewards">Daily Rewards</a>
+
+      <a href="#instruments">Instruments</a>
+
+      <a href="#battle">Battle</a>
+
+      <a href="#multiplayer">Team Battle</a>
+
+      <a href="#games">Games</a>
+
+      <a href="#gacha">Gacha</a>
+
+      <a href="#musiccraft">MusicCraft</a>
+
+      <a href="#leaderboard">Top 100</a>
+
+      <a href="#quiz">Quiz</a>
+
+    </nav>
+
+
+    <div class="top-actions">
+
+      <button
+        id="soundToggle"
+        class="icon-btn"
+        title="Sound"
+      >
+        🔊
+      </button>
+
+      <span>
+        🪙
+        <b id="coinTop">0</b>
+      </span>
+
+      <span>
+        ✨
+        <b id="levelTop">1</b>
+      </span>
+
+    </div>
+
+  </header>
+
+
+  <main>
+
+
+    <!-- ============================
+         HOME
+    ============================ -->
+
+    <section
+      id="home"
+      class="hero section"
+    >
+
+      <div class="hero-copy">
+
+        <span
+          id="heroBadge"
+          class="eyebrow"
         >
+          MUSICVERSE PLAYER
+        </span>
 
-          <span class="leaderboard-position">
-            #${index + 1}
+        <h1>
+          Play. Battle. Perform.
+          <em>Level up everywhere.</em>
+        </h1>
+
+        <p>
+          One avatar, one EXP system, one connected music universe.
+        </p>
+
+        <div class="hero-buttons">
+
+          <a
+            class="btn gold"
+            href="#games"
+          >
+            Play Games
+          </a>
+
+          <a
+            class="btn ghost"
+            href="#multiplayer"
+          >
+            Team Battle
+          </a>
+
+        </div>
+
+      </div>
+
+
+      <div class="profile-card panel">
+
+        <div class="mini-avatar">
+
+          <div class="mini-hair"></div>
+
+          <div class="mini-head"></div>
+
+          <div class="mini-body"></div>
+
+        </div>
+
+
+        <div>
+
+          <span class="eyebrow">
+            PROFILE
           </span>
 
+          <h2 id="heroName">
+            Player
+          </h2>
 
-          <div class="leaderboard-name">
+          <p>
+            Level
+            <b id="heroLevel">1</b>
+          </p>
 
-            <strong>
-              ${item.name}
-            </strong>
+        </div>
 
-            <small>
-              Level ${item.level}
-            </small>
+
+        <div class="xp-wrap">
+
+          <div>
+
+            <span>EXP</span>
+
+            <b id="xpText">
+              0 / 100
+            </b>
+
+          </div>
+
+          <div class="xpbar">
+            <i id="xpFill"></i>
+          </div>
+
+        </div>
+
+
+        <div class="profile-stats">
+
+          <div>
+            <b id="heroCoins">0</b>
+            <span>Coins</span>
+          </div>
+
+          <div>
+            <b id="heroDust">0</b>
+            <span>Dust</span>
+          </div>
+
+          <div>
+            <b id="heroLifetime">0</b>
+            <span>Total EXP</span>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ============================
+         DAILY REWARDS
+    ============================ -->
+
+    <section
+      id="dailyRewards"
+      class="section"
+    >
+
+      <div class="section-head">
+
+        <div>
+
+          <span class="eyebrow">
+            LOGIN BONUS
+          </span>
+
+          <h2>
+            Daily Rewards
+          </h2>
+
+        </div>
+
+
+        <div class="daily-streak">
+
+          🔥
+
+          <strong id="dailyStreakLabel">
+            0
+          </strong>
+
+          Day Streak
+
+        </div>
+
+      </div>
+
+
+      <div class="panel daily-rewards-panel">
+
+        <div
+          id="dailyRewardGrid"
+          class="daily-reward-grid"
+        ></div>
+
+        <button
+          id="claimDailyBtn"
+          class="btn gold daily-claim-btn"
+        >
+          CLAIM TODAY'S REWARD
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- ============================
+         ADVENTURE RPG
+    ============================ -->
+
+    <section
+      id="adventure"
+      class="section"
+    >
+
+      <div class="section-head">
+
+        <div>
+
+          <span class="eyebrow">
+            MAIN RPG
+          </span>
+
+          <h2>
+            MusicVerse Adventure
+          </h2>
+
+        </div>
+
+        <div class="shared-progress">
+          Story • Quests • Gear • Pets • Evolution
+        </div>
+
+      </div>
+
+
+      <div class="adventure-layout">
+
+
+        <div class="panel adventure-main">
+
+          <div class="rpg-toolbar">
+
+            <span class="game-stat">
+              Zone
+              <b id="rpgZoneName">
+                Melody Village
+              </b>
+            </span>
+
+            <span class="game-stat">
+              HP
+              <b id="rpgHpText">
+                100 / 100
+              </b>
+            </span>
+
+            <span class="game-stat">
+              Story
+              <b id="rpgStoryText">
+                1 / 10
+              </b>
+            </span>
 
           </div>
 
 
-          <b>
-            ${item.xp.toLocaleString()} EXP
+          <div
+            id="rpgMap"
+            class="rpg-map"
+            tabindex="0"
+          ></div>
+
+
+          <p
+            id="rpgMessage"
+            class="muted"
+          >
+            Use WASD or arrow keys to explore.
+            Walk into enemies to battle them.
+          </p>
+
+
+          <div
+            id="rpgBattlePanel"
+            class="rpg-battle-panel hidden"
+          ></div>
+
+
+          <div class="rpg-controls">
+
+            <button
+              id="rpgUp"
+              class="btn ghost"
+            >
+              ↑
+            </button>
+
+            <div>
+
+              <button
+                id="rpgLeft"
+                class="btn ghost"
+              >
+                ←
+              </button>
+
+              <button
+                id="rpgDown"
+                class="btn ghost"
+              >
+                ↓
+              </button>
+
+              <button
+                id="rpgRight"
+                class="btn ghost"
+              >
+                →
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="adventure-side">
+
+          <div class="panel adventure-card">
+
+            <h3>📜 Active Quests</h3>
+
+            <div
+              id="questList"
+              class="quest-list"
+            ></div>
+
+          </div>
+
+
+          <div class="panel adventure-card">
+
+            <h3>🎒 Equipment</h3>
+
+            <div
+              id="equipmentList"
+              class="equipment-list"
+            ></div>
+
+          </div>
+
+
+          <div class="panel adventure-card">
+
+            <h3>🐾 Pets</h3>
+
+            <div
+              id="petList"
+              class="pet-list"
+            ></div>
+
+          </div>
+
+
+          <div class="panel adventure-card">
+
+            <h3>
+              🔨 Instrument Evolution
+            </h3>
+
+            <div id="evolutionPanel"></div>
+
+          </div>
+
+
+          <div class="panel adventure-card instrument-workshop-card">
+
+            <div class="workshop-header">
+
+              <div>
+
+                <span class="eyebrow">
+                  INSTRUMENT DEVELOPMENT
+                </span>
+
+                <h3>
+                  🎵 Instrument Workshop
+                </h3>
+
+                <p>
+                  Select one of your owned instruments and upgrade it individually.
+                </p>
+
+              </div>
+
+              <span class="workshop-max">
+                MAX LV. 20
+              </span>
+
+            </div>
+
+            <div id="instrumentWorkshop"></div>
+
+          </div>
+
+
+          <div class="panel adventure-card skill-tree-card">
+
+            <div class="skill-tree-head">
+
+              <div>
+
+                <h3>
+                  🌳 Skill Tree
+                </h3>
+
+                <p>
+                  Spend skill points earned every 2 player levels.
+                </p>
+
+              </div>
+
+
+              <div class="skill-points-badge">
+
+                <b id="skillPointsAvailable">
+                  0
+                </b>
+
+                <span>
+                  Skill Points
+                </span>
+
+              </div>
+
+            </div>
+
+            <div
+              id="skillTree"
+              class="skill-tree"
+            ></div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ============================
+         INSTRUMENT LIBRARY
+    ============================ -->
+
+    <section
+      id="instruments"
+      class="section"
+    >
+
+      <div class="section-head">
+
+        <div>
+
+          <span class="eyebrow">
+            COLLECT & MASTER
+          </span>
+
+          <h2>
+            Instrument Library
+          </h2>
+
+        </div>
+
+
+        <input
+          id="instrumentSearch"
+          class="search"
+          placeholder="Search instruments..."
+        >
+
+      </div>
+
+
+      <div
+        id="familyTabs"
+        class="tabs"
+      ></div>
+
+
+      <div
+        id="instrumentGrid"
+        class="instrument-grid"
+      ></div>
+
+    </section>
+
+
+    <!-- ============================
+         SOLO BATTLE
+    ============================ -->
+
+    <section
+      id="battle"
+      class="section battle-section"
+    >
+
+      <div class="section-head">
+
+        <div>
+
+          <span class="eyebrow">
+            SOLO ARENA
+          </span>
+
+          <h2>
+            Battle Arena
+          </h2>
+
+        </div>
+
+        <select id="battleInstrumentSelect"></select>
+
+      </div>
+
+
+      <div class="battle-board panel">
+
+
+        <div class="fighter player-fighter">
+
+          <div
+            id="soloPlayerAvatar"
+            class="cool-avatar blue-avatar"
+          ></div>
+
+          <h3 id="playerBattleName">
+            Player
+          </h3>
+
+          <small id="playerInstrumentLabel">
+            Guitar
+          </small>
+
+          <div class="hpbar">
+            <i id="playerHpFill"></i>
+          </div>
+
+          <b id="playerHpText">
+            100 / 100
           </b>
 
         </div>
-      `
-    )
-    .join('');
-}
 
 
-/* =========================================================
-   MUSIC QUIZ
-========================================================= */
+        <div class="battle-center">
 
-const quizQuestions = [
+          <span class="versus">
+            VS
+          </span>
 
-  {
-    question:
-      'Which instrument belongs to the Strings family?',
+          <div id="battleStatus">
+            Choose a move.
+          </div>
 
-    options: [
-      'Violin',
-      'Trumpet',
-      'Flute',
-      'Drums'
-    ],
+          <div
+            id="energyPips"
+            class="energy-pips"
+          ></div>
 
-    answer:
-      'Violin'
-  },
+          <div
+            id="moveButtons"
+            class="move-grid"
+          ></div>
 
-
-  {
-    question:
-      'Which instrument is mainly played using keys?',
-
-    options: [
-      'Piano',
-      'Tuba',
-      'Bongos',
-      'Recorder'
-    ],
-
-    answer:
-      'Piano'
-  },
+        </div>
 
 
-  {
-    question:
-      'Which instrument belongs to the Brass family?',
+        <div class="fighter enemy-fighter">
 
-    options: [
-      'Trumpet',
-      'Cello',
-      'Harp',
-      'Clarinet'
-    ],
+          <div
+            id="soloEnemyAvatar"
+            class="cool-avatar red-avatar"
+          ></div>
 
-    answer:
-      'Trumpet'
-  },
+          <h3 id="cpuBattleName">
+            CPU
+          </h3>
 
+          <small id="cpuInstrumentLabel">
+            Piano
+          </small>
 
-  {
-    question:
-      'Which instrument is a percussion instrument?',
+          <div class="hpbar red">
+            <i id="cpuHpFill"></i>
+          </div>
 
-    options: [
-      'Drums',
-      'Oboe',
-      'Violin',
-      'Sitar'
-    ],
+          <b id="cpuHpText">
+            100 / 100
+          </b>
 
-    answer:
-      'Drums'
-  },
+        </div>
+
+      </div>
 
 
-  {
-    question:
-      'Which instrument is a woodwind instrument?',
-
-    options: [
-      'Flute',
-      'Trombone',
-      'Piano',
-      'Bass Guitar'
-    ],
-
-    answer:
-      'Flute'
-  },
-
-
-  {
-    question:
-      'What does tempo describe in music?',
-
-    options: [
-      'Speed',
-      'Volume',
-      'Instrument colour',
-      'Number of singers'
-    ],
-
-    answer:
-      'Speed'
-  },
-
-
-  {
-    question:
-      'What does rhythm mainly describe?',
-
-    options: [
-      'The pattern of beats',
-      'The colour of an instrument',
-      'The size of a stage',
-      'The name of a song'
-    ],
-
-    answer:
-      'The pattern of beats'
-  },
-
-
-  {
-    question:
-      'Which of these is a keyboard instrument?',
-
-    options: [
-      'Organ',
-      'Tuba',
-      'Piccolo',
-      'Congas'
-    ],
-
-    answer:
-      'Organ'
-  },
-
-
-  {
-    question:
-      'Which instrument is typically played with a bow?',
-
-    options: [
-      'Cello',
-      'Trumpet',
-      'Tambourine',
-      'Accordion'
-    ],
-
-    answer:
-      'Cello'
-  },
-
-
-  {
-    question:
-      'Which instrument belongs to the World family in MusicVerse?',
-
-    options: [
-      'Guzheng',
-      'French Horn',
-      'Drum Machine',
-      'Harpsichord'
-    ],
-
-    answer:
-      'Guzheng'
-  }
-];
-
-
-let quizIndex =
-  0;
-
-
-let quizScore =
-  0;
-
-
-/* =========================================================
-   RENDER QUIZ
-========================================================= */
-
-function renderQuiz() {
-
-  const element =
-    $('#quizBody');
-
-
-  if (
-    !element
-  ) {
-
-    return;
-  }
-
-
-/* =========================================================
-   QUIZ COMPLETE
-========================================================= */
-
-  if (
-    quizIndex >=
-    quizQuestions.length
-  ) {
-
-    element.innerHTML = `
-
-      <div class="quiz-complete">
-
-        <h3>
-          Quiz Complete!
-        </h3>
-
-        <p>
-          You scored
-          <strong>
-            ${quizScore}/${quizQuestions.length}
-          </strong>
-        </p>
+      <div class="battle-footer">
 
         <button
-          id="restartQuizBtn"
-          class="btn gold"
+          id="newOpponentBtn"
+          class="btn ghost"
         >
-          Play Again
+          New Opponent
+        </button>
+
+        <div
+          id="battleLog"
+          class="battle-log"
+        ></div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ============================
+         TEAM BATTLE
+    ============================ -->
+
+    <section
+      id="multiplayer"
+      class="section"
+    >
+
+      <div class="section-head">
+
+        <div>
+
+          <span class="eyebrow">
+            GRAND CONCERT HALL
+          </span>
+
+          <h2>
+            Team Battle
+          </h2>
+
+        </div>
+
+
+        <div class="team-size-buttons">
+
+          <button
+            class="mp-start"
+            data-team="1"
+          >
+            1v1
+          </button>
+
+          <button
+            class="mp-start"
+            data-team="3"
+          >
+            3v3
+          </button>
+
+          <button
+            class="mp-start"
+            data-team="5"
+          >
+            5v5
+          </button>
+
+          <button
+            class="mp-start active"
+            data-team="10"
+          >
+            10v10
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="teamLobby"
+        class="panel team-lobby"
+      >
+
+        <div class="team-hp-section">
+
+          <div class="team-hp-side">
+
+            <div class="team-hp-label blue">
+
+              <span>
+                🔵 TEAM BLUE
+              </span>
+
+              <strong id="blueTeamHPText">
+                10,000 / 10,000 HP
+              </strong>
+
+            </div>
+
+            <div class="team-hp-bar">
+              <i
+                id="blueTeamHPFill"
+                class="blue"
+              ></i>
+            </div>
+
+          </div>
+
+
+          <div class="team-hp-side">
+
+            <div class="team-hp-label red">
+
+              <span>
+                TEAM RED 🔴
+              </span>
+
+              <strong id="redTeamHPText">
+                10,000 / 10,000 HP
+              </strong>
+
+            </div>
+
+            <div class="team-hp-bar">
+              <i
+                id="redTeamHPFill"
+                class="red"
+              ></i>
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="concert-shell">
+
+          <div class="concert-lights">
+            <i></i>
+            <i></i>
+            <i></i>
+          </div>
+
+
+          <div class="concert-title">
+
+            <b>
+              THE MUSICVERSE GRAND HALL
+            </b>
+
+            <span id="concertRoundLabel">
+              LOBBY
+            </span>
+
+          </div>
+
+
+          <div class="stage-curtain left"></div>
+
+          <div class="stage-curtain right"></div>
+
+
+          <div
+            id="concertStage"
+            class="concert-stage"
+          >
+
+            <div
+              id="blueConcertPlayers"
+              class="concert-team-side blue-side"
+            ></div>
+
+            <div class="stage-center-mark">
+              ♫
+            </div>
+
+            <div
+              id="redConcertPlayers"
+              class="concert-team-side red-side"
+            ></div>
+
+          </div>
+
+
+          <div class="audience"></div>
+
+        </div>
+
+
+        <div
+          id="multiplayerBattleMessage"
+          class="multiplayer-battle-message"
+        >
+
+          <strong>
+            Choose a team size and start the concert battle.
+          </strong>
+
+          <span>
+            Every team shares 10,000 HP.
+          </span>
+
+        </div>
+
+
+        <div
+          id="teamMovePanel"
+          class="team-move-panel hidden"
+        >
+
+          <div class="team-turn-header">
+
+            <div>
+
+              <span class="eyebrow">
+                YOUR TURN
+              </span>
+
+              <h3 id="teamTurnTitle">
+                Choose your move
+              </h3>
+
+            </div>
+
+            <div class="team-energy-box">
+
+              Energy:
+
+              <strong id="teamEnergyLabel">
+                0 / 3
+              </strong>
+
+            </div>
+
+          </div>
+
+          <div
+            id="teamMoveButtons"
+            class="move-grid"
+          ></div>
+
+        </div>
+
+
+        <button
+          id="startTeamBattleBtn"
+          class="btn gold wide"
+        >
+          Start Concert Battle
         </button>
 
       </div>
-    `;
+
+    </section>
 
 
-    $('#restartQuizBtn').onclick =
-      () => {
+    <!-- ============================
+         GAME HUB
+    ============================ -->
 
-        quizIndex =
-          0;
+    <section
+      id="games"
+      class="section"
+    >
 
+      <div class="section-head">
 
-        quizScore =
-          0;
+        <div>
 
+          <span class="eyebrow">
+            ARCADE
+          </span>
 
-        renderQuiz();
-      };
+          <h2>
+            MusicVerse Games
+          </h2>
 
+        </div>
 
-    return;
-  }
+        <div class="shared-progress">
 
+          All games earn
 
-  const question =
-    quizQuestions[
-      quizIndex
-    ];
+          <b>
+            Universal EXP
+          </b>
 
-
-  element.innerHTML = `
-
-    <div class="quiz-card">
-
-      <div class="quiz-progress">
-
-        Question
-        ${quizIndex + 1}
-        /
-        ${quizQuestions.length}
+        </div>
 
       </div>
 
 
-      <h3>
-        ${question.question}
-      </h3>
+      <div
+        id="gameCards"
+        class="game-grid"
+      ></div>
 
 
-      <div class="quiz-options">
+      <div
+        id="gameStage"
+        class="game-stage panel hidden"
+      >
 
-        ${
-          question.options
-          .map(
-            option => `
+        <div class="game-stage-head">
 
-              <button
-                data-quiz-answer="${option}"
-              >
-                ${option}
-              </button>
-            `
-          )
-          .join('')
-        }
+          <div>
+
+            <span
+              id="gameEyebrow"
+              class="eyebrow"
+            >
+              GAME
+            </span>
+
+            <h2 id="gameTitle">
+              Game
+            </h2>
+
+          </div>
+
+          <button
+            id="closeGameBtn"
+            class="btn ghost small"
+          >
+            Close
+          </button>
+
+        </div>
+
+        <div id="gameBody"></div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ============================
+         GACHA
+    ============================ -->
+
+    <section
+      id="gacha"
+      class="section"
+    >
+
+      <div class="section-head">
+
+        <div>
+
+          <span class="eyebrow">
+            COLLECT COSMETICS
+          </span>
+
+          <h2>
+            Gacha Studio
+          </h2>
+
+        </div>
+
+        <div>
+
+          🪙
+          <b id="gachaCoins">0</b>
+
+          &nbsp;
+
+          ✦
+          <b id="gachaDust">0</b>
+
+        </div>
 
       </div>
 
 
-      <p id="quizFeedback"></p>
+      <div class="tabs">
 
-    </div>
-  `;
+        <button
+          class="gacha-tab active"
+          data-gacha="accessory"
+        >
+          Accessory
+        </button>
 
+        <button
+          class="gacha-tab"
+          data-gacha="pet"
+        >
+          Pet
+        </button>
 
-/* =========================================================
-   QUIZ ANSWERS
-========================================================= */
+        <button
+          class="gacha-tab"
+          data-gacha="aura"
+        >
+          Aura
+        </button>
 
-  $$('[data-quiz-answer]')
-  .forEach(
-    button => {
+        <button
+          class="gacha-tab"
+          data-gacha="skin"
+        >
+          Skin
+        </button>
 
-      button.onclick =
-        () => {
+      </div>
 
-          const correct =
-            button.dataset
-            .quizAnswer ===
-            question.answer;
 
+      <div class="gacha-layout">
 
-          $$('[data-quiz-answer]')
-          .forEach(
-            answerButton => {
+        <div class="gacha-orb panel">
 
-              answerButton.disabled =
-                true;
-            }
-          );
+          <div
+            id="gachaOrb"
+            class="orb"
+          >
+            ♫
+          </div>
 
+          <h3 id="gachaTitle">
+            Accessory Capsule
+          </h3>
 
-/* =========================================================
-   CORRECT ANSWER
-========================================================= */
+          <p id="gachaSubtitle">
+            Roll for cosmetics.
+          </p>
 
-          if (
-            correct
-          ) {
+          <div class="gacha-buttons">
 
-            quizScore++;
+            <button
+              id="rollOneBtn"
+              class="btn gold"
+            >
+              Roll x1
+            </button>
 
+            <button
+              id="rollTenBtn"
+              class="btn ghost"
+            >
+              Roll x10
+            </button>
 
-            profile.coins +=
-              1;
+          </div>
 
+          <div
+            id="gachaReveal"
+            class="gacha-reveal"
+          ></div>
 
-            addXP(
-              2
-            );
+        </div>
 
 
-            persist();
+        <div class="panel inventory-panel">
 
-            updateProfileUI();
+          <h3>
+            Inventory
+          </h3>
 
+          <div
+            id="inventoryGrid"
+            class="inventory-grid"
+          ></div>
 
-            $('#quizFeedback').textContent =
-              '✅ Correct! +2 EXP • +1 Coin';
+        </div>
 
+      </div>
 
-            S.correct();
-          }
+    </section>
 
 
-/* =========================================================
-   WRONG ANSWER
-========================================================= */
+    <!-- ============================
+         MUSICCRAFT
+    ============================ -->
 
-          else {
+    <section
+      id="musiccraft"
+      class="section"
+    >
 
-            $('#quizFeedback').textContent =
-              `❌ Correct answer: ${question.answer}`;
+      <div class="section-head">
 
+        <div>
 
-            S.wrong();
-          }
+          <span class="eyebrow">
+            BUILD & MINE
+          </span>
 
+          <h2>
+            MusicCraft
+          </h2>
 
-/* =========================================================
-   NEXT QUIZ QUESTION
-========================================================= */
+        </div>
 
-          setTimeout(
-            () => {
+        <button
+          id="newWorldBtn"
+          class="btn ghost small"
+        >
+          New World
+        </button>
 
-              quizIndex++;
+      </div>
 
 
-              renderQuiz();
-            },
+      <div class="craft-layout">
 
-            850
-          );
-        };
-    }
-  );
-}
+        <canvas
+          id="craftCanvas"
+          width="800"
+          height="480"
+        ></canvas>
 
 
-/* =========================================================
-   STARTUP / INITIALIZATION
-========================================================= */
+        <div class="panel craft-panel">
 
-setupProfile();
+          <h3>
+            Mining Mission
+          </h3>
 
-updateProfileUI();
+          <p id="missionText">
+            Mine 12 blocks.
+          </p>
 
-renderDailyRewards();
 
-renderFamilies();
+          <div class="craft-depth-card">
 
-renderInstruments();
+            <div class="craft-depth-row">
 
-refreshBattle(
-  true
-);
+              <span>
+                Current Zone
+              </span>
 
-openLobby(
-  10
-);
+              <strong id="craftDepthName">
+                Surface
+              </strong>
 
-renderGameCards();
+            </div>
 
-updateGachaUI();
 
-renderInventory();
+            <div class="craft-depth-row">
 
-newCraftWorld();
+              <span>
+                Layer
+              </span>
 
-renderLeaderboard();
+              <strong id="craftLayerLabel">
+                1 / 15
+              </strong>
 
-renderQuiz();
+            </div>
 
-ensureQuests();
 
-renderQuests();
+            <div class="depth-progress">
+              <i id="craftDepthFill"></i>
+            </div>
 
-renderEquipment();
+          </div>
 
-renderPets();
 
-renderEvolutionPanel();
+          <div
+            id="craftInventory"
+            class="craft-inventory"
+          ></div>
 
-renderInstrumentUpgradePanel();
 
-renderSkillTree();
+          <h3>
+            🥚 Pet Eggs
+          </h3>
 
-setupRpg();
 
+          <div
+            id="craftEggInventory"
+            class="craft-egg-inventory"
+          ></div>
 
-/* =========================================================
-   DAILY REWARD BUTTON
-========================================================= */
 
-const claimDailyBtn =
-  $('#claimDailyBtn');
+          <button
+            id="missionBtn"
+            class="btn gold"
+          >
+            Claim Mission
+          </button>
 
 
-if (
-  claimDailyBtn
-) {
+          <p class="muted">
+            Mine downward. Each layer has exclusive ores and a unique pet egg.
+          </p>
 
-  claimDailyBtn.onclick =
-    claimDailyReward;
-}
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ============================
+         LEADERBOARD
+    ============================ -->
+
+    <section
+      id="leaderboard"
+      class="section"
+    >
+
+      <div class="section-head">
+
+        <div>
+
+          <span class="eyebrow">
+            LOCAL DEMO
+          </span>
+
+          <h2>
+            Top 100 Musicians
+          </h2>
+
+        </div>
+
+        <div>
+
+          Your Rank:
+
+          <b id="yourRank">
+            #--
+          </b>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="podium"
+        class="podium"
+      ></div>
+
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+
+            <tr>
+              <th>#</th>
+              <th>Player</th>
+              <th>Level</th>
+              <th>Total EXP</th>
+            </tr>
+
+          </thead>
+
+          <tbody id="leaderboardBody"></tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+
+    <!-- ============================
+         QUIZ
+    ============================ -->
+
+    <section
+      id="quiz"
+      class="section"
+    >
+
+      <div class="section-head">
+
+        <div>
+
+          <span class="eyebrow">
+            MUSIC KNOWLEDGE
+          </span>
+
+          <h2>
+            Quick Quiz
+          </h2>
+
+        </div>
+
+        <div>
+
+          Score:
+
+          <b id="quizScore">
+            0
+          </b>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="quizCard"
+        class="quiz-card panel"
+      ></div>
+
+    </section>
+
+  </main>
+
+
+  <!-- ============================
+       TOAST
+  ============================ -->
+
+  <div
+    id="toast"
+    class="toast"
+  ></div>
+
+
+  <!-- ============================
+       FOOTER
+  ============================ -->
+
+  <footer>
+    MusicVerse • Play music. Build mastery. Grow one profile across every game.
+  </footer>
+
+
+  <!-- =====================================================
+       IMPORTANT:
+       JAVASCRIPT GOES HERE, DIRECTLY BEFORE </body>
+  ====================================================== -->
+
+  <script src="./script.js"></script>
+
+</body>
+</html>
